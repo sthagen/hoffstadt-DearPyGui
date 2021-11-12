@@ -21,6 +21,8 @@ import functools
 import inspect
 import dearpygui._dearpygui as internal_dpg
 from dearpygui._dearpygui import mvBuffer
+from dearpygui._dearpygui import mvVec4
+from dearpygui._dearpygui import mvMat4
 
 ########################################################################################################################
 # User API Index
@@ -1600,7 +1602,33 @@ def drag_payload(**kwargs):
 
 @contextmanager
 def draw_layer(**kwargs):
-	"""	 Creates a layer useful for grouping drawlist items.
+	"""	 New in 1.1. Creates a layer useful for grouping drawlist items.
+
+	Args:
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		show (bool, optional): Attempt to render widget.
+		perspective_divide (bool, optional): New in 1.1. apply perspective divide
+		depth_clipping (bool, optional): New in 1.1. apply depth clipping
+		cull_mode (int, optional): New in 1.1. culling mode, mvCullMode_* constants. Only works with triangles currently.
+		id (Union[int, str], optional): (deprecated)
+	Yields:
+		Union[int, str]
+	"""
+	try:
+		widget = internal_dpg.add_draw_layer(**kwargs)
+		internal_dpg.push_container_stack(widget)
+		yield widget
+	finally:
+		internal_dpg.pop_container_stack()
+
+@contextmanager
+def draw_node(**kwargs):
+	"""	 New in 1.1. Creates a drawing node to associate a transformation matrix. Child node matricies will concatenate.
 
 	Args:
 		label (str, optional): Overrides 'name' as label.
@@ -1615,7 +1643,7 @@ def draw_layer(**kwargs):
 		Union[int, str]
 	"""
 	try:
-		widget = internal_dpg.add_draw_layer(**kwargs)
+		widget = internal_dpg.add_draw_node(**kwargs)
 		internal_dpg.push_container_stack(widget)
 		yield widget
 	finally:
@@ -3542,7 +3570,28 @@ def add_drag_point(**kwargs):
 	return internal_dpg.add_drag_point(**kwargs)
 
 def add_draw_layer(**kwargs):
-	"""	 Creates a layer useful for grouping drawlist items.
+	"""	 New in 1.1. Creates a layer useful for grouping drawlist items.
+
+	Args:
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		show (bool, optional): Attempt to render widget.
+		perspective_divide (bool, optional): New in 1.1. apply perspective divide
+		depth_clipping (bool, optional): New in 1.1. apply depth clipping
+		cull_mode (int, optional): New in 1.1. culling mode, mvCullMode_* constants. Only works with triangles currently.
+		id (Union[int, str], optional): (deprecated)
+	Returns:
+		Union[int, str]
+	"""
+
+	return internal_dpg.add_draw_layer(**kwargs)
+
+def add_draw_node(**kwargs):
+	"""	 New in 1.1. Creates a drawing node to associate a transformation matrix. Child node matricies will concatenate.
 
 	Args:
 		label (str, optional): Overrides 'name' as label.
@@ -3557,7 +3606,7 @@ def add_draw_layer(**kwargs):
 		Union[int, str]
 	"""
 
-	return internal_dpg.add_draw_layer(**kwargs)
+	return internal_dpg.add_draw_node(**kwargs)
 
 def add_drawlist(width, height, **kwargs):
 	"""	 Adds a drawing canvas.
@@ -3667,7 +3716,7 @@ def add_file_extension(extension, **kwargs):
 		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
 		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
 		custom_text (str, optional): Replaces the displayed text in the drop down for this extension.
-		color (Union[List[float], Tuple[float, ...]], optional): Color for the text that will be shown with specified extensions.
+		color (Union[List[int], Tuple[int, ...]], optional): Color for the text that will be shown with specified extensions.
 		id (Union[int, str], optional): (deprecated)
 	Returns:
 		Union[int, str]
@@ -5962,8 +6011,8 @@ def add_text(default_value='', **kwargs):
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		wrap (int, optional): Number of pixels from the start of the item until wrapping starts.
 		bullet (bool, optional): Places a bullet to the left of the text.
-		color (Union[List[float], Tuple[float, ...]], optional): Color of the text (rgba).
-		show_label (bool, optional): Displays the label to teh right of the text.
+		color (Union[List[int], Tuple[int, ...]], optional): Color of the text (rgba).
+		show_label (bool, optional): Displays the label to the right of the text.
 		id (Union[int, str], optional): (deprecated)
 	Returns:
 		Union[int, str]
@@ -6277,6 +6326,18 @@ def add_window(**kwargs):
 
 	return internal_dpg.add_window(**kwargs)
 
+def apply_transform(item, transform):
+	"""	 New in 1.1. Applies a transformation matrix to a layer.
+
+	Args:
+		item (Union[int, str]): Drawing node to apply transform to.
+		transform (Any): Transformation matrix.
+	Returns:
+		None
+	"""
+
+	return internal_dpg.apply_transform(item, transform)
+
 def bind_colormap(item, source):
 	"""	 Sets the color map for widgets that accept it.
 
@@ -6400,6 +6461,96 @@ def create_context():
 	"""
 
 	return internal_dpg.create_context()
+
+def create_fps_matrix(eye, pitch, yaw):
+	"""	 New in 1.1. Create a 'first person shooter' matrix.
+
+	Args:
+		eye (Union[List[float], Tuple[float, ...]]): eye position
+		pitch (float): pitch (in radians)
+		yaw (float): yaw (in radians)
+	Returns:
+		Any
+	"""
+
+	return internal_dpg.create_fps_matrix(eye, pitch, yaw)
+
+def create_lookat_matrix(eye, target, up):
+	"""	 New in 1.1. Creates a 'Look at matrix'.
+
+	Args:
+		eye (Union[List[float], Tuple[float, ...]]): eye position
+		target (Union[List[float], Tuple[float, ...]]): target position
+		up (Union[List[float], Tuple[float, ...]]): up vector
+	Returns:
+		Any
+	"""
+
+	return internal_dpg.create_lookat_matrix(eye, target, up)
+
+def create_orthographic_matrix(left, right, bottom, top, zNear, zFar):
+	"""	 New in 1.1. Creates an orthographic matrix.
+
+	Args:
+		left (float): left plane
+		right (float): right plane
+		bottom (float): bottom plane
+		top (float): top plane
+		zNear (float): Near clipping plane.
+		zFar (float): Far clipping plane.
+	Returns:
+		Any
+	"""
+
+	return internal_dpg.create_orthographic_matrix(left, right, bottom, top, zNear, zFar)
+
+def create_perspective_matrix(fov, aspect, zNear, zFar):
+	"""	 New in 1.1. Creates a perspective matrix.
+
+	Args:
+		fov (float): Field of view (in radians)
+		aspect (float): Aspect ratio (width/height)
+		zNear (float): Near clipping plane.
+		zFar (float): Far clipping plane.
+	Returns:
+		Any
+	"""
+
+	return internal_dpg.create_perspective_matrix(fov, aspect, zNear, zFar)
+
+def create_rotation_matrix(angle, axis):
+	"""	 New in 1.1. Applies a transformation matrix to a layer.
+
+	Args:
+		angle (float): angle to rotate
+		axis (Union[List[float], Tuple[float, ...]]): axis to rotate around
+	Returns:
+		Any
+	"""
+
+	return internal_dpg.create_rotation_matrix(angle, axis)
+
+def create_scale_matrix(scales):
+	"""	 New in 1.1. Applies a transformation matrix to a layer.
+
+	Args:
+		scales (Union[List[float], Tuple[float, ...]]): scale values per axis
+	Returns:
+		Any
+	"""
+
+	return internal_dpg.create_scale_matrix(scales)
+
+def create_translation_matrix(translation):
+	"""	 New in 1.1. Creates a translation matrix.
+
+	Args:
+		translation (Union[List[float], Tuple[float, ...]]): translation vector
+	Returns:
+		Any
+	"""
+
+	return internal_dpg.create_translation_matrix(translation)
 
 def create_viewport(**kwargs):
 	"""	 Creates a viewport. Viewports are required.
@@ -6615,6 +6766,34 @@ def draw_image(texture_tag, pmin, pmax, **kwargs):
 	"""
 
 	return internal_dpg.draw_image(texture_tag, pmin, pmax, **kwargs)
+
+def draw_image_quad(texture_tag, p1, p2, p3, p4, **kwargs):
+	"""	 Adds an image (for a drawing).
+
+	Args:
+		texture_tag (Union[int, str]): 
+		p1 (Union[List[float], Tuple[float, ...]]): 
+		p2 (Union[List[float], Tuple[float, ...]]): 
+		p3 (Union[List[float], Tuple[float, ...]]): 
+		p4 (Union[List[float], Tuple[float, ...]]): 
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		show (bool, optional): Attempt to render widget.
+		uv1 (Union[List[float], Tuple[float, ...]], optional): Normalized coordinates on texture that will be drawn.
+		uv2 (Union[List[float], Tuple[float, ...]], optional): Normalized coordinates on texture that will be drawn.
+		uv3 (Union[List[float], Tuple[float, ...]], optional): Normalized coordinates on texture that will be drawn.
+		uv4 (Union[List[float], Tuple[float, ...]], optional): Normalized coordinates on texture that will be drawn.
+		color (Union[List[int], Tuple[int, ...]], optional): 
+		id (Union[int, str], optional): (deprecated)
+	Returns:
+		Union[int, str]
+	"""
+
+	return internal_dpg.draw_image_quad(texture_tag, p1, p2, p3, p4, **kwargs)
 
 def draw_line(p1, p2, **kwargs):
 	"""	 Adds a line.
@@ -6887,7 +7066,7 @@ def get_axis_limits(axis):
 	return internal_dpg.get_axis_limits(axis)
 
 def get_colormap_color(colormap, index):
-	"""	 Returns a color from a colormap given an index >= 0. (ex. 0 will be the first color in the color list of the color map) Modulo will be performed against the number of items in the color list. This command can only be ran once the app is started.
+	"""	 Returns a color from a colormap given an index >= 0. (ex. 0 will be the first color in the color list of the color map) Modulo will be performed against the number of items in the color list.
 
 	Args:
 		colormap (Union[int, str]): The colormap tag. This should come from a colormap that was added to a colormap registry. Built in color maps are accessible through their corresponding constants mvPlotColormap_Twilight, mvPlotColormap_***
@@ -7077,6 +7256,19 @@ def get_selected_nodes(node_editor):
 
 	return internal_dpg.get_selected_nodes(node_editor)
 
+def get_text_size(text, **kwargs):
+	"""	 Returns width/height of text with specified font (must occur after 1st frame).
+
+	Args:
+		text (str): 
+		wrap_width (float, optional): Wrap width to use (-1.0 turns wrap off).
+		font (Union[int, str], optional): Font to use.
+	Returns:
+		Union[List[float], Tuple[float, ...]]
+	"""
+
+	return internal_dpg.get_text_size(text, **kwargs)
+
 def get_total_time():
 	"""	 Returns total time since Dear PyGui has started.
 
@@ -7109,15 +7301,16 @@ def get_values(items):
 
 	return internal_dpg.get_values(items)
 
-def get_viewport_configuration():
+def get_viewport_configuration(item):
 	"""	 Returns a viewport's configuration.
 
 	Args:
+		item (Union[int, str]): 
 	Returns:
 		dict
 	"""
 
-	return internal_dpg.get_viewport_configuration()
+	return internal_dpg.get_viewport_configuration(item)
 
 def get_windows():
 	"""	 Returns all windows.
@@ -7556,7 +7749,7 @@ def reset_pos(item):
 	return internal_dpg.reset_pos(item)
 
 def sample_colormap(colormap, t):
-	"""	 Returns a color from a colormap given t between 0.0-1.0. This command can only be ran once the app is started.
+	"""	 Returns a color from a colormap given t between 0.0-1.0.
 
 	Args:
 		colormap (Union[int, str]): The colormap tag. This should come from a colormap that was added to a colormap registry. Built in color maps are accessible through their corresponding constants mvPlotColormap_Twilight, mvPlotColormap_***
@@ -7613,6 +7806,23 @@ def set_axis_ticks(axis, label_pairs):
 	"""
 
 	return internal_dpg.set_axis_ticks(axis, label_pairs)
+
+def set_clip_space(item, top_left_x, top_left_y, width, height, min_depth, max_depth):
+	"""	 New in 1.1. Set the clip space for depth clipping and 'viewport' transformation.
+
+	Args:
+		item (Union[int, str]): draw layer to set clip space
+		top_left_x (float): angle to rotate
+		top_left_y (float): angle to rotate
+		width (float): angle to rotate
+		height (float): angle to rotate
+		min_depth (float): angle to rotate
+		max_depth (float): angle to rotate
+	Returns:
+		None
+	"""
+
+	return internal_dpg.set_clip_space(item, top_left_x, top_left_y, width, height, min_depth, max_depth)
 
 def set_exit_callback(callback):
 	"""	 Sets a callback to run on last frame.
@@ -8168,6 +8378,7 @@ mvDatePickerLevel_Year=internal_dpg.mvDatePickerLevel_Year
 mvColorButton=internal_dpg.mvColorButton
 mvFileDialog=internal_dpg.mvFileDialog
 mvTabButton=internal_dpg.mvTabButton
+mvDrawNode=internal_dpg.mvDrawNode
 mvNodeEditor=internal_dpg.mvNodeEditor
 mvNode=internal_dpg.mvNode
 mvNodeAttribute=internal_dpg.mvNodeAttribute
@@ -8190,6 +8401,10 @@ mvTableRow=internal_dpg.mvTableRow
 mvDrawLine=internal_dpg.mvDrawLine
 mvDrawArrow=internal_dpg.mvDrawArrow
 mvDrawTriangle=internal_dpg.mvDrawTriangle
+mvCullMode_None=internal_dpg.mvCullMode_None
+mvCullMode_Back=internal_dpg.mvCullMode_Back
+mvCullMode_Front=internal_dpg.mvCullMode_Front
+mvDrawImageQuad=internal_dpg.mvDrawImageQuad
 mvDrawCircle=internal_dpg.mvDrawCircle
 mvDrawEllipse=internal_dpg.mvDrawEllipse
 mvDrawBezierCubic=internal_dpg.mvDrawBezierCubic

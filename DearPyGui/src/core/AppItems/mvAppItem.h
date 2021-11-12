@@ -39,10 +39,10 @@ namespace Marvel {
         mvPlot, mvSimplePlot, mvDrawlist, mvWindowAppItem,
         mvSelectable, mvTreeNode, mvProgressBar, mvSpacer,
         mvImageButton, mvTimePicker, mvDatePicker, mvColorButton,
-        mvFileDialog, mvTabButton,
+        mvFileDialog, mvTabButton, mvDrawNode,
         mvNodeEditor, mvNode, mvNodeAttribute,
         mvTable, mvTableColumn, mvTableRow,
-        mvDrawLine, mvDrawArrow, mvDrawTriangle,
+        mvDrawLine, mvDrawArrow, mvDrawTriangle, mvDrawImageQuad,
         mvDrawCircle, mvDrawEllipse, mvDrawBezierCubic, mvDrawBezierQuadratic,
         mvDrawQuad, mvDrawRect, mvDrawText, mvDrawPolygon, mvDrawPolyline,
         mvDrawImage, mvDragFloatMulti, mvDragIntMulti, mvSliderFloatMulti,
@@ -130,18 +130,19 @@ namespace Marvel {
         //   - MV_APPLY_WIDGET_REGISTRATION
         //-----------------------------------------------------------------------------
         [[nodiscard]] virtual mvRef<mvAppItem>  getClassThemeComponent() const = 0;
+        [[nodiscard]] virtual mvRef<mvAppItem>  getClassDisabledThemeComponent() const = 0;
         [[nodiscard]] virtual mvAppItemType     getType      () const { return mvAppItemType::None; } // should be pure, see #1071
-        [[nodiscard]] virtual int               getDescFlags () const = 0;
-        [[nodiscard]] virtual int               getTarget    () const = 0; // which child slot
+        [[nodiscard]] virtual i32               getDescFlags () const = 0;
+        [[nodiscard]] virtual i32               getTarget    () const = 0; // which child slot
         [[nodiscard]] virtual StorageValueTypes getValueType () const = 0;
         [[nodiscard]] virtual const char*       getCommand   () const = 0;
         [[nodiscard]] virtual const char*       getTypeString() const = 0;
-        [[nodiscard]] virtual int               getApplicableState() const = 0;
-        [[nodiscard]] virtual const std::vector<std::pair<std::string, int>>& getAllowableParents() const = 0;
-        [[nodiscard]] virtual const std::vector<std::pair<std::string, int>>& getAllowableChildren() const = 0;
+        [[nodiscard]] virtual i32               getApplicableState() const = 0;
+        [[nodiscard]] virtual const std::vector<std::pair<std::string, i32>>& getAllowableParents() const = 0;
+        [[nodiscard]] virtual const std::vector<std::pair<std::string, i32>>& getAllowableChildren() const = 0;
 
         // actual immediate mode drawing instructions
-        virtual void draw(ImDrawList* drawlist, float x, float y) = 0;
+        virtual void draw(ImDrawList* drawlist, f32 x, f32 y) = 0;
 
         //-----------------------------------------------------------------------------
         // usually used for iterating through items and performing an action
@@ -187,7 +188,7 @@ namespace Marvel {
         //-----------------------------------------------------------------------------
         // callbacks
         //-----------------------------------------------------------------------------
-        [[nodiscard]] PyObject* getCallback(bool ignore_enabled = true);  // returns the callback. If ignore_enable false and item is disabled then no callback will be returned.
+        [[nodiscard]] PyObject* getCallback(b8 ignore_enabled = true);  // returns the callback. If ignore_enable false and item is disabled then no callback will be returned.
        
         //-----------------------------------------------------------------------------
         // config setters
@@ -212,27 +213,27 @@ namespace Marvel {
         std::string    _internalLabel; // label passed into imgui
         mvAppItem*     _parentPtr = nullptr;
         mvAppItemState _state;
-        int            _location = -1;
-        bool           _showDebug = false;
+        i32            _location = -1;
+        b8             _showDebug = false;
         
         // item pool info
         mvUUID _pool = 0;
         mvUUID _itemSet = 0;
         
         // next frame triggers
-        bool _focusNextFrame = false;
-        bool _triggerAlternativeAction = false;
-        bool _shownLastFrame = false;
-        bool _hiddenLastFrame = false;
-        bool _enabledLastFrame = false;
-        bool _disabledLastFrame = false;
+        b8 _focusNextFrame = false;
+        b8 _triggerAlternativeAction = false;
+        b8 _shownLastFrame = false;
+        b8 _hiddenLastFrame = false;
+        b8 _enabledLastFrame = false;
+        b8 _disabledLastFrame = false;
 
         // previous frame cache
         ImVec2 _previousCursorPos = { 0.0f, 0.0f };
 
         // dirty flags
-        bool _dirty_size = true;
-        bool _dirtyPos = false;
+        b8 _dirty_size = true;
+        b8 _dirtyPos = false;
 
         // slots
         //   * 0 : mvFileExtension, mvFontRangeHint, mvNodeLink, mvAnnotation
@@ -250,7 +251,6 @@ namespace Marvel {
 
         // theme
         mvRef<mvAppItem> _theme = nullptr;
-        mvRef<mvAppItem> _themeComponent = nullptr;
 
         // drag & drop
         PyObject* _dragCallback = nullptr;
@@ -263,20 +263,47 @@ namespace Marvel {
         mvUUID      _parent = 0;
         mvUUID      _before = 0;
         std::string _filter;
-        int         _width = 0;
-        int         _height = 0;
-        float       _indent = -1.0f;
-        bool        _show = true;
-        bool        _enabled = true;
+        i32         _width = 0;
+        i32         _height = 0;
+        f32         _indent = -1.0f;
+        b8          _show = true;
+        b8          _enabled = true;
         PyObject*   _callback = nullptr;
         PyObject*   _user_data = nullptr;
-        bool        _tracked = false;
-        float       _trackOffset = 0.5f; // 0.0f:top, 0.5f:center, 1.0f:bottom
-        bool        _searchLast = false;
-        bool        _searchDelayed = false;
-        bool        _useInternalLabel = true; // when false, will use specificed label
+        b8          _tracked = false;
+        f32         _trackOffset = 0.5f; // 0.0f:top, 0.5f:center, 1.0f:bottom
+        b8          _searchLast = false;
+        b8          _searchDelayed = false;
+        b8          _useInternalLabel = true; // when false, will use specificed label
         std::string _alias;
+
+        // only for draw cmds and layers (unfortunately this is the best place
+        // to put it for the moment.
+        mvMat4 _transform = mvIdentityMat4();
+
+        // only used by nodes
+        mvMat4 _appliedTransform = mvIdentityMat4();
+
+        // only used by draw items
+        long    _cullMode = 0; // mvCullMode_None
+        b8      _perspectiveDivide = false;
+        b8      _depthClipping = false;
+        f32     _clipViewport[6] = { 0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f }; // top leftx, top lefty, width, height, min depth, maxdepth
 
     };
 
+    inline b8 mvClipPoint(f32 clipViewport[6], mvVec4& point)
+    {
+
+        if (point.x < clipViewport[0]) return true;
+        if (point.x > clipViewport[0] + clipViewport[2]) return true;
+
+        if (point.y > clipViewport[1]) return true;
+        if (point.y < clipViewport[1] - clipViewport[3]) return true;
+
+        if (point.z < clipViewport[4]) return true;
+        if (point.z > clipViewport[5]) return true;
+
+        return false;
+    }
 }

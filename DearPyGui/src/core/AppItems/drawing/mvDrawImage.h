@@ -29,6 +29,7 @@ namespace Marvel {
             MV_ADD_PARENT(mvAppItemType::mvDrawLayer),
             MV_ADD_PARENT(mvAppItemType::mvWindowAppItem),
             MV_ADD_PARENT(mvAppItemType::mvPlot),
+            MV_ADD_PARENT(mvAppItemType::mvDrawNode),
             MV_ADD_PARENT(mvAppItemType::mvViewportDrawlist)
         MV_END_PARENTS
 
@@ -47,8 +48,8 @@ namespace Marvel {
 
 
         mvUUID      _textureUUID = 0;
-        mvVec2      _pmax = {0.0f, 0.0f};
-        mvVec2      _pmin = {0.0f, 0.0f};
+        mvVec4      _pmax = {0.0f, 0.0f, 0.0f, 1.0f};
+        mvVec4      _pmin = {0.0f, 0.0f, 0.0f, 1.0f};
         mvVec2      _uv_min = {0.0f, 0.0f};
         mvVec2      _uv_max = {1.0f, 1.0f};
         mvColor     _color = mvImGuiCol_Text;

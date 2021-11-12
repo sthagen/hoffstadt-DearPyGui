@@ -99,8 +99,16 @@ namespace Marvel {
 		}
 
 		// themes
-		if (auto classTheme = getClassThemeComponent())
-			static_cast<mvThemeComponent*>(classTheme.get())->draw(nullptr, 0.0f, 0.0f);
+		if (_enabled)
+		{
+			if (auto classTheme = getClassThemeComponent())
+				static_cast<mvThemeComponent*>(classTheme.get())->draw(nullptr, 0.0f, 0.0f);
+		}
+		else
+		{
+			if (auto classTheme = getClassDisabledThemeComponent())
+				static_cast<mvThemeComponent*>(classTheme.get())->draw(nullptr, 0.0f, 0.0f);
+		}
 
 		if (_theme)
 		{
@@ -124,10 +132,12 @@ namespace Marvel {
 			// create menu item and see if its selected
 			if (ImGui::MenuItem(_internalLabel.c_str(), _shortcut.c_str(), _check ? _value.get() : nullptr, _enabled))
 			{
+				bool value = *_value;
+
 				if(_alias.empty())
-					mvAddCallback(_callback, _uuid, nullptr, _user_data);
+					mvAddCallback(_callback, _uuid, ToPyBool(value), _user_data);
 				else
-					mvAddCallback(_callback, _alias, nullptr, _user_data);
+					mvAddCallback(_callback, _alias, ToPyBool(value), _user_data);
 			}
 
 			ImGui::PopStyleColor();
@@ -155,8 +165,16 @@ namespace Marvel {
 			ImGui::PopFont();
 
 		// handle popping themes
-		if (auto classTheme = getClassThemeComponent())
-			static_cast<mvThemeComponent*>(classTheme.get())->customAction();
+		if (_enabled)
+		{
+			if (auto classTheme = getClassThemeComponent())
+				static_cast<mvThemeComponent*>(classTheme.get())->customAction();
+		}
+		else
+		{
+			if (auto classTheme = getClassDisabledThemeComponent())
+				static_cast<mvThemeComponent*>(classTheme.get())->customAction();
+		}
 
 		if (_theme)
 		{

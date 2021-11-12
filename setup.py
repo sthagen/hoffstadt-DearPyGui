@@ -9,7 +9,7 @@ import sys
 import shutil
 import subprocess
 
-wip_version = "1.0.1"
+wip_version = "1.1.1b1"
 
 def version_number():
     """This function reads the version number which is populated by github actions"""
@@ -142,6 +142,8 @@ def setup_package():
                         newfile.write("\tpass\n")
                     elif line.__contains__("dearpygui._dearpygui"):
                         newfile.write("mvBuffer = 7\n") # hacky
+                        newfile.write("mvVec4 = 7\n") # hacky
+                        newfile.write("mvMat4 = 7\n") # hacky
                     else:
                         newfile.write(line)
     else:

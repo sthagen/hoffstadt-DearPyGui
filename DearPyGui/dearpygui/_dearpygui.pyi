@@ -74,7 +74,7 @@ def add_color_value(*, label: str ='', user_data: Any ='', use_internal_label: b
 	"""Adds a color value."""
 	...
 
-def add_colormap(colors : List[List[int]], qualitative : bool, *, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', show: bool ='', parent: Union[int, str] ='') -> Union[int, str]:
+def add_colormap(colors : List[Union[List[int], Tuple[int, ...]]], qualitative : bool, *, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', show: bool ='', parent: Union[int, str] ='') -> Union[int, str]:
 	"""Adds a legend that pairs colors with normalized value 0.0->1.0. Each color will be  This is typically used with a heat series. (ex. [[0, 0, 0, 255], [255, 255, 255, 255]] will be mapped to a soft transition from 0.0-1.0)"""
 	...
 
@@ -138,8 +138,12 @@ def add_drag_point(*, label: str ='', user_data: Any ='', use_internal_label: bo
 	"""Adds a drag point to a plot."""
 	...
 
-def add_draw_layer(*, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', parent: Union[int, str] ='', before: Union[int, str] ='', show: bool ='') -> Union[int, str]:
-	"""Creates a layer useful for grouping drawlist items."""
+def add_draw_layer(*, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', parent: Union[int, str] ='', before: Union[int, str] ='', show: bool ='', perspective_divide: bool ='', depth_clipping: bool ='', cull_mode: int ='') -> Union[int, str]:
+	"""New in 1.1. Creates a layer useful for grouping drawlist items."""
+	...
+
+def add_draw_node(*, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', parent: Union[int, str] ='', before: Union[int, str] ='', show: bool ='') -> Union[int, str]:
+	"""New in 1.1. Creates a drawing node to associate a transformation matrix. Child node matricies will concatenate."""
 	...
 
 def add_drawlist(width : int, height : int, *, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', parent: Union[int, str] ='', before: Union[int, str] ='', callback: Callable ='', show: bool ='', pos: Union[List[int], Tuple[int, ...]] ='', filter_key: str ='', delay_search: bool ='', tracked: bool ='', track_offset: float ='') -> Union[int, str]:
@@ -158,7 +162,7 @@ def add_file_dialog(*, label: str ='', user_data: Any ='', use_internal_label: b
 	"""Displays a file or directory selector depending on keywords. Displays a file dialog by default. Callback will be ran when the file or directory picker is closed. The app_data arguemnt will be populated with information related to the file and directory as a dictionary."""
 	...
 
-def add_file_extension(extension : str, *, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', width: int ='', height: int ='', parent: Union[int, str] ='', before: Union[int, str] ='', custom_text: str ='', color: Union[List[float], Tuple[float, ...]] ='') -> Union[int, str]:
+def add_file_extension(extension : str, *, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', width: int ='', height: int ='', parent: Union[int, str] ='', before: Union[int, str] ='', custom_text: str ='', color: Union[List[int], Tuple[int, ...]] ='') -> Union[int, str]:
 	"""Creates a file extension filter option in the file dialog."""
 	...
 
@@ -530,7 +534,7 @@ def add_template_registry(*, label: str ='', user_data: Any ='', use_internal_la
 	"""Adds a template registry."""
 	...
 
-def add_text(default_value : str ='', *, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', indent: int ='', parent: Union[int, str] ='', before: Union[int, str] ='', source: Union[int, str] ='', payload_type: str ='', drag_callback: Callable ='', drop_callback: Callable ='', show: bool ='', pos: Union[List[int], Tuple[int, ...]] ='', filter_key: str ='', tracked: bool ='', track_offset: float ='', wrap: int ='', bullet: bool ='', color: Union[List[float], Tuple[float, ...]] ='', show_label: bool ='') -> Union[int, str]:
+def add_text(default_value : str ='', *, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', indent: int ='', parent: Union[int, str] ='', before: Union[int, str] ='', source: Union[int, str] ='', payload_type: str ='', drag_callback: Callable ='', drop_callback: Callable ='', show: bool ='', pos: Union[List[int], Tuple[int, ...]] ='', filter_key: str ='', tracked: bool ='', track_offset: float ='', wrap: int ='', bullet: bool ='', color: Union[List[int], Tuple[int, ...]] ='', show_label: bool ='') -> Union[int, str]:
 	"""Adds text. Text can have an optional label that will display to the right of the text."""
 	...
 
@@ -590,6 +594,10 @@ def add_window(*, label: str ='', user_data: Any ='', use_internal_label: bool =
 	"""Creates a new window for following items to be added to."""
 	...
 
+def apply_transform(item : Union[int, str], transform : Any) -> None:
+	"""New in 1.1. Applies a transformation matrix to a layer."""
+	...
+
 def bind_colormap(item : Union[int, str], source : Union[int, str]) -> None:
 	"""Sets the color map for widgets that accept it."""
 	...
@@ -630,7 +638,7 @@ def clear_selected_nodes(node_editor : Union[int, str]) -> None:
 	"""Clears a node editor's selected nodes."""
 	...
 
-def configure_app(*, docking: bool ='', docking_space: bool ='', load_init_file: str ='', init_file: str ='', auto_save_init_file: bool ='', device: int ='', auto_device: bool ='', allow_alias_overwrites: bool ='', manual_alias_management: bool ='', skip_required_args: bool ='', skip_positional_args: bool ='', skip_keyword_args: bool ='', **kwargs) -> None:
+def configure_app(*, docking: bool ='', docking_space: bool ='', load_init_file: str ='', init_file: str ='', auto_save_init_file: bool ='', device: int ='', auto_device: bool ='', allow_alias_overwrites: bool ='', manual_alias_management: bool ='', skip_required_args: bool ='', skip_positional_args: bool ='', skip_keyword_args: bool ='', wait_for_input: bool ='', **kwargs) -> None:
 	"""Configures app."""
 	...
 
@@ -638,12 +646,40 @@ def configure_item(item : Union[int, str], **kwargs) -> None:
 	"""Configures an item."""
 	...
 
-def configure_viewport(, **kwargs) -> None:
+def configure_viewport(item : Union[int, str], **kwargs) -> None:
 	"""Configures a viewport."""
 	...
 
 def create_context() -> None:
 	"""Creates the Dear PyGui context."""
+	...
+
+def create_fps_matrix(eye : Union[List[float], Tuple[float, ...]], pitch : float, yaw : float) -> Any:
+	"""New in 1.1. Create a 'first person shooter' matrix."""
+	...
+
+def create_lookat_matrix(eye : Union[List[float], Tuple[float, ...]], target : Union[List[float], Tuple[float, ...]], up : Union[List[float], Tuple[float, ...]]) -> Any:
+	"""New in 1.1. Creates a 'Look at matrix'."""
+	...
+
+def create_orthographic_matrix(left : float, right : float, bottom : float, top : float, zNear : float, zFar : float) -> Any:
+	"""New in 1.1. Creates an orthographic matrix."""
+	...
+
+def create_perspective_matrix(fov : float, aspect : float, zNear : float, zFar : float) -> Any:
+	"""New in 1.1. Creates a perspective matrix."""
+	...
+
+def create_rotation_matrix(angle : float, axis : Union[List[float], Tuple[float, ...]]) -> Any:
+	"""New in 1.1. Applies a transformation matrix to a layer."""
+	...
+
+def create_scale_matrix(scales : Union[List[float], Tuple[float, ...]]) -> Any:
+	"""New in 1.1. Applies a transformation matrix to a layer."""
+	...
+
+def create_translation_matrix(translation : Union[List[float], Tuple[float, ...]]) -> Any:
+	"""New in 1.1. Creates a translation matrix."""
 	...
 
 def create_viewport(*, title: str ='', small_icon: str ='', large_icon: str ='', width: int ='', height: int ='', x_pos: int ='', y_pos: int ='', min_width: int ='', max_width: int ='', min_height: int ='', max_height: int ='', resizable: bool ='', vsync: bool ='', always_on_top: bool ='', decorated: bool ='', clear_color: Union[List[float], Tuple[float, ...]] ='') -> None:
@@ -687,6 +723,10 @@ def draw_ellipse(pmin : Union[List[float], Tuple[float, ...]], pmax : Union[List
 	...
 
 def draw_image(texture_tag : Union[int, str], pmin : Union[List[float], Tuple[float, ...]], pmax : Union[List[float], Tuple[float, ...]], *, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', parent: Union[int, str] ='', before: Union[int, str] ='', show: bool ='', uv_min: Union[List[float], Tuple[float, ...]] ='', uv_max: Union[List[float], Tuple[float, ...]] ='', color: Union[List[int], Tuple[int, ...]] ='') -> Union[int, str]:
+	"""Adds an image (for a drawing)."""
+	...
+
+def draw_image_quad(texture_tag : Union[int, str], p1 : Union[List[float], Tuple[float, ...]], p2 : Union[List[float], Tuple[float, ...]], p3 : Union[List[float], Tuple[float, ...]], p4 : Union[List[float], Tuple[float, ...]], *, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', parent: Union[int, str] ='', before: Union[int, str] ='', show: bool ='', uv1: Union[List[float], Tuple[float, ...]] ='', uv2: Union[List[float], Tuple[float, ...]] ='', uv3: Union[List[float], Tuple[float, ...]] ='', uv4: Union[List[float], Tuple[float, ...]] ='', color: Union[List[int], Tuple[int, ...]] ='') -> Union[int, str]:
 	"""Adds an image (for a drawing)."""
 	...
 
@@ -759,7 +799,7 @@ def get_axis_limits(axis : Union[int, str]) -> Union[List[float], Tuple[float, .
 	...
 
 def get_colormap_color(colormap : Union[int, str], index : int) -> Union[List[int], Tuple[int, ...]]:
-	"""Returns a color from a colormap given an index >= 0. (ex. 0 will be the first color in the color list of the color map) Modulo will be performed against the number of items in the color list. This command can only be ran once the app is started."""
+	"""Returns a color from a colormap given an index >= 0. (ex. 0 will be the first color in the color list of the color map) Modulo will be performed against the number of items in the color list."""
 	...
 
 def get_delta_time() -> float:
@@ -830,6 +870,10 @@ def get_selected_nodes(node_editor : Union[int, str]) -> Union[List[int], Tuple[
 	"""Returns a node editor's selected nodes."""
 	...
 
+def get_text_size(text : str, *, wrap_width: float ='', font: Union[int, str] ='') -> Union[List[float], Tuple[float, ...]]:
+	"""Returns width/height of text with specified font (must occur after 1st frame)."""
+	...
+
 def get_total_time() -> float:
 	"""Returns total time since Dear PyGui has started."""
 	...
@@ -842,7 +886,7 @@ def get_values(items : Union[List[int], Tuple[int, ...]]) -> Any:
 	"""Returns values of a list of items."""
 	...
 
-def get_viewport_configuration() -> dict:
+def get_viewport_configuration(item : Union[int, str]) -> dict:
 	"""Returns a viewport's configuration."""
 	...
 
@@ -1003,7 +1047,7 @@ def reset_pos(item : Union[int, str]) -> None:
 	...
 
 def sample_colormap(colormap : Union[int, str], t : float) -> Union[List[int], Tuple[int, ...]]:
-	"""Returns a color from a colormap given t between 0.0-1.0. This command can only be ran once the app is started."""
+	"""Returns a color from a colormap given t between 0.0-1.0."""
 	...
 
 def save_init_file(file : str) -> None:
@@ -1020,6 +1064,10 @@ def set_axis_limits_auto(axis : Union[int, str]) -> None:
 
 def set_axis_ticks(axis : Union[int, str], label_pairs : Any) -> None:
 	"""Replaces axis ticks with 'label_pairs' argument."""
+	...
+
+def set_clip_space(item : Union[int, str], top_left_x : float, top_left_y : float, width : float, height : float, min_depth : float, max_depth : float) -> None:
+	"""New in 1.1. Set the clip space for depth clipping and 'viewport' transformation."""
 	...
 
 def set_exit_callback(callback : Callable) -> str:
@@ -1371,6 +1419,7 @@ mvDatePickerLevel_Year=0
 mvColorButton=0
 mvFileDialog=0
 mvTabButton=0
+mvDrawNode=0
 mvNodeEditor=0
 mvNode=0
 mvNodeAttribute=0
@@ -1393,6 +1442,10 @@ mvTableRow=0
 mvDrawLine=0
 mvDrawArrow=0
 mvDrawTriangle=0
+mvCullMode_None=0
+mvCullMode_Back=0
+mvCullMode_Front=0
+mvDrawImageQuad=0
 mvDrawCircle=0
 mvDrawEllipse=0
 mvDrawBezierCubic=0

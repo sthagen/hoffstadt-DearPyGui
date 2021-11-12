@@ -13,6 +13,11 @@ else() # Linux
     add_definitions(-DMV_PLATFORM="linux")
 endif()
 
+if(WIN32)
+else() # Linux
+	add_definitions(-DCUSTOM_IMGUIFILEDIALOG_CONFIG="ImGuiFileDialogConfigUnix.h")
+endif()
+
 # various settings
 add_definitions(
     -D_CRT_SECURE_NO_WARNINGS 

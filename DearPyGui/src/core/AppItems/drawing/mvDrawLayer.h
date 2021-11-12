@@ -13,8 +13,9 @@ namespace Marvel {
         static void InsertParser(std::map<std::string, mvPythonParser>* parsers);
 
         MV_APPLY_WIDGET_REGISTRATION(mvAppItemType::mvDrawLayer, add_draw_layer)
-        MV_NO_COMMANDS
         MV_NO_CONSTANTS
+
+        MV_CREATE_COMMAND(set_clip_space);
 
         MV_SET_STATES(MV_STATE_NONE);
 
@@ -22,7 +23,6 @@ namespace Marvel {
             MV_ADD_PARENT(mvAppItemType::mvTemplateRegistry),
             MV_ADD_PARENT(mvAppItemType::mvStage),
             MV_ADD_PARENT(mvAppItemType::mvDrawlist),
-            MV_ADD_PARENT(mvAppItemType::mvDrawLayer),
             MV_ADD_PARENT(mvAppItemType::mvWindowAppItem),
             MV_ADD_PARENT(mvAppItemType::mvPlot),
             MV_ADD_PARENT(mvAppItemType::mvViewportDrawlist)
@@ -41,14 +41,23 @@ namespace Marvel {
             MV_ADD_CHILD(mvAppItemType::mvDrawText),
             MV_ADD_CHILD(mvAppItemType::mvDrawPolygon),
             MV_ADD_CHILD(mvAppItemType::mvDrawPolyline),
-            MV_ADD_CHILD(mvAppItemType::mvDrawImage)
+            MV_ADD_CHILD(mvAppItemType::mvDrawImage),
+            MV_ADD_CHILD(mvAppItemType::mvDrawImageQuad),
+            MV_ADD_CHILD(mvAppItemType::mvDrawNode),
         MV_END_CHILDREN
+
+        MV_START_COMMANDS
+            MV_ADD_COMMAND(set_clip_space);
+        MV_END_COMMANDS
 
     public:
 
         explicit mvDrawLayer(mvUUID uuid);
+        ~mvDrawLayer();
 
         void draw(ImDrawList* drawlist, float x, float y) override;
+        void handleSpecificKeywordArgs(PyObject* dict) override;
+        void getSpecificConfiguration(PyObject* dict) override;
 
     };
 

@@ -7,29 +7,14 @@
 //     
 //-----------------------------------------------------------------------------
 
-#include <imgui.h>
-#include <implot.h>
+
 #include <utility>
 #include <memory>
 #include <unordered_map>
+#include "mvTypes.h"
+#include "mvMath.h"
 
 namespace Marvel {
-
-	template<typename T>
-	using mvOwnedPtr = std::unique_ptr<T>;
-	template<typename T, typename ... Args>
-	constexpr mvOwnedPtr<T> CreateOwnedPtr(Args&& ... args)
-	{
-		return std::make_unique<T>(std::forward<Args>(args)...);
-	}
-
-	template<typename T>
-	using mvRef = std::shared_ptr<T>;
-	template<typename T, typename ... Args>
-	constexpr mvRef<T> CreateRef(Args&& ... args)
-	{
-		return std::make_shared<T>(std::forward<Args>(args)...);
-	}
 
 	//-----------------------------------------------------------------------------
 	// mvFunctionWrapper
@@ -83,67 +68,6 @@ namespace Marvel {
 
 		std::unique_ptr<impl_base> m_impl;
 
-	};
-
-	//-----------------------------------------------------------------------------
-	// mvPlotPoint
-	//-----------------------------------------------------------------------------
-	struct mvPlotPoint
-	{
-		double x, y;
-
-		operator ImPlotPoint()
-		{
-			return ImPlotPoint{ x, y };
-		}
-
-		mvPlotPoint operator+(const ImPlotPoint& other)
-		{
-			return mvPlotPoint{ x + other.x, y + other.y };
-		}
-	};
-
-	//-----------------------------------------------------------------------------
-	// mvVec2
-	//-----------------------------------------------------------------------------
-	struct mvVec2
-	{
-		float x, y;
-
-		operator ImVec2()
-		{
-			return ImVec2{ x, y };
-		}
-
-		operator ImPlotPoint()
-		{
-			return ImPlotPoint{ (double)x, (double)y };
-		}
-
-		mvVec2 operator+(const ImVec2& other)
-		{
-			return mvVec2{ x + other.x, y + other.y };
-		}
-	};
-
-	//-----------------------------------------------------------------------------
-	// mvVec4
-	//-----------------------------------------------------------------------------
-	struct mvVec4
-	{
-		float x, y, z, w;
-
-		operator ImVec4()
-		{
-			if (x < 0 || y < 0 || z < 0 || w < 0)
-				return ImVec4(0, 0, 0, -1);
-			return ImVec4{ x, y , z, w};
-		}
-
-		mvVec4 operator+(const ImVec4& other)
-		{
-			return mvVec4{ x + other.x, y + other.y, z + other.z, w + other.w };
-		}
 	};
 
 	//-----------------------------------------------------------------------------
@@ -218,19 +142,8 @@ namespace Marvel {
 		}
 	}
 
-	typedef std::unordered_map<long, float> mvThemeStyles;
-	typedef unsigned long long mvUUID;
-}
 
-#if !defined(mv_internal)
-#define mv_internal static
-#endif
-#define mv_local_persist static
-#define mv_global static
-#define mv_python_function PyObject*
-#ifndef mv_impl
-#define mv_impl
-#endif
+}
 
 #define MV_DEFAULT_COLOR Marvel::mvColor(1.0f, 1.0f, 1.0f, 1.0f)
 

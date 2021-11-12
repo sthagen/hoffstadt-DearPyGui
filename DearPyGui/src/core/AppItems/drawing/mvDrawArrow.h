@@ -26,6 +26,7 @@ namespace Marvel {
             MV_ADD_PARENT(mvAppItemType::mvDrawLayer),
             MV_ADD_PARENT(mvAppItemType::mvWindowAppItem),
             MV_ADD_PARENT(mvAppItemType::mvPlot),
+            MV_ADD_PARENT(mvAppItemType::mvDrawNode),
             MV_ADD_PARENT(mvAppItemType::mvViewportDrawlist),
             MV_ADD_PARENT(mvAppItemType::mvTemplateRegistry),
         MV_END_PARENTS
@@ -46,12 +47,12 @@ namespace Marvel {
 
     private:
 
-        mvVec2              _p1 = { 0.0f, 0.0f };
-        mvVec2              _p2 = { 0.0f, 0.0f };
-        mvColor             _color;
-        float               _thickness = 1.0f;
-        float               _size = 4;
-        std::vector<mvVec2> _points;
+        mvVec4  _p1 = { 0.0f, 0.0f, 0.0f, 1.0f };
+        mvVec4  _p2 = { 0.0f, 0.0f, 0.0f, 1.0f };
+        mvColor _color;
+        float   _thickness = 1.0f;
+        float   _size = 4;
+        mvVec4  _points[3];
 
     };
 

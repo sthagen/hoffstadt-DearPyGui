@@ -109,6 +109,8 @@
 #include "drawing/mvDrawImage.h"
 #include "drawing/mvDrawLayer.h"
 #include "drawing/mvViewportDrawlist.h"
+#include "drawing/mvDrawImageQuad.h"
+#include "drawing/mvDrawNode.h"
 
 #include "custom/mvTimePicker.h"
 #include "custom/mvDatePicker.h"

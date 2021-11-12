@@ -83,7 +83,11 @@ namespace Marvel {
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
         // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-        glfwPollEvents();
+
+        if (GContext->IO.waitForInput)
+            glfwWaitEvents();
+        else
+            glfwPollEvents();
 
         if (mvToolManager::GetFontManager().isInvalid())
         {
@@ -136,8 +140,6 @@ namespace Marvel {
         // Cleanup
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
-        imnodes::DestroyContext();
-        ImGui::DestroyContext();
 
         glfwDestroyWindow(ghandle);
         glfwTerminate();
@@ -202,11 +204,6 @@ namespace Marvel {
 
         gl3wInit();
 
-        // Setup Dear ImGui binding
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImPlot::CreateContext();
-        imnodes::CreateContext();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         io.ConfigWindowsMoveFromTitleBarOnly = true;
 

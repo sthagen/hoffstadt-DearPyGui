@@ -45,7 +45,9 @@ namespace Marvel {
             MV_ADD_CHILD(mvAppItemType::mvDrawText),
             MV_ADD_CHILD(mvAppItemType::mvDrawPolygon),
             MV_ADD_CHILD(mvAppItemType::mvDrawPolyline),
-            MV_ADD_CHILD(mvAppItemType::mvDrawImage)
+            MV_ADD_CHILD(mvAppItemType::mvDrawImageQuad),
+            MV_ADD_CHILD(mvAppItemType::mvDrawImage),
+            MV_ADD_CHILD(mvAppItemType::mvDrawNode),
         MV_END_CHILDREN
 
     public:

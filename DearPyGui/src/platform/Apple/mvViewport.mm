@@ -62,9 +62,6 @@ namespace Marvel {
         // Cleanup
         ImGui_ImplMetal_Shutdown();
         ImGui_ImplGlfw_Shutdown();
-        imnodes::DestroyContext();
-        ImPlot::DestroyContext();
-        ImGui::DestroyContext();
 
         glfwDestroyWindow(ghandle);
         glfwTerminate();
@@ -102,11 +99,6 @@ namespace Marvel {
         gdevice = MTLCreateSystemDefaultDevice();
         gcommandQueue = [gdevice newCommandQueue];
 
-        // Setup Dear ImGui binding
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImPlot::CreateContext();
-        imnodes::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
         io.ConfigWindowsMoveFromTitleBarOnly = true;
 
@@ -213,12 +205,16 @@ namespace Marvel {
         }
 
         @autoreleasepool {
+
             // Poll and handle events (inputs, window resize, etc.)
             // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
             // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
             // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
             // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-            glfwPollEvents();
+            if (GContext->IO.waitForInput)
+                glfwWaitEvents();
+            else
+                glfwPollEvents();
 
             if (mvToolManager::GetFontManager().isInvalid())
             {
