@@ -165,7 +165,7 @@ namespace Marvel {
 				"Source item not found: " + std::to_string(dataSource), this);
 			return;
 		}
-		if (item->getValueType() != getValueType())
+		if (GetEntityValueType(item->getType()) != GetEntityValueType(getType()))
 		{
 			mvThrowPythonError(mvErrorCode::mvSourceNotCompatible, "set_value",
 				"Values types do not match: " + std::to_string(dataSource), this);
@@ -274,6 +274,18 @@ namespace Marvel {
 				MV_ITEM_REGISTRY_ERROR("Item's parent must be plot.");
 			}
 		}
+	}
+
+	void mvThemeStyle::getSpecificConfiguration(PyObject* dict)
+	{
+		if (dict == nullptr)
+			return;
+
+		mvPyObject py_target = ToPyInt(_targetStyle);
+		mvPyObject py_cat = ToPyInt((int)_libType);
+
+		PyDict_SetItemString(dict, "target", py_target);
+		PyDict_SetItemString(dict, "category", py_cat);
 	}
 
 	void mvThemeStyle::applySpecificTemplate(mvAppItem* item)

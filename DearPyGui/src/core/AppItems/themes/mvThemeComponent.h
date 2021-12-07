@@ -4,7 +4,6 @@
 
 namespace Marvel {
 
-    MV_REGISTER_WIDGET(mvThemeComponent, MV_ITEM_DESC_DEFAULT | MV_ITEM_DESC_CONTAINER, StorageValueTypes::None, 1);
     class mvThemeComponent : public mvAppItem
     {
 
@@ -16,9 +15,7 @@ namespace Marvel {
 
         MV_APPLY_WIDGET_REGISTRATION(mvAppItemType::mvThemeComponent, add_theme_component)
         MV_NO_COMMANDS
-        MV_NO_CONSTANTS
 
-        MV_SET_STATES(MV_STATE_NONE);
 
         MV_START_PARENTS
             MV_ADD_PARENT(mvAppItemType::mvTheme)
@@ -36,6 +33,7 @@ namespace Marvel {
         void draw(ImDrawList* drawlist, float x, float y) override;
         void handleSpecificPositionalArgs(PyObject* dict) override;
         void handleSpecificKeywordArgs(PyObject* dict) override;
+        void getSpecificConfiguration(PyObject* dict) override;
         void customAction(void* data = nullptr) override;
 
     public:

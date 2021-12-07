@@ -121,6 +121,16 @@ namespace Marvel {
             return;
         }
 
+        // hacky fix, started was set to false
+        // to exit the event loop, but needs to be
+        // true in order to run DPG commands for the 
+        // exit callback.
+        GContext->started = true;
+        mvSubmitCallback([=]() {
+            mvRunCallback(GContext->callbackRegistry->onCloseCallback, 0, nullptr, nullptr);
+            GContext->started = false;  // return to false after
+            });
+
         imnodes::DestroyContext();
         ImPlot::DestroyContext();
         ImGui::DestroyContext();
@@ -128,17 +138,15 @@ namespace Marvel {
         mvToolManager::Reset();
         ClearItemRegistry(*GContext->itemRegistry);
 
-        constexpr_for<1, (i32)mvAppItemType::ItemTypeCount, 1>(
-            [&](auto i) {
-                using item_type = typename mvItemTypeMap<i>::type;
-                item_type::s_class_theme_component = nullptr;
-                item_type::s_class_theme_disabled_component = nullptr;
-            });
+        #define X(el) el::s_class_theme_component = nullptr; el::s_class_theme_disabled_component = nullptr;
+        MV_ITEM_TYPES
+        #undef X
 
         mvSubmitCallback([=]() {
             GContext->callbackRegistry->running = false;
             });
-        GContext->future.get();
+        if(GContext->future.valid())
+            GContext->future.get();
         if (GContext->viewport)
             delete GContext->viewport;
 
