@@ -47,6 +47,22 @@ from dearpygui._dearpygui import mvMat4
 # Helper Commands
 ########################################################################################################################
 
+def run_callbacks(jobs):
+    """ New in 1.2. Runs callbacks from the callback queue and checks arguments. """
+
+    if jobs is None:
+        pass
+    else:
+        for job in jobs:
+            if job[0] is None:
+                pass
+            else:
+                sig = inspect.signature(job[0])
+                args = []
+                for arg in range(len(sig.parameters)):
+                    args.append(job[arg+1])
+                job[0](*args)
+
 def get_major_version():
     """ return Dear PyGui Major Version """
     return internal_dpg.get_app_configuration()["major_version"]
@@ -70,7 +86,6 @@ def configure_app(**kwargs) -> None:
 def configure_viewport(item : Union[int, str], **kwargs) -> None:
 	"""Configures a viewport after creation."""
 	internal_dpg.configure_viewport(item, **kwargs)
-
 
 def start_dearpygui():
     """Prepares viewport (if not done already). sets up, cleans up, and runs main event loop.
@@ -1381,8 +1396,8 @@ def add_child(**kwargs):
 		tracked (bool, optional): Scroll tracking
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		border (bool, optional): Shows/Hides the border around the sides.
-		autosize_x (bool, optional): Autosize the window to fit it's items in the x.
-		autosize_y (bool, optional): Autosize the window to fit it's items in the y.
+		autosize_x (bool, optional): Autosize the window to its parents size in x.
+		autosize_y (bool, optional): Autosize the window to its parents size in y.
 		no_scrollbar (bool, optional):  Disable scrollbars (window can still scroll with mouse or programmatically).
 		horizontal_scrollbar (bool, optional): Allow horizontal scrollbar to appear (off by default).
 		menubar (bool, optional): Shows/Hides the menubar at the top.
@@ -1417,8 +1432,8 @@ def child(**kwargs):
 		tracked (bool, optional): Scroll tracking
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		border (bool, optional): Shows/Hides the border around the sides.
-		autosize_x (bool, optional): Autosize the window to fit it's items in the x.
-		autosize_y (bool, optional): Autosize the window to fit it's items in the y.
+		autosize_x (bool, optional): Autosize the window to its parents size in x.
+		autosize_y (bool, optional): Autosize the window to its parents size in y.
 		no_scrollbar (bool, optional):  Disable scrollbars (window can still scroll with mouse or programmatically).
 		horizontal_scrollbar (bool, optional): Allow horizontal scrollbar to appear (off by default).
 		menubar (bool, optional): Shows/Hides the menubar at the top.
@@ -1474,8 +1489,8 @@ def child_window(*, label: str =None, user_data: Any =None, use_internal_label: 
 		tracked (bool, optional): Scroll tracking
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		border (bool, optional): Shows/Hides the border around the sides.
-		autosize_x (bool, optional): Autosize the window to fit it's items in the x.
-		autosize_y (bool, optional): Autosize the window to fit it's items in the y.
+		autosize_x (bool, optional): Autosize the window to its parents size in x.
+		autosize_y (bool, optional): Autosize the window to its parents size in y.
 		no_scrollbar (bool, optional):  Disable scrollbars (window can still scroll with mouse or programmatically).
 		horizontal_scrollbar (bool, optional): Allow horizontal scrollbar to appear (off by default).
 		menubar (bool, optional): Shows/Hides the menubar at the top.
@@ -1713,7 +1728,7 @@ def drawlist(width : int, height : int, *, label: str =None, user_data: Any =Non
 		internal_dpg.pop_container_stack()
 
 @contextmanager
-def file_dialog(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, callback: Callable =None, show: bool =True, default_path: str ='', default_filename: str ='.', file_count: int =0, modal: bool =False, directory_selector: bool =False, **kwargs) -> Union[int, str]:
+def file_dialog(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, callback: Callable =None, show: bool =True, default_path: str ='', default_filename: str ='.', file_count: int =0, modal: bool =False, directory_selector: bool =False, min_size: Union[List[int], Tuple[int, ...]] =[100, 100], max_size: Union[List[int], Tuple[int, ...]] =[30000, 30000], **kwargs) -> Union[int, str]:
 	"""	 Displays a file or directory selector depending on keywords. Displays a file dialog by default. Callback will be ran when the file or directory picker is closed. The app_data arguemnt will be populated with information related to the file and directory as a dictionary.
 
 	Args:
@@ -1730,6 +1745,8 @@ def file_dialog(*, label: str =None, user_data: Any =None, use_internal_label: b
 		file_count (int, optional): Number of visible files in the dialog.
 		modal (bool, optional): Forces user interaction with the file selector.
 		directory_selector (bool, optional): Shows only directory/paths as options. Allows selection of directory/paths only.
+		min_size (Union[List[int], Tuple[int, ...]], optional): Minimum window size.
+		max_size (Union[List[int], Tuple[int, ...]], optional): Maximum window size.
 		id (Union[int, str], optional): (deprecated) 
 	Yields:
 		Union[int, str]
@@ -1739,7 +1756,7 @@ def file_dialog(*, label: str =None, user_data: Any =None, use_internal_label: b
 		if 'id' in kwargs.keys():
 			warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 			tag=kwargs['id']
-		widget = internal_dpg.add_file_dialog(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, callback=callback, show=show, default_path=default_path, default_filename=default_filename, file_count=file_count, modal=modal, directory_selector=directory_selector, **kwargs)
+		widget = internal_dpg.add_file_dialog(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, callback=callback, show=show, default_path=default_path, default_filename=default_filename, file_count=file_count, modal=modal, directory_selector=directory_selector, min_size=min_size, max_size=max_size, **kwargs)
 		internal_dpg.push_container_stack(widget)
 		yield widget
 	finally:
@@ -2711,7 +2728,7 @@ def viewport_menu_bar(*, label: str =None, user_data: Any =None, use_internal_la
 		internal_dpg.pop_container_stack()
 
 @contextmanager
-def window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], delay_search: bool =False, min_size: Union[List[int], Tuple[int, ...]] =[100, 100], max_size: Union[List[int], Tuple[int, ...]] =[30000, 30000], menubar: bool =False, collapsed: bool =False, autosize: bool =False, no_resize: bool =False, no_title_bar: bool =False, no_move: bool =False, no_scrollbar: bool =False, no_collapse: bool =False, horizontal_scrollbar: bool =False, no_focus_on_appearing: bool =False, no_bring_to_front_on_focus: bool =False, no_close: bool =False, no_background: bool =False, modal: bool =False, popup: bool =False, no_saved_settings: bool =False, on_close: Callable =None, **kwargs) -> Union[int, str]:
+def window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], delay_search: bool =False, min_size: Union[List[int], Tuple[int, ...]] =[100, 100], max_size: Union[List[int], Tuple[int, ...]] =[30000, 30000], menubar: bool =False, collapsed: bool =False, autosize: bool =False, no_resize: bool =False, no_title_bar: bool =False, no_move: bool =False, no_scrollbar: bool =False, no_collapse: bool =False, horizontal_scrollbar: bool =False, no_focus_on_appearing: bool =False, no_bring_to_front_on_focus: bool =False, no_close: bool =False, no_background: bool =False, modal: bool =False, popup: bool =False, no_saved_settings: bool =False, no_open_over_existing_popup: bool =True, on_close: Callable =None, **kwargs) -> Union[int, str]:
 	"""	 Creates a new window for following items to be added to.
 
 	Args:
@@ -2743,6 +2760,7 @@ def window(*, label: str =None, user_data: Any =None, use_internal_label: bool =
 		modal (bool, optional): Fills area behind window according to the theme and disables user ability to interact with anything except the window.
 		popup (bool, optional): Fills area behind window according to the theme, removes title bar, collapse and close. Window can be closed by selecting area in the background behind the window.
 		no_saved_settings (bool, optional): Never load/save settings in .ini file.
+		no_open_over_existing_popup (bool, optional): Don't open if there's already a popup
 		on_close (Callable, optional): Callback ran when window is closed.
 		id (Union[int, str], optional): (deprecated) 
 	Yields:
@@ -2753,7 +2771,7 @@ def window(*, label: str =None, user_data: Any =None, use_internal_label: bool =
 		if 'id' in kwargs.keys():
 			warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 			tag=kwargs['id']
-		widget = internal_dpg.add_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, show=show, pos=pos, delay_search=delay_search, min_size=min_size, max_size=max_size, menubar=menubar, collapsed=collapsed, autosize=autosize, no_resize=no_resize, no_title_bar=no_title_bar, no_move=no_move, no_scrollbar=no_scrollbar, no_collapse=no_collapse, horizontal_scrollbar=horizontal_scrollbar, no_focus_on_appearing=no_focus_on_appearing, no_bring_to_front_on_focus=no_bring_to_front_on_focus, no_close=no_close, no_background=no_background, modal=modal, popup=popup, no_saved_settings=no_saved_settings, on_close=on_close, **kwargs)
+		widget = internal_dpg.add_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, show=show, pos=pos, delay_search=delay_search, min_size=min_size, max_size=max_size, menubar=menubar, collapsed=collapsed, autosize=autosize, no_resize=no_resize, no_title_bar=no_title_bar, no_move=no_move, no_scrollbar=no_scrollbar, no_collapse=no_collapse, horizontal_scrollbar=horizontal_scrollbar, no_focus_on_appearing=no_focus_on_appearing, no_bring_to_front_on_focus=no_bring_to_front_on_focus, no_close=no_close, no_background=no_background, modal=modal, popup=popup, no_saved_settings=no_saved_settings, no_open_over_existing_popup=no_open_over_existing_popup, on_close=on_close, **kwargs)
 		internal_dpg.push_container_stack(widget)
 		yield widget
 	finally:
@@ -3073,8 +3091,8 @@ def add_child_window(*, label: str =None, user_data: Any =None, use_internal_lab
 		tracked (bool, optional): Scroll tracking
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		border (bool, optional): Shows/Hides the border around the sides.
-		autosize_x (bool, optional): Autosize the window to fit it's items in the x.
-		autosize_y (bool, optional): Autosize the window to fit it's items in the y.
+		autosize_x (bool, optional): Autosize the window to its parents size in x.
+		autosize_y (bool, optional): Autosize the window to its parents size in y.
 		no_scrollbar (bool, optional):  Disable scrollbars (window can still scroll with mouse or programmatically).
 		horizontal_scrollbar (bool, optional): Allow horizontal scrollbar to appear (off by default).
 		menubar (bool, optional): Shows/Hides the menubar at the top.
@@ -3960,7 +3978,7 @@ def add_error_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[f
 
 	return internal_dpg.add_error_series(x, y, negative, positive, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, contribute_to_bounds=contribute_to_bounds, horizontal=horizontal, **kwargs)
 
-def add_file_dialog(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, callback: Callable =None, show: bool =True, default_path: str ='', default_filename: str ='.', file_count: int =0, modal: bool =False, directory_selector: bool =False, **kwargs) -> Union[int, str]:
+def add_file_dialog(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, callback: Callable =None, show: bool =True, default_path: str ='', default_filename: str ='.', file_count: int =0, modal: bool =False, directory_selector: bool =False, min_size: Union[List[int], Tuple[int, ...]] =[100, 100], max_size: Union[List[int], Tuple[int, ...]] =[30000, 30000], **kwargs) -> Union[int, str]:
 	"""	 Displays a file or directory selector depending on keywords. Displays a file dialog by default. Callback will be ran when the file or directory picker is closed. The app_data arguemnt will be populated with information related to the file and directory as a dictionary.
 
 	Args:
@@ -3977,6 +3995,8 @@ def add_file_dialog(*, label: str =None, user_data: Any =None, use_internal_labe
 		file_count (int, optional): Number of visible files in the dialog.
 		modal (bool, optional): Forces user interaction with the file selector.
 		directory_selector (bool, optional): Shows only directory/paths as options. Allows selection of directory/paths only.
+		min_size (Union[List[int], Tuple[int, ...]], optional): Minimum window size.
+		max_size (Union[List[int], Tuple[int, ...]], optional): Maximum window size.
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -3986,7 +4006,7 @@ def add_file_dialog(*, label: str =None, user_data: Any =None, use_internal_labe
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_file_dialog(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, callback=callback, show=show, default_path=default_path, default_filename=default_filename, file_count=file_count, modal=modal, directory_selector=directory_selector, **kwargs)
+	return internal_dpg.add_file_dialog(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, callback=callback, show=show, default_path=default_path, default_filename=default_filename, file_count=file_count, modal=modal, directory_selector=directory_selector, min_size=min_size, max_size=max_size, **kwargs)
 
 def add_file_extension(extension : str, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, parent: Union[int, str] =0, before: Union[int, str] =0, custom_text: str ='', color: Union[List[int], Tuple[int, ...]] =(-255, 0, 0, 255), **kwargs) -> Union[int, str]:
 	"""	 Creates a file extension filter option in the file dialog.
@@ -6978,7 +6998,7 @@ def add_vline_series(x : Union[List[float], Tuple[float, ...]], *, label: str =N
 
 	return internal_dpg.add_vline_series(x, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, **kwargs)
 
-def add_window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], delay_search: bool =False, min_size: Union[List[int], Tuple[int, ...]] =[100, 100], max_size: Union[List[int], Tuple[int, ...]] =[30000, 30000], menubar: bool =False, collapsed: bool =False, autosize: bool =False, no_resize: bool =False, no_title_bar: bool =False, no_move: bool =False, no_scrollbar: bool =False, no_collapse: bool =False, horizontal_scrollbar: bool =False, no_focus_on_appearing: bool =False, no_bring_to_front_on_focus: bool =False, no_close: bool =False, no_background: bool =False, modal: bool =False, popup: bool =False, no_saved_settings: bool =False, on_close: Callable =None, **kwargs) -> Union[int, str]:
+def add_window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], delay_search: bool =False, min_size: Union[List[int], Tuple[int, ...]] =[100, 100], max_size: Union[List[int], Tuple[int, ...]] =[30000, 30000], menubar: bool =False, collapsed: bool =False, autosize: bool =False, no_resize: bool =False, no_title_bar: bool =False, no_move: bool =False, no_scrollbar: bool =False, no_collapse: bool =False, horizontal_scrollbar: bool =False, no_focus_on_appearing: bool =False, no_bring_to_front_on_focus: bool =False, no_close: bool =False, no_background: bool =False, modal: bool =False, popup: bool =False, no_saved_settings: bool =False, no_open_over_existing_popup: bool =True, on_close: Callable =None, **kwargs) -> Union[int, str]:
 	"""	 Creates a new window for following items to be added to.
 
 	Args:
@@ -7010,6 +7030,7 @@ def add_window(*, label: str =None, user_data: Any =None, use_internal_label: bo
 		modal (bool, optional): Fills area behind window according to the theme and disables user ability to interact with anything except the window.
 		popup (bool, optional): Fills area behind window according to the theme, removes title bar, collapse and close. Window can be closed by selecting area in the background behind the window.
 		no_saved_settings (bool, optional): Never load/save settings in .ini file.
+		no_open_over_existing_popup (bool, optional): Don't open if there's already a popup
 		on_close (Callable, optional): Callback ran when window is closed.
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
@@ -7020,7 +7041,7 @@ def add_window(*, label: str =None, user_data: Any =None, use_internal_label: bo
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, show=show, pos=pos, delay_search=delay_search, min_size=min_size, max_size=max_size, menubar=menubar, collapsed=collapsed, autosize=autosize, no_resize=no_resize, no_title_bar=no_title_bar, no_move=no_move, no_scrollbar=no_scrollbar, no_collapse=no_collapse, horizontal_scrollbar=horizontal_scrollbar, no_focus_on_appearing=no_focus_on_appearing, no_bring_to_front_on_focus=no_bring_to_front_on_focus, no_close=no_close, no_background=no_background, modal=modal, popup=popup, no_saved_settings=no_saved_settings, on_close=on_close, **kwargs)
+	return internal_dpg.add_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, show=show, pos=pos, delay_search=delay_search, min_size=min_size, max_size=max_size, menubar=menubar, collapsed=collapsed, autosize=autosize, no_resize=no_resize, no_title_bar=no_title_bar, no_move=no_move, no_scrollbar=no_scrollbar, no_collapse=no_collapse, horizontal_scrollbar=horizontal_scrollbar, no_focus_on_appearing=no_focus_on_appearing, no_bring_to_front_on_focus=no_bring_to_front_on_focus, no_close=no_close, no_background=no_background, modal=modal, popup=popup, no_saved_settings=no_saved_settings, no_open_over_existing_popup=no_open_over_existing_popup, on_close=on_close, **kwargs)
 
 def apply_transform(item : Union[int, str], transform : Any, **kwargs) -> None:
 	"""	 New in 1.1. Applies a transformation matrix to a layer.
@@ -7816,6 +7837,16 @@ def get_axis_limits(axis : Union[int, str], **kwargs) -> Union[List[float], Tupl
 	"""
 
 	return internal_dpg.get_axis_limits(axis, **kwargs)
+
+def get_callback_queue(**kwargs) -> Any:
+	"""	 New in 1.2. Returns and clears callback queue.
+
+	Args:
+	Returns:
+		Any
+	"""
+
+	return internal_dpg.get_callback_queue(**kwargs)
 
 def get_colormap_color(colormap : Union[int, str], index : int, **kwargs) -> Union[List[int], Tuple[int, ...]]:
 	"""	 Returns a color from a colormap given an index >= 0. (ex. 0 will be the first color in the color list of the color map) Modulo will be performed against the number of items in the color list.

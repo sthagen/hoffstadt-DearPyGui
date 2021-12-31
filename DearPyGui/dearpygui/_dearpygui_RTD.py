@@ -47,6 +47,22 @@ from dearpygui._dearpygui import mvMat4
 # Helper Commands
 ########################################################################################################################
 
+def run_callbacks(jobs):
+    """ New in 1.2. Runs callbacks from the callback queue and checks arguments. """
+
+    if jobs is None:
+        pass
+    else:
+        for job in jobs:
+            if job[0] is None:
+                pass
+            else:
+                sig = inspect.signature(job[0])
+                args = []
+                for arg in range(len(sig.parameters)):
+                    args.append(job[arg+1])
+                job[0](*args)
+
 def get_major_version():
     """ return Dear PyGui Major Version """
     return internal_dpg.get_app_configuration()["major_version"]
@@ -70,7 +86,6 @@ def configure_app(**kwargs) -> None:
 def configure_viewport(item : Union[int, str], **kwargs) -> None:
 	"""Configures a viewport after creation."""
 	internal_dpg.configure_viewport(item, **kwargs)
-
 
 def start_dearpygui():
     """Prepares viewport (if not done already). sets up, cleans up, and runs main event loop.
@@ -1381,8 +1396,8 @@ def add_child(**kwargs):
 		tracked (bool, optional): Scroll tracking
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		border (bool, optional): Shows/Hides the border around the sides.
-		autosize_x (bool, optional): Autosize the window to fit it's items in the x.
-		autosize_y (bool, optional): Autosize the window to fit it's items in the y.
+		autosize_x (bool, optional): Autosize the window to its parents size in x.
+		autosize_y (bool, optional): Autosize the window to its parents size in y.
 		no_scrollbar (bool, optional):  Disable scrollbars (window can still scroll with mouse or programmatically).
 		horizontal_scrollbar (bool, optional): Allow horizontal scrollbar to appear (off by default).
 		menubar (bool, optional): Shows/Hides the menubar at the top.
@@ -1417,8 +1432,8 @@ def child(**kwargs):
 		tracked (bool, optional): Scroll tracking
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		border (bool, optional): Shows/Hides the border around the sides.
-		autosize_x (bool, optional): Autosize the window to fit it's items in the x.
-		autosize_y (bool, optional): Autosize the window to fit it's items in the y.
+		autosize_x (bool, optional): Autosize the window to its parents size in x.
+		autosize_y (bool, optional): Autosize the window to its parents size in y.
 		no_scrollbar (bool, optional):  Disable scrollbars (window can still scroll with mouse or programmatically).
 		horizontal_scrollbar (bool, optional): Allow horizontal scrollbar to appear (off by default).
 		menubar (bool, optional): Shows/Hides the menubar at the top.
@@ -1474,8 +1489,8 @@ def child_window(**kwargs):
 		tracked (bool, optional): Scroll tracking
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		border (bool, optional): Shows/Hides the border around the sides.
-		autosize_x (bool, optional): Autosize the window to fit it's items in the x.
-		autosize_y (bool, optional): Autosize the window to fit it's items in the y.
+		autosize_x (bool, optional): Autosize the window to its parents size in x.
+		autosize_y (bool, optional): Autosize the window to its parents size in y.
 		no_scrollbar (bool, optional):  Disable scrollbars (window can still scroll with mouse or programmatically).
 		horizontal_scrollbar (bool, optional): Allow horizontal scrollbar to appear (off by default).
 		menubar (bool, optional): Shows/Hides the menubar at the top.
@@ -1698,6 +1713,8 @@ def file_dialog(**kwargs):
 		file_count (int, optional): Number of visible files in the dialog.
 		modal (bool, optional): Forces user interaction with the file selector.
 		directory_selector (bool, optional): Shows only directory/paths as options. Allows selection of directory/paths only.
+		min_size (Union[List[int], Tuple[int, ...]], optional): Minimum window size.
+		max_size (Union[List[int], Tuple[int, ...]], optional): Maximum window size.
 		id (Union[int, str], optional): (deprecated)
 	Yields:
 		Union[int, str]
@@ -2583,6 +2600,7 @@ def window(**kwargs):
 		modal (bool, optional): Fills area behind window according to the theme and disables user ability to interact with anything except the window.
 		popup (bool, optional): Fills area behind window according to the theme, removes title bar, collapse and close. Window can be closed by selecting area in the background behind the window.
 		no_saved_settings (bool, optional): Never load/save settings in .ini file.
+		no_open_over_existing_popup (bool, optional): Don't open if there's already a popup
 		on_close (Callable, optional): Callback ran when window is closed.
 		id (Union[int, str], optional): (deprecated)
 	Yields:
@@ -2873,8 +2891,8 @@ def add_child_window(**kwargs):
 		tracked (bool, optional): Scroll tracking
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		border (bool, optional): Shows/Hides the border around the sides.
-		autosize_x (bool, optional): Autosize the window to fit it's items in the x.
-		autosize_y (bool, optional): Autosize the window to fit it's items in the y.
+		autosize_x (bool, optional): Autosize the window to its parents size in x.
+		autosize_y (bool, optional): Autosize the window to its parents size in y.
 		no_scrollbar (bool, optional):  Disable scrollbars (window can still scroll with mouse or programmatically).
 		horizontal_scrollbar (bool, optional): Allow horizontal scrollbar to appear (off by default).
 		menubar (bool, optional): Shows/Hides the menubar at the top.
@@ -3653,6 +3671,8 @@ def add_file_dialog(**kwargs):
 		file_count (int, optional): Number of visible files in the dialog.
 		modal (bool, optional): Forces user interaction with the file selector.
 		directory_selector (bool, optional): Shows only directory/paths as options. Allows selection of directory/paths only.
+		min_size (Union[List[int], Tuple[int, ...]], optional): Minimum window size.
+		max_size (Union[List[int], Tuple[int, ...]], optional): Maximum window size.
 		id (Union[int, str], optional): (deprecated)
 	Returns:
 		Union[int, str]
@@ -6244,6 +6264,7 @@ def add_window(**kwargs):
 		modal (bool, optional): Fills area behind window according to the theme and disables user ability to interact with anything except the window.
 		popup (bool, optional): Fills area behind window according to the theme, removes title bar, collapse and close. Window can be closed by selecting area in the background behind the window.
 		no_saved_settings (bool, optional): Never load/save settings in .ini file.
+		no_open_over_existing_popup (bool, optional): Don't open if there's already a popup
 		on_close (Callable, optional): Callback ran when window is closed.
 		id (Union[int, str], optional): (deprecated)
 	Returns:
@@ -6990,6 +7011,16 @@ def get_axis_limits(axis):
 	"""
 
 	return internal_dpg.get_axis_limits(axis)
+
+def get_callback_queue():
+	"""	 New in 1.2. Returns and clears callback queue.
+
+	Args:
+	Returns:
+		Any
+	"""
+
+	return internal_dpg.get_callback_queue()
 
 def get_colormap_color(colormap, index):
 	"""	 Returns a color from a colormap given an index >= 0. (ex. 0 will be the first color in the color list of the color map) Modulo will be performed against the number of items in the color list.
