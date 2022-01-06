@@ -296,7 +296,7 @@ namespace Marvel {
 			break;
 		}
 
-		case WM_MOVE:
+		case WM_MOVING:
 			viewport->xpos = (int)(short)LOWORD(lParam);   // horizontal position 
 			viewport->ypos = (int)(short)HIWORD(lParam);   // vertical position 
 			break;
@@ -324,10 +324,21 @@ namespace Marvel {
 
 				viewport->actualWidth = awidth;
 				viewport->actualHeight = aheight;
-				viewport->clientWidth = cwidth;
-				viewport->clientHeight = cheight;
 
-				mvOnResize();
+
+				if (viewport->decorated)
+				{
+					GContext->viewport->clientHeight = cheight;
+					GContext->viewport->clientWidth = cwidth;
+				}
+				else
+				{
+					GContext->viewport->clientHeight = cheight + 39;
+					GContext->viewport->clientWidth = cwidth + 16;
+				}
+				
+				GContext->viewport->resized = true;
+				//mvOnResize();
 
 				// I believe this are only used for the error logger
 				viewport->width = (UINT)LOWORD(lParam);
@@ -435,6 +446,9 @@ namespace Marvel {
 		ghandle = CreateWindow(gwc.lpszClassName, _T(viewport->title.c_str()),
 			gmodes,
 			viewport->xpos, viewport->ypos, viewport->actualWidth, viewport->actualHeight, nullptr, nullptr, gwc.hInstance, nullptr);
+
+		GContext->viewport->clientHeight = viewport->actualHeight;
+		GContext->viewport->clientWidth = viewport->actualWidth;
 
 		if (!viewport->small_icon.empty())
 		{

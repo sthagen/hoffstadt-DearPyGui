@@ -47,7 +47,7 @@ namespace Marvel {
         GContext->viewport->clientHeight = height;
         GContext->viewport->actualWidth = width;
         GContext->viewport->clientWidth = width;
-        mvOnResize();
+        GContext->viewport->resized = true;
     }
 
     mv_internal void
@@ -95,6 +95,9 @@ namespace Marvel {
         ghandle = glfwCreateWindow((int)viewport->actualWidth, (int)viewport->actualHeight, viewport->title.c_str(), nullptr, nullptr);
         glfwSetWindowPos(ghandle, viewport->xpos, viewport->ypos);
         glfwSetWindowSizeLimits(ghandle, (int)viewport->minwidth, (int)viewport->minheight, (int)viewport->maxwidth, (int)viewport->maxheight);
+
+        GContext->viewport->clientHeight = viewport->actualHeight;
+        GContext->viewport->clientWidth = viewport->actualWidth;
 
         gdevice = MTLCreateSystemDefaultDevice();
         gcommandQueue = [gdevice newCommandQueue];
