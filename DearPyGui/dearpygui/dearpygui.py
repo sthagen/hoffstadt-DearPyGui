@@ -7136,16 +7136,17 @@ def bind_theme(theme : Union[int, str], **kwargs) -> None:
 
 	return internal_dpg.bind_theme(theme, **kwargs)
 
-def capture_next_item(callback : Callable, **kwargs) -> None:
+def capture_next_item(callback : Callable, *, user_data: Any =None, **kwargs) -> None:
 	"""	 Captures the next item.
 
 	Args:
 		callback (Callable): 
+		user_data (Any, optional): New in 1.3. Optional user data to send to the callback
 	Returns:
 		None
 	"""
 
-	return internal_dpg.capture_next_item(callback, **kwargs)
+	return internal_dpg.capture_next_item(callback, user_data=user_data, **kwargs)
 
 def clear_selected_links(node_editor : Union[int, str], **kwargs) -> None:
 	"""	 Clears a node editor's selected links.
@@ -7847,6 +7848,16 @@ def get_callback_queue(**kwargs) -> Any:
 	"""
 
 	return internal_dpg.get_callback_queue(**kwargs)
+
+def get_clipboard_text(**kwargs) -> str:
+	"""	 New in 1.3. Gets the clipboard text.
+
+	Args:
+	Returns:
+		str
+	"""
+
+	return internal_dpg.get_clipboard_text(**kwargs)
 
 def get_colormap_color(colormap : Union[int, str], index : int, **kwargs) -> Union[List[int], Tuple[int, ...]]:
 	"""	 Returns a color from a colormap given an index >= 0. (ex. 0 will be the first color in the color list of the color map) Modulo will be performed against the number of items in the color list.
@@ -8607,28 +8618,41 @@ def set_clip_space(item : Union[int, str], top_left_x : float, top_left_y : floa
 
 	return internal_dpg.set_clip_space(item, top_left_x, top_left_y, width, height, min_depth, max_depth, **kwargs)
 
-def set_exit_callback(callback : Callable, **kwargs) -> str:
+def set_clipboard_text(text : str, **kwargs) -> None:
+	"""	 New in 1.3. Sets the clipboard text.
+
+	Args:
+		text (str): 
+	Returns:
+		None
+	"""
+
+	return internal_dpg.set_clipboard_text(text, **kwargs)
+
+def set_exit_callback(callback : Callable, *, user_data: Any =None, **kwargs) -> str:
 	"""	 Sets a callback to run on last frame.
 
 	Args:
 		callback (Callable): 
+		user_data (Any, optional): New in 1.3. Optional user data to send to the callback
 	Returns:
 		str
 	"""
 
-	return internal_dpg.set_exit_callback(callback, **kwargs)
+	return internal_dpg.set_exit_callback(callback, user_data=user_data, **kwargs)
 
-def set_frame_callback(frame : int, callback : Callable, **kwargs) -> str:
+def set_frame_callback(frame : int, callback : Callable, *, user_data: Any =None, **kwargs) -> str:
 	"""	 Sets a callback to run on first frame.
 
 	Args:
 		frame (int): 
 		callback (Callable): 
+		user_data (Any, optional): New in 1.3. Optional user data to send to the callback
 	Returns:
 		str
 	"""
 
-	return internal_dpg.set_frame_callback(frame, callback, **kwargs)
+	return internal_dpg.set_frame_callback(frame, callback, user_data=user_data, **kwargs)
 
 def set_global_font_scale(scale : float, **kwargs) -> None:
 	"""	 Sets global font scale.
@@ -8703,16 +8727,17 @@ def set_value(item : Union[int, str], value : Any, **kwargs) -> None:
 
 	return internal_dpg.set_value(item, value, **kwargs)
 
-def set_viewport_resize_callback(callback : Callable, **kwargs) -> str:
+def set_viewport_resize_callback(callback : Callable, *, user_data: Any =None, **kwargs) -> str:
 	"""	 Sets a callback to run on viewport resize.
 
 	Args:
 		callback (Callable): 
+		user_data (Any, optional): New in 1.3. Optional user data to send to the callback
 	Returns:
 		str
 	"""
 
-	return internal_dpg.set_viewport_resize_callback(callback, **kwargs)
+	return internal_dpg.set_viewport_resize_callback(callback, user_data=user_data, **kwargs)
 
 def set_x_scroll(item : Union[int, str], value : float, **kwargs) -> None:
 	"""	 Undocumented

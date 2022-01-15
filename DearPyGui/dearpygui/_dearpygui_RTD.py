@@ -6366,16 +6366,17 @@ def bind_theme(theme):
 
 	return internal_dpg.bind_theme(theme)
 
-def capture_next_item(callback):
+def capture_next_item(callback, **kwargs):
 	"""	 Captures the next item.
 
 	Args:
 		callback (Callable): 
+		user_data (Any, optional): New in 1.3. Optional user data to send to the callback
 	Returns:
 		None
 	"""
 
-	return internal_dpg.capture_next_item(callback)
+	return internal_dpg.capture_next_item(callback, **kwargs)
 
 def clear_selected_links(node_editor):
 	"""	 Clears a node editor's selected links.
@@ -7021,6 +7022,16 @@ def get_callback_queue():
 	"""
 
 	return internal_dpg.get_callback_queue()
+
+def get_clipboard_text():
+	"""	 New in 1.3. Gets the clipboard text.
+
+	Args:
+	Returns:
+		str
+	"""
+
+	return internal_dpg.get_clipboard_text()
 
 def get_colormap_color(colormap, index):
 	"""	 Returns a color from a colormap given an index >= 0. (ex. 0 will be the first color in the color list of the color map) Modulo will be performed against the number of items in the color list.
@@ -7781,28 +7792,41 @@ def set_clip_space(item, top_left_x, top_left_y, width, height, min_depth, max_d
 
 	return internal_dpg.set_clip_space(item, top_left_x, top_left_y, width, height, min_depth, max_depth)
 
-def set_exit_callback(callback):
+def set_clipboard_text(text):
+	"""	 New in 1.3. Sets the clipboard text.
+
+	Args:
+		text (str): 
+	Returns:
+		None
+	"""
+
+	return internal_dpg.set_clipboard_text(text)
+
+def set_exit_callback(callback, **kwargs):
 	"""	 Sets a callback to run on last frame.
 
 	Args:
 		callback (Callable): 
+		user_data (Any, optional): New in 1.3. Optional user data to send to the callback
 	Returns:
 		str
 	"""
 
-	return internal_dpg.set_exit_callback(callback)
+	return internal_dpg.set_exit_callback(callback, **kwargs)
 
-def set_frame_callback(frame, callback):
+def set_frame_callback(frame, callback, **kwargs):
 	"""	 Sets a callback to run on first frame.
 
 	Args:
 		frame (int): 
 		callback (Callable): 
+		user_data (Any, optional): New in 1.3. Optional user data to send to the callback
 	Returns:
 		str
 	"""
 
-	return internal_dpg.set_frame_callback(frame, callback)
+	return internal_dpg.set_frame_callback(frame, callback, **kwargs)
 
 def set_global_font_scale(scale):
 	"""	 Sets global font scale.
@@ -7877,16 +7901,17 @@ def set_value(item, value):
 
 	return internal_dpg.set_value(item, value)
 
-def set_viewport_resize_callback(callback):
+def set_viewport_resize_callback(callback, **kwargs):
 	"""	 Sets a callback to run on viewport resize.
 
 	Args:
 		callback (Callable): 
+		user_data (Any, optional): New in 1.3. Optional user data to send to the callback
 	Returns:
 		str
 	"""
 
-	return internal_dpg.set_viewport_resize_callback(callback)
+	return internal_dpg.set_viewport_resize_callback(callback, **kwargs)
 
 def set_x_scroll(item, value):
 	"""	 Undocumented

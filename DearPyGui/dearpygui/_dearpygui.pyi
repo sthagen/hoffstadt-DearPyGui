@@ -618,7 +618,7 @@ def bind_theme(theme : Union[int, str]) -> None:
 	"""Binds a global theme."""
 	...
 
-def capture_next_item(callback : Callable) -> None:
+def capture_next_item(callback : Callable, *, user_data: Any ='') -> None:
 	"""Captures the next item."""
 	...
 
@@ -792,6 +792,10 @@ def get_axis_limits(axis : Union[int, str]) -> Union[List[float], Tuple[float, .
 
 def get_callback_queue() -> Any:
 	"""New in 1.2. Returns and clears callback queue."""
+	...
+
+def get_clipboard_text() -> str:
+	"""New in 1.3. Gets the clipboard text."""
 	...
 
 def get_colormap_color(colormap : Union[int, str], index : int) -> Union[List[int], Tuple[int, ...]]:
@@ -1066,11 +1070,15 @@ def set_clip_space(item : Union[int, str], top_left_x : float, top_left_y : floa
 	"""New in 1.1. Set the clip space for depth clipping and 'viewport' transformation."""
 	...
 
-def set_exit_callback(callback : Callable) -> str:
+def set_clipboard_text(text : str) -> None:
+	"""New in 1.3. Sets the clipboard text."""
+	...
+
+def set_exit_callback(callback : Callable, *, user_data: Any ='') -> str:
 	"""Sets a callback to run on last frame."""
 	...
 
-def set_frame_callback(frame : int, callback : Callable) -> str:
+def set_frame_callback(frame : int, callback : Callable, *, user_data: Any ='') -> str:
 	"""Sets a callback to run on first frame."""
 	...
 
@@ -1098,7 +1106,7 @@ def set_value(item : Union[int, str], value : Any) -> None:
 	"""Set's an item's value."""
 	...
 
-def set_viewport_resize_callback(callback : Callable) -> str:
+def set_viewport_resize_callback(callback : Callable, *, user_data: Any ='') -> str:
 	"""Sets a callback to run on viewport resize."""
 	...
 
