@@ -13,6 +13,7 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <tchar.h>
+#include <dwmapi.h>
 
 ID3D11Device*                   gdevice = nullptr;
 ID3D11DeviceContext*            gdeviceContext = nullptr;
@@ -29,6 +30,17 @@ static WORD                     glang_id;
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace Marvel {
+
+	mv_internal int 
+	get_horizontal_shift(const HWND window_handle)
+	{
+		RECT window_rectangle, frame_rectangle;
+		GetWindowRect(window_handle, &window_rectangle);
+		DwmGetWindowAttribute(window_handle,
+			DWMWA_EXTENDED_FRAME_BOUNDS, &frame_rectangle, sizeof(RECT));
+
+		return frame_rectangle.left - window_rectangle.left;
+	}
 
 	mv_internal std::vector <IDXGIAdapter*>
 	EnumerateAdapters()
@@ -194,7 +206,8 @@ namespace Marvel {
 
 		if (viewport->posDirty)
 		{
-			SetWindowPos(ghandle, viewport->alwaysOnTop ? HWND_TOPMOST : HWND_TOP, viewport->xpos, viewport->ypos, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE);
+			int horizontal_shift = get_horizontal_shift(ghandle);
+			SetWindowPos(ghandle, viewport->alwaysOnTop ? HWND_TOPMOST : HWND_TOP, viewport->xpos-horizontal_shift, viewport->ypos, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE);
 			viewport->posDirty = false;
 		}
 
@@ -286,6 +299,63 @@ namespace Marvel {
 
 		switch (msg)
 		{
+
+		case WM_PAINT:
+			if (GContext->frame > 0)
+			{
+
+				RECT rect;
+				RECT crect;
+				int awidth = 0;
+				int aheight = 0;
+				int cwidth = 0;
+				int cheight = 0;
+				if (GetWindowRect(hWnd, &rect))
+				{
+					awidth = rect.right - rect.left;
+					aheight = rect.bottom - rect.top;
+				}
+
+				if (GetClientRect(hWnd, &crect))
+				{
+					cwidth = crect.right - crect.left;
+					cheight = crect.bottom - crect.top;
+				}
+
+				viewport->actualWidth = awidth;
+				viewport->actualHeight = aheight;
+
+
+				if (viewport->decorated)
+				{
+					GContext->viewport->clientHeight = cheight;
+					GContext->viewport->clientWidth = cwidth;
+				}
+				else
+				{
+					GContext->viewport->clientHeight = cheight + 39;
+					GContext->viewport->clientWidth = cwidth + 16;
+				}
+
+				//GContext->viewport->resized = true;
+				mvOnResize();
+				GContext->viewport->resized = false;
+
+				if (mvToolManager::GetFontManager().isInvalid())
+				{
+					mvToolManager::GetFontManager().rebuildAtlas();
+					ImGui_ImplDX11_InvalidateDeviceObjects();
+					mvToolManager::GetFontManager().updateAtlas();
+				}
+				// Start the Dear ImGui frame
+				ImGui_ImplDX11_NewFrame();
+				ImGui_ImplWin32_NewFrame();
+				ImGui::NewFrame();
+				Render();
+				mvPostrender();
+			}
+			break;
+
 		case WM_GETMINMAXINFO:
 		{
 			LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
@@ -297,9 +367,13 @@ namespace Marvel {
 		}
 
 		case WM_MOVING:
-			viewport->xpos = (int)(short)LOWORD(lParam);   // horizontal position 
-			viewport->ypos = (int)(short)HIWORD(lParam);   // vertical position 
+		{
+			int horizontal_shift = get_horizontal_shift(ghandle);
+			RECT rect = *(RECT*)(lParam);
+			viewport->xpos = rect.left + horizontal_shift;
+			viewport->ypos = rect.top;
 			break;
+		}
 
 		case WM_SIZE:
 			if (gdevice != nullptr && wParam != SIZE_MINIMIZED)
