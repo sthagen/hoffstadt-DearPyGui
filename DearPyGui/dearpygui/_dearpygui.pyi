@@ -322,7 +322,7 @@ def add_key_release_handler(key : int ='', *, label: str ='', user_data: Any =''
 	"""Adds a key release handler."""
 	...
 
-def add_knob_float(*, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', width: int ='', height: int ='', indent: int ='', parent: Union[int, str] ='', before: Union[int, str] ='', source: Union[int, str] ='', payload_type: str ='', callback: Callable ='', drag_callback: Callable ='', drop_callback: Callable ='', show: bool ='', pos: Union[List[int], Tuple[int, ...]] ='', filter_key: str ='', tracked: bool ='', track_offset: float ='', default_value: float ='', min_value: float ='', max_value: float ='') -> Union[int, str]:
+def add_knob_float(*, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', width: int ='', height: int ='', indent: int ='', parent: Union[int, str] ='', before: Union[int, str] ='', source: Union[int, str] ='', payload_type: str ='', callback: Callable ='', drag_callback: Callable ='', drop_callback: Callable ='', show: bool ='', enabled: bool ='', pos: Union[List[int], Tuple[int, ...]] ='', filter_key: str ='', tracked: bool ='', track_offset: float ='', default_value: float ='', min_value: float ='', max_value: float ='') -> Union[int, str]:
 	"""Adds a knob that rotates based on change in x mouse position."""
 	...
 
@@ -1182,6 +1182,11 @@ def unstage(item : Union[int, str]) -> None:
 	"""Unstages an item."""
 	...
 
+mvGraphicsBackend_D3D11=0
+mvGraphicsBackend_D3D12=0
+mvGraphicsBackend_VULKAN=0
+mvGraphicsBackend_METAL=0
+mvGraphicsBackend_OPENGL=0
 mvMouseButton_Left=0
 mvMouseButton_Right=0
 mvMouseButton_Middle=0
@@ -1292,6 +1297,7 @@ mvKey_F20=0
 mvKey_F21=0
 mvKey_F22=0
 mvKey_F23=0
+mvKey_F24=0
 mvKey_F24=0
 mvKey_NumLock=0
 mvKey_ScrollLock=0

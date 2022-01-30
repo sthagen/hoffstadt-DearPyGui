@@ -112,8 +112,26 @@ def mutex():
 
 
 @contextmanager
-def popup(parent: Union[int, str], mousebutton: int = internal_dpg.mvMouseButton_Right, modal: bool = False, tag:Union[int, str] = 0) -> int:
-    """ Popup widget. """    
+def popup(parent: Union[int, str], mousebutton: int = internal_dpg.mvMouseButton_Right, modal: bool=False, tag:Union[int, str]=0, min_size:Union[List[int], Tuple[int, ...]]=[100,100], max_size: Union[List[int], Tuple[int, ...]] =[30000, 30000], no_move: bool=False, no_background: bool=False) -> int:
+    """A window that will be displayed when a parent item is hovered and the corresponding mouse button has been clicked. By default a popup will shrink fit the items it contains.
+    This is useful for context windows, and simple modal window popups.
+    When popups are used a modal they have more avaliable settings (i.e. title, resize, width, height) These
+    can be set by using configure item. 
+    This is a light wrapper over window. For more control over a modal|popup window use a normal window with the modal|popup keyword 
+    and set the item handler and mouse events manually.
+
+    Args:
+        parent: The UI item that will need to be hovered.
+        **mousebutton: The mouse button that will trigger the window to popup.
+        **modal: Will force the user to interact with the popup.
+        **min_size: New in 1.4. Minimum window size.
+        **max_size: New in 1.4. Maximum window size.
+        **no_move: New in 1.4. Prevents the window from moving based on user input.
+        **no_background: New in 1.4. Sets Background and border alpha to transparent.
+
+    Returns:
+        item's uuid
+    """
     try:
         if tag == 0:
             _internal_popup_id = internal_dpg.generate_uuid()
@@ -123,9 +141,9 @@ def popup(parent: Union[int, str], mousebutton: int = internal_dpg.mvMouseButton
         internal_dpg.add_item_clicked_handler(mousebutton, parent=internal_dpg.last_item(), callback=lambda: internal_dpg.configure_item(_internal_popup_id, show=True))
         internal_dpg.bind_item_handler_registry(parent, _handler_reg_id)
         if modal:
-            internal_dpg.add_window(modal=True, show=False, tag=_internal_popup_id, autosize=True)
+            internal_dpg.add_window(modal=True, show=False, tag=_internal_popup_id, autosize=True, min_size=min_size, max_size=max_size, no_move=no_move, no_background=no_background)
         else:
-            internal_dpg.add_window(popup=True, show=False, tag=_internal_popup_id, autosize=True)
+            internal_dpg.add_window(popup=True, show=False, tag=_internal_popup_id, autosize=True, min_size=min_size, max_size=max_size, no_move=no_move, no_background=no_background)
         internal_dpg.push_container_stack(internal_dpg.last_container())
         yield _internal_popup_id
 
@@ -4609,6 +4627,7 @@ def add_knob_float(**kwargs):
 		drag_callback (Callable, optional): Registers a drag callback for drag and drop.
 		drop_callback (Callable, optional): Registers a drop callback for drag and drop.
 		show (bool, optional): Attempt to render widget.
+		enabled (bool, optional): Turns off functionality of widget and applies the disabled theme.
 		pos (Union[List[int], Tuple[int, ...]], optional): Places the item relative to window coordinates, [0,0] is top left.
 		filter_key (str, optional): Used by filter widget.
 		tracked (bool, optional): Scroll tracking
@@ -8119,6 +8138,11 @@ def unstage(item):
 # Constants #
 ##########################################################
 
+mvGraphicsBackend_D3D11=internal_dpg.mvGraphicsBackend_D3D11
+mvGraphicsBackend_D3D12=internal_dpg.mvGraphicsBackend_D3D12
+mvGraphicsBackend_VULKAN=internal_dpg.mvGraphicsBackend_VULKAN
+mvGraphicsBackend_METAL=internal_dpg.mvGraphicsBackend_METAL
+mvGraphicsBackend_OPENGL=internal_dpg.mvGraphicsBackend_OPENGL
 mvMouseButton_Left=internal_dpg.mvMouseButton_Left
 mvMouseButton_Right=internal_dpg.mvMouseButton_Right
 mvMouseButton_Middle=internal_dpg.mvMouseButton_Middle
@@ -8229,6 +8253,7 @@ mvKey_F20=internal_dpg.mvKey_F20
 mvKey_F21=internal_dpg.mvKey_F21
 mvKey_F22=internal_dpg.mvKey_F22
 mvKey_F23=internal_dpg.mvKey_F23
+mvKey_F24=internal_dpg.mvKey_F24
 mvKey_F24=internal_dpg.mvKey_F24
 mvKey_NumLock=internal_dpg.mvKey_NumLock
 mvKey_ScrollLock=internal_dpg.mvKey_ScrollLock
