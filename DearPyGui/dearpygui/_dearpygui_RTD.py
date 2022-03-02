@@ -7658,6 +7658,17 @@ def move_item_up(item):
 
 	return internal_dpg.move_item_up(item)
 
+def output_frame_buffer(file):
+	"""	 Outputs frame buffer as a png.
+
+	Args:
+		file (str): 
+	Returns:
+		None
+	"""
+
+	return internal_dpg.output_frame_buffer(file)
+
 def pop_container_stack():
 	"""	 Pops the top item off the parent stack and return its ID.
 
@@ -7746,6 +7757,21 @@ def sample_colormap(colormap, t):
 	"""
 
 	return internal_dpg.sample_colormap(colormap, t)
+
+def save_image(file, width, height, data, **kwargs):
+	"""	 Saves an image. Possible formats: png.
+
+	Args:
+		file (str): 
+		width (int): 
+		height (int): 
+		data (Any): 
+		components (int, optional): 
+	Returns:
+		None
+	"""
+
+	return internal_dpg.save_image(file, width, height, data, **kwargs)
 
 def save_init_file(file):
 	"""	 Save dpg.ini file.
@@ -8254,7 +8280,7 @@ mvKey_F21=internal_dpg.mvKey_F21
 mvKey_F22=internal_dpg.mvKey_F22
 mvKey_F23=internal_dpg.mvKey_F23
 mvKey_F24=internal_dpg.mvKey_F24
-mvKey_F24=internal_dpg.mvKey_F24
+mvKey_F25=internal_dpg.mvKey_F25
 mvKey_NumLock=internal_dpg.mvKey_NumLock
 mvKey_ScrollLock=internal_dpg.mvKey_ScrollLock
 mvKey_LShift=internal_dpg.mvKey_LShift
