@@ -200,6 +200,9 @@ StealChild(mvAppItem* item, mvUUID uuid)
 
         for (auto& child : childset)
         {
+            if (!child)
+                continue;
+
             if (child->uuid == uuid)
             {
                 childfound = true;
@@ -405,6 +408,10 @@ AddRuntimeChild(mvAppItem* rootitem, mvUUID parent, mvUUID before, mvRef<mvAppIt
             {
                 for (auto& child : childslot)
                 {
+
+                    if (!child)
+                        continue;
+
                     if (DearPyGui::GetEntityDesciptionFlags(child->type) & MV_ITEM_DESC_CONTAINER
                         || DearPyGui::GetEntityDesciptionFlags(item->type) & MV_ITEM_DESC_HANDLER)
                     {
@@ -424,6 +431,8 @@ AddRuntimeChild(mvAppItem* rootitem, mvUUID parent, mvUUID before, mvRef<mvAppIt
             // check children
             for (auto& child : children)
             {
+                if (!child)
+                    continue;
 
                 if (child->uuid == before)
                 {
@@ -443,6 +452,9 @@ AddRuntimeChild(mvAppItem* rootitem, mvUUID parent, mvUUID before, mvRef<mvAppIt
 
                 for (auto& child : oldchildren)
                 {
+                    if (!child)
+                        continue;
+
                     if (child->uuid == before)
                     {
                         children.push_back(item);
@@ -461,6 +473,9 @@ AddRuntimeChild(mvAppItem* rootitem, mvUUID parent, mvUUID before, mvRef<mvAppIt
         // check children
         for (auto& child : children)
         {
+            if (!child)
+                continue;
+
             if (DearPyGui::GetEntityDesciptionFlags(child->type) & MV_ITEM_DESC_CONTAINER
                 || DearPyGui::GetEntityDesciptionFlags(item->type) & MV_ITEM_DESC_HANDLER)
             {
@@ -500,6 +515,8 @@ AddChildAfter(mvAppItem* parent, mvUUID prev, mvRef<mvAppItem> item)
     {
         for (auto& child : childslot)
         {
+            if (!child)
+                continue;
 
             if (child->uuid == prev)
             {
@@ -537,6 +554,9 @@ AddChildAfter(mvAppItem* parent, mvUUID prev, mvRef<mvAppItem> item)
     {
         for (auto& child : childslot)
         {
+            if (!child)
+                continue;
+
             // parent found
             if (AddChildAfter(child.get(), prev, item))
                 return true;
@@ -656,6 +676,9 @@ GetChild(mvAppItem* rootitem, mvUUID uuid)
     {
         for (auto& childitem : childset)
         {
+            if (!childitem)
+                continue;
+
             if (childitem->uuid == uuid)
                 return childitem.get();
 
@@ -676,6 +699,10 @@ GetChildRef(mvAppItem* rootitem, mvUUID uuid)
     {
         for (auto& item : childset)
         {
+
+            if (!item)
+                continue;
+
             if (item->uuid == uuid)
                 return item;
 
@@ -1497,7 +1524,17 @@ AddItemWithRuntimeChecks(mvItemRegistry& registry, mvRef<mvAppItem> item, mvUUID
     // STEP 7: add items who require "after" adding (tooltip)
     //---------------------------------------------------------------------------
     if (item->type == mvAppItemType::mvTooltip)
-        return AddItemAfter(registry, parent, item);
+    {
+        if (parentPtr->info.parentPtr->type == mvAppItemType::mvTable)
+        {
+            parentPtr->info.parentPtr->childslots[2][parentPtr->info.location] = item;
+            return true;
+        }
+        else
+        {
+            return AddItemAfter(registry, parent, item);
+        }
+    }
 
     //---------------------------------------------------------------------------
     // STEP 8: handle "before" and "after" style adding

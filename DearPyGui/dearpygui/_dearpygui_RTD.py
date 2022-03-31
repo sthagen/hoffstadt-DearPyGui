@@ -2832,6 +2832,7 @@ def add_candle_series(dates, opens, closes, lows, highs, **kwargs):
 		bear_color (Union[List[int], Tuple[int, ...]], optional): 
 		weight (int, optional): 
 		tooltip (bool, optional): 
+		time_unit (int, optional): mvTimeUnit_* constants. Default mvTimeUnit_Day.
 		id (Union[int, str], optional): (deprecated)
 	Returns:
 		Union[int, str]
@@ -7659,7 +7660,7 @@ def move_item_up(item):
 	return internal_dpg.move_item_up(item)
 
 def output_frame_buffer(file):
-	"""	 Outputs frame buffer as a png.
+	"""	 Outputs frame buffer as a png. Render loop must have been started.
 
 	Args:
 		file (str): 
@@ -7759,14 +7760,15 @@ def sample_colormap(colormap, t):
 	return internal_dpg.sample_colormap(colormap, t)
 
 def save_image(file, width, height, data, **kwargs):
-	"""	 Saves an image. Possible formats: png.
+	"""	 Saves an image. Possible formats: png, bmp, tga, hdr, jpg.
 
 	Args:
 		file (str): 
 		width (int): 
 		height (int): 
 		data (Any): 
-		components (int, optional): 
+		components (int, optional): Number of components (1-4). Default of 4.
+		quality (int, optional): Stride in bytes (only used for jpg).
 	Returns:
 		None
 	"""
@@ -8371,6 +8373,13 @@ mvTabOrder_Reorderable=internal_dpg.mvTabOrder_Reorderable
 mvTabOrder_Fixed=internal_dpg.mvTabOrder_Fixed
 mvTabOrder_Leading=internal_dpg.mvTabOrder_Leading
 mvTabOrder_Trailing=internal_dpg.mvTabOrder_Trailing
+mvTimeUnit_Us=internal_dpg.mvTimeUnit_Us
+mvTimeUnit_Ms=internal_dpg.mvTimeUnit_Ms
+mvTimeUnit_S=internal_dpg.mvTimeUnit_S
+mvTimeUnit_Min=internal_dpg.mvTimeUnit_Min
+mvTimeUnit_Hr=internal_dpg.mvTimeUnit_Hr
+mvTimeUnit_Mo=internal_dpg.mvTimeUnit_Mo
+mvTimeUnit_Yr=internal_dpg.mvTimeUnit_Yr
 mvDatePickerLevel_Day=internal_dpg.mvDatePickerLevel_Day
 mvDatePickerLevel_Month=internal_dpg.mvDatePickerLevel_Month
 mvDatePickerLevel_Year=internal_dpg.mvDatePickerLevel_Year

@@ -2999,7 +2999,7 @@ def add_button(*, label: str =None, user_data: Any =None, use_internal_label: bo
 
 	return internal_dpg.add_button(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, small=small, arrow=arrow, direction=direction, **kwargs)
 
-def add_candle_series(dates : Union[List[float], Tuple[float, ...]], opens : Union[List[float], Tuple[float, ...]], closes : Union[List[float], Tuple[float, ...]], lows : Union[List[float], Tuple[float, ...]], highs : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, bull_color: Union[List[int], Tuple[int, ...]] =(0, 255, 113, 255), bear_color: Union[List[int], Tuple[int, ...]] =(218, 13, 79, 255), weight: int =0.25, tooltip: bool =True, **kwargs) -> Union[int, str]:
+def add_candle_series(dates : Union[List[float], Tuple[float, ...]], opens : Union[List[float], Tuple[float, ...]], closes : Union[List[float], Tuple[float, ...]], lows : Union[List[float], Tuple[float, ...]], highs : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, bull_color: Union[List[int], Tuple[int, ...]] =(0, 255, 113, 255), bear_color: Union[List[int], Tuple[int, ...]] =(218, 13, 79, 255), weight: int =0.25, tooltip: bool =True, time_unit: int =5, **kwargs) -> Union[int, str]:
 	"""	 Adds a candle series to a plot.
 
 	Args:
@@ -3020,6 +3020,7 @@ def add_candle_series(dates : Union[List[float], Tuple[float, ...]], opens : Uni
 		bear_color (Union[List[int], Tuple[int, ...]], optional): 
 		weight (int, optional): 
 		tooltip (bool, optional): 
+		time_unit (int, optional): mvTimeUnit_* constants. Default mvTimeUnit_Day.
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -3029,7 +3030,7 @@ def add_candle_series(dates : Union[List[float], Tuple[float, ...]], opens : Uni
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_candle_series(dates, opens, closes, lows, highs, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, bull_color=bull_color, bear_color=bear_color, weight=weight, tooltip=tooltip, **kwargs)
+	return internal_dpg.add_candle_series(dates, opens, closes, lows, highs, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, bull_color=bull_color, bear_color=bear_color, weight=weight, tooltip=tooltip, time_unit=time_unit, **kwargs)
 
 def add_char_remap(source : int, target : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, **kwargs) -> Union[int, str]:
 	"""	 Remaps a character.
@@ -8485,7 +8486,7 @@ def move_item_up(item : Union[int, str], **kwargs) -> None:
 	return internal_dpg.move_item_up(item, **kwargs)
 
 def output_frame_buffer(file : str, **kwargs) -> None:
-	"""	 Outputs frame buffer as a png.
+	"""	 Outputs frame buffer as a png. Render loop must have been started.
 
 	Args:
 		file (str): 
@@ -8584,20 +8585,21 @@ def sample_colormap(colormap : Union[int, str], t : float, **kwargs) -> Union[Li
 
 	return internal_dpg.sample_colormap(colormap, t, **kwargs)
 
-def save_image(file : str, width : int, height : int, data : Any, *, components: int =4, **kwargs) -> None:
-	"""	 Saves an image. Possible formats: png.
+def save_image(file : str, width : int, height : int, data : Any, *, components: int =4, quality: int =50, **kwargs) -> None:
+	"""	 Saves an image. Possible formats: png, bmp, tga, hdr, jpg.
 
 	Args:
 		file (str): 
 		width (int): 
 		height (int): 
 		data (Any): 
-		components (int, optional): 
+		components (int, optional): Number of components (1-4). Default of 4.
+		quality (int, optional): Stride in bytes (only used for jpg).
 	Returns:
 		None
 	"""
 
-	return internal_dpg.save_image(file, width, height, data, components=components, **kwargs)
+	return internal_dpg.save_image(file, width, height, data, components=components, quality=quality, **kwargs)
 
 def save_init_file(file : str, **kwargs) -> None:
 	"""	 Save dpg.ini file.
@@ -9209,6 +9211,13 @@ mvTabOrder_Reorderable=internal_dpg.mvTabOrder_Reorderable
 mvTabOrder_Fixed=internal_dpg.mvTabOrder_Fixed
 mvTabOrder_Leading=internal_dpg.mvTabOrder_Leading
 mvTabOrder_Trailing=internal_dpg.mvTabOrder_Trailing
+mvTimeUnit_Us=internal_dpg.mvTimeUnit_Us
+mvTimeUnit_Ms=internal_dpg.mvTimeUnit_Ms
+mvTimeUnit_S=internal_dpg.mvTimeUnit_S
+mvTimeUnit_Min=internal_dpg.mvTimeUnit_Min
+mvTimeUnit_Hr=internal_dpg.mvTimeUnit_Hr
+mvTimeUnit_Mo=internal_dpg.mvTimeUnit_Mo
+mvTimeUnit_Yr=internal_dpg.mvTimeUnit_Yr
 mvDatePickerLevel_Day=internal_dpg.mvDatePickerLevel_Day
 mvDatePickerLevel_Month=internal_dpg.mvDatePickerLevel_Month
 mvDatePickerLevel_Year=internal_dpg.mvDatePickerLevel_Year

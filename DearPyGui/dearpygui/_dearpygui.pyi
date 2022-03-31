@@ -34,7 +34,7 @@ def add_button(*, label: str ='', user_data: Any ='', use_internal_label: bool =
 	"""Adds a button."""
 	...
 
-def add_candle_series(dates : Union[List[float], Tuple[float, ...]], opens : Union[List[float], Tuple[float, ...]], closes : Union[List[float], Tuple[float, ...]], lows : Union[List[float], Tuple[float, ...]], highs : Union[List[float], Tuple[float, ...]], *, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', parent: Union[int, str] ='', before: Union[int, str] ='', source: Union[int, str] ='', show: bool ='', bull_color: Union[List[int], Tuple[int, ...]] ='', bear_color: Union[List[int], Tuple[int, ...]] ='', weight: int ='', tooltip: bool ='') -> Union[int, str]:
+def add_candle_series(dates : Union[List[float], Tuple[float, ...]], opens : Union[List[float], Tuple[float, ...]], closes : Union[List[float], Tuple[float, ...]], lows : Union[List[float], Tuple[float, ...]], highs : Union[List[float], Tuple[float, ...]], *, label: str ='', user_data: Any ='', use_internal_label: bool ='', tag: Union[int, str] ='', parent: Union[int, str] ='', before: Union[int, str] ='', source: Union[int, str] ='', show: bool ='', bull_color: Union[List[int], Tuple[int, ...]] ='', bear_color: Union[List[int], Tuple[int, ...]] ='', weight: int ='', tooltip: bool ='', time_unit: int ='') -> Union[int, str]:
 	"""Adds a candle series to a plot."""
 	...
 
@@ -1019,7 +1019,7 @@ def move_item_up(item : Union[int, str]) -> None:
 	...
 
 def output_frame_buffer(file : str) -> None:
-	"""Outputs frame buffer as a png."""
+	"""Outputs frame buffer as a png. Render loop must have been started."""
 	...
 
 def pop_container_stack() -> Union[int, str]:
@@ -1054,8 +1054,8 @@ def sample_colormap(colormap : Union[int, str], t : float) -> Union[List[int], T
 	"""Returns a color from a colormap given t between 0.0-1.0."""
 	...
 
-def save_image(file : str, width : int, height : int, data : Any, *, components: int ='') -> None:
-	"""Saves an image. Possible formats: png."""
+def save_image(file : str, width : int, height : int, data : Any, *, components: int ='', quality: int ='') -> None:
+	"""Saves an image. Possible formats: png, bmp, tga, hdr, jpg."""
 	...
 
 def save_init_file(file : str) -> None:
@@ -1397,6 +1397,13 @@ mvTabOrder_Reorderable=0
 mvTabOrder_Fixed=0
 mvTabOrder_Leading=0
 mvTabOrder_Trailing=0
+mvTimeUnit_Us=0
+mvTimeUnit_Ms=0
+mvTimeUnit_S=0
+mvTimeUnit_Min=0
+mvTimeUnit_Hr=0
+mvTimeUnit_Mo=0
+mvTimeUnit_Yr=0
 mvDatePickerLevel_Day=0
 mvDatePickerLevel_Month=0
 mvDatePickerLevel_Year=0
