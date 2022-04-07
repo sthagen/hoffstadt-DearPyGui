@@ -1,6 +1,6 @@
 #include <algorithm>
 #include "mvPlot.h"
-#include "mvPlotLegend.h"
+#include "mvPlotting.h"
 #include "mvContext.h"
 #include "mvLog.h"
 #include "mvAreaSeries.h"
@@ -238,6 +238,8 @@ void mvPlot::draw(ImDrawList* drawlist, float x, float y)
             item->draw(drawlist, ImPlot::GetPlotPos().x, ImPlot::GetPlotPos().y);
 
         ImPlot::PushPlotClipRect();
+
+        ImPlot::SetPlotYAxis(ImPlotYAxis_1); // draw items should use first plot axis
             
         // drawings
         for (auto& item : childslots[2])
@@ -342,9 +344,9 @@ void mvPlot::draw(ImDrawList* drawlist, float x, float y)
             if(item->type == mvAppItemType::mvPlotLegend)
             {
                 auto legend = static_cast<mvPlotLegend*>(item.get());
-                legend->_legendLocation = context->CurrentPlot->Items.Legend.Location;
-                legend->_horizontal = context->CurrentPlot->Items.Legend.Orientation == ImPlotOrientation_Horizontal;
-                legend->_outside = context->CurrentPlot->Items.Legend.Outside;
+                legend->configData.legendLocation = context->CurrentPlot->Items.Legend.Location;
+                legend->configData.horizontal = context->CurrentPlot->Items.Legend.Orientation == ImPlotOrientation_Horizontal;
+                legend->configData.outside = context->CurrentPlot->Items.Legend.Outside;
                 break;
             }
         }
