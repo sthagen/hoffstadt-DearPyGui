@@ -47,8 +47,21 @@ struct mvColorButtonConfig;
 struct mvImageConfig;
 struct mvImageButtonConfig;
 struct mvColorEditConfig;
+struct mvFilterSetConfig;
+struct mvTooltipConfig;
 
 // plots
 struct mvPlotLegendConfig;
+struct mvDragLineConfig;
+struct mvDragPointConfig;
 struct mvBasicSeriesConfig;
 struct mvBarSeriesConfig;
+struct mv2dHistogramSeriesConfig;
+struct mvHistogramSeriesConfig;
+struct mvErrorSeriesConfig;
+struct mvHeatSeriesConfig;
+struct mvPieSeriesConfig;
+struct mvLabelSeriesConfig;
+struct mvImageSeriesConfig;
+struct mvAreaSeriesConfig;
+struct mvCandleSeriesConfig;
