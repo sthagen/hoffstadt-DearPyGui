@@ -50,32 +50,34 @@ bind_colormap(PyObject* self, PyObject* args, PyObject* kwargs)
 		if (asource->type == mvAppItemType::mvColorMap)
 		{
 			mvColorMap* colormap = static_cast<mvColorMap*>(asource);
-			source = colormap->_colorMap;
+			source = colormap->configData.colorMap;
 		}
 	}
 
 	if (aitem->type == mvAppItemType::mvPlot)
 	{
 		mvPlot* graph = static_cast<mvPlot*>(aitem);
-		graph->SetColorMap((ImPlotColormap)source);
+		graph->configData._colormap = (ImPlotColormap)source;
+		graph->configData._useColorMap = true;
+		graph->configData._newColorMap = true;
 	}
 
 	else if (aitem->type == mvAppItemType::mvColorMapScale)
 	{
 		mvColorMapScale* graph = static_cast<mvColorMapScale*>(aitem);
-		graph->setColorMap((ImPlotColormap)source);
+		graph->configData.colorMap = (ImPlotColormap)source;
 	}
 
 	else if (aitem->type == mvAppItemType::mvColorMapButton)
 	{
 		mvColorMapButton* graph = static_cast<mvColorMapButton*>(aitem);
-		graph->setColorMap((ImPlotColormap)source);
+		graph->configData.colorMap = (ImPlotColormap)source;
 	}
 
 	else if (aitem->type == mvAppItemType::mvColorMapSlider)
 	{
 		mvColorMapSlider* graph = static_cast<mvColorMapSlider*>(aitem);
-		graph->setColorMap((ImPlotColormap)source);
+		graph->configData.colorMap = (ImPlotColormap)source;
 	}
 
 	else
@@ -115,7 +117,7 @@ sample_colormap(PyObject* self, PyObject* args, PyObject* kwargs)
 		if (asource->type == mvAppItemType::mvColorMap)
 		{
 			mvColorMap* colormap = static_cast<mvColorMap*>(asource);
-			item = colormap->_colorMap;
+			item = colormap->configData.colorMap;
 		}
 	}
 
@@ -157,7 +159,7 @@ get_colormap_color(PyObject* self, PyObject* args, PyObject* kwargs)
 		if (asource->type == mvAppItemType::mvColorMap)
 		{
 			mvColorMap* colormap = static_cast<mvColorMap*>(asource);
-			item = colormap->_colorMap;
+			item = colormap->configData.colorMap;
 		}
 	}
 
@@ -1003,7 +1005,7 @@ is_plot_queried(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	mvPlot* graph = static_cast<mvPlot*>(aplot);
 
-	return ToPyBool(graph->isPlotQueried());
+	return ToPyBool(graph->configData._queried);
 }
 
 mv_internal mv_python_function
@@ -1035,7 +1037,7 @@ get_plot_query_area(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	mvPlot* graph = static_cast<mvPlot*>(aplot);
 
-	double* result = graph->getPlotQueryArea();
+	double* result = graph->configData._queryArea;
 	return Py_BuildValue("(dddd)", result[0], result[1], result[2], result[3]);
 }
 
@@ -1079,8 +1081,15 @@ set_axis_ticks(PyObject* self, PyObject* args, PyObject* kwargs)
 		labels.emplace_back(item.first.c_str());
 		locations.emplace_back((double)item.second);
 	}
-	graph->resetYTicks();
-	graph->setYTicks(labels, locations);
+
+	graph->configData.labels.clear();
+	graph->configData.clabels.clear();
+	graph->configData.labelLocations.clear();
+	graph->configData.labels = labels;
+	graph->configData.labelLocations = locations;
+
+	for (const auto& item : graph->configData.labels)
+		graph->configData.clabels.push_back(item.data());
 
 	return GetPyNone();
 }
@@ -1115,9 +1124,8 @@ set_axis_limits(PyObject* self, PyObject* args, PyObject* kwargs)
 	}
 
 	mvPlotAxis* graph = static_cast<mvPlotAxis*>(aplot);
-
-	graph->setLimits(ymin, ymax);
-
+	graph->configData.setLimits = true;
+	graph->configData.limits = ImVec2(ymin, ymax);
 	return GetPyNone();
 }
 
@@ -1150,7 +1158,7 @@ set_axis_limits_auto(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	mvPlotAxis* graph = static_cast<mvPlotAxis*>(aplot);
 
-	graph->setLimitsAuto();
+	graph->configData.setLimits = false;
 
 	return GetPyNone();
 }
@@ -1184,7 +1192,9 @@ fit_axis_data(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	mvPlotAxis* graph = static_cast<mvPlotAxis*>(aplot);
 
-	graph->fitAxisData();
+	// fit axis data
+	static_cast<mvPlot*>(graph->info.parentPtr)->configData._fitDirty = true;
+	static_cast<mvPlot*>(graph->info.parentPtr)->configData._axisfitDirty[graph->info.location] = true;
 
 	return GetPyNone();
 }
@@ -1218,7 +1228,7 @@ get_axis_limits(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	mvPlotAxis* graph = static_cast<mvPlotAxis*>(aplot);
 
-	const ImVec2& lim = graph->getYLimits();
+	const ImVec2& lim = graph->configData.limits_actual;
 	return ToPyPair(lim.x, lim.y);
 }
 
@@ -1251,7 +1261,9 @@ reset_axis_ticks(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	mvPlotAxis* graph = static_cast<mvPlotAxis*>(aplot);
 
-	graph->resetYTicks();
+	graph->configData.labels.clear();
+	graph->configData.clabels.clear();
+	graph->configData.labelLocations.clear();
 
 	return GetPyNone();
 }
