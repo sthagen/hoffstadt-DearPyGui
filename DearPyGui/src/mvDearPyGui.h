@@ -20,6 +20,8 @@ struct mvContext;
 //-----------------------------------------------------------------------------
 // forward declarations - item configs
 //-----------------------------------------------------------------------------
+struct mvMenuConfig;
+struct mvTabConfig;
 struct mvSimplePlotConfig;
 struct mvButtonConfig;
 struct mvCheckboxConfig;
