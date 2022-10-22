@@ -94,14 +94,16 @@ void mvLayoutWindow::renderTreeNode(mvRef<mvAppItem>& item)
                 if (ImGui::TreeNodeEx(title.c_str(), childrenSet.empty() ? ImGuiTreeNodeFlags_Leaf : 0))
                 {
                     for (auto& children : childrenSet)
-                        renderTreeNode(children);
+                        if(children)
+                            renderTreeNode(children);
                     ImGui::TreePop();
                 }
             }
             else
             {
                 for (auto& children : childrenSet)
-                    renderTreeNode(children);
+                    if(children)
+                        renderTreeNode(children);
             }
         }
         ImGui::TreePop();
