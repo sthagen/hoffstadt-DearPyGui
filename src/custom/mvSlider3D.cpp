@@ -1,5 +1,5 @@
 #include "mvSlider3D.h"
-#include "mvPythonExceptions.h"
+#include "mvPyUtils.h"
 #include "mvFontItems.h"
 #include "mvThemes.h"
 #include "mvContainers.h"
@@ -73,7 +73,7 @@ static bool SliderScalar3D(char const* pLabel, float* pValueX, float* pValueY, f
 	ImVec2 vPos = ImGui::GetCursorScreenPos();
 	ImRect oRect(vPos + vHeightOffset, vPos + vSize + vHeightOffset);
 
-	ImGui::Text(pLabel);
+	ImGui::Text("%s", pLabel);
 
 	ImGui::PushID(iID);
 

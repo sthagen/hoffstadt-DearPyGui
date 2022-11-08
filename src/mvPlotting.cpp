@@ -3,15 +3,14 @@
 #include "mvCore.h"
 #include "mvContext.h"
 #include "mvItemRegistry.h"
-#include "mvPythonExceptions.h"
+#include "mvPyUtils.h"
 #include "mvFontItems.h"
 #include "mvThemes.h"
 #include "mvContainers.h"
-#include "mvPyObject.h"
 #include "mvTextureItems.h"
 #include "mvItemHandlers.h"
 
-mv_internal void
+static void
 draw_polygon(const mvAreaSeriesConfig& config)
 {
 
@@ -125,7 +124,7 @@ int BinarySearch(const T* arr, int l, int r, T x) {
 	return -1;
 }
 
-mv_internal void
+static void
 PlotCandlestick(const char* label_id, const double* xs, const double* opens,
 	const double* closes, const double* lows, const double* highs, int count,
 	bool tooltip, float width_percent, const ImVec4& bullCol, const ImVec4& bearCol, int time_unit)
@@ -161,31 +160,31 @@ PlotCandlestick(const char* label_id, const double* xs, const double* opens,
 			}
 			else if (time_unit == ImPlotTimeUnit_Us)
 			{
-				ImGui::Text("Microsecond: %d", xs[idx]);
+				ImGui::Text("Microsecond: %f", xs[idx]);
 			}
 			else if (time_unit == ImPlotTimeUnit_Ms)
 			{
-				ImGui::Text("Millisecond: %d", xs[idx]);
+				ImGui::Text("Millisecond: %f", xs[idx]);
 			}
 			else if (time_unit == ImPlotTimeUnit_S)
 			{
-				ImGui::Text("Second: %d", xs[idx]);
+				ImGui::Text("Second: %f", xs[idx]);
 			}
 			else if (time_unit == ImPlotTimeUnit_Min)
 			{
-				ImGui::Text("Minute: %d", xs[idx]);
+				ImGui::Text("Minute: %f", xs[idx]);
 			}
 			else if (time_unit == ImPlotTimeUnit_Hr)
 			{
-				ImGui::Text("Hour: %d", xs[idx]);
+				ImGui::Text("Hour: %f", xs[idx]);
 			}
 			else if (time_unit == ImPlotTimeUnit_Mo)
 			{
-				ImGui::Text("Month: %d", xs[idx]);
+				ImGui::Text("Month: %f", xs[idx]);
 			}
 			else if (time_unit == ImPlotTimeUnit_Yr)
 			{
-				ImGui::Text("Year: %d", xs[idx]);
+				ImGui::Text("Year: %f", xs[idx]);
 			}
 			ImGui::Text("Open:  $%.2f", opens[idx]);
 			ImGui::Text("Close: $%.2f", closes[idx]);
@@ -289,7 +288,7 @@ DearPyGui::set_data_source(mvAppItem& item, mvUUID dataSource, mvDragPointConfig
 }
 
 void 
-DearPyGui::set_data_source(mvAppItem& item, mvUUID dataSource, mvRef<std::vector<std::vector<double>>>& outValue)
+DearPyGui::set_data_source(mvAppItem& item, mvUUID dataSource, std::shared_ptr<std::vector<std::vector<double>>>& outValue)
 {
 	if (dataSource == item.config.source) return;
 	item.config.source = dataSource;

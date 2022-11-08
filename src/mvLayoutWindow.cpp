@@ -3,7 +3,7 @@
 #include "mvContext.h"
 #include "mvItemRegistry.h"
 
-mv_internal void
+static void
 DebugItem(const char* label, const char* item) {
     ImGui::Text("%s", label);
     ImGui::SameLine();
@@ -15,7 +15,7 @@ mvLayoutWindow::mvLayoutWindow()
     m_windowflags = ImGuiWindowFlags_NoSavedSettings;
 }
 
-void mvLayoutWindow::renderRootCategory(const char* category, std::vector<mvRef<mvAppItem>>& roots)
+void mvLayoutWindow::renderRootCategory(const char* category, std::vector<std::shared_ptr<mvAppItem>>& roots)
 {
 
     const auto node_flags = ImGuiTreeNodeFlags_OpenOnArrow | (roots.empty() ? ImGuiTreeNodeFlags_Leaf : 0);
@@ -33,7 +33,7 @@ void mvLayoutWindow::renderRootCategory(const char* category, std::vector<mvRef<
     ImGui::PopID();
 }
 
-void mvLayoutWindow::renderTreeNode(mvRef<mvAppItem>& item)
+void mvLayoutWindow::renderTreeNode(std::shared_ptr<mvAppItem>& item)
 {
 
     // build up flags for current node
@@ -174,8 +174,8 @@ void mvLayoutWindow::drawWidgets()
     ImGui::Checkbox("Show Slots###layout", &_slots);
 
     ImGui::BeginChild("###layoutwindow", ImVec2(400, 0));
-    mv_local_persist char ts[6] = "True";
-    mv_local_persist char fs[6] = "False";
+    static char ts[6] = "True";
+    static char fs[6] = "False";
 
     std::string width = std::to_string(_itemref->config.width);
     std::string height = std::to_string(_itemref->config.height);

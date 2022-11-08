@@ -1,5 +1,5 @@
 #include "mvItemHandlers.h"
-#include "mvPythonExceptions.h"
+#include "mvPyUtils.h"
 #include "mvLog.h"
 
 void mvItemHandlerRegistry::checkEvents(void* data)
@@ -110,6 +110,8 @@ void mvItemHandlerRegistry::onBind(mvAppItem* item)
 					"Item Handler Registry includes inapplicable handler: mvVisibleHandler", item);
 			break;
 		}
+
+            default: break;
 		}
 	}
 }

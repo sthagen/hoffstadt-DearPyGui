@@ -1,7 +1,7 @@
 #include "mvAboutWindow.h"
 #include "mvContext.h"
 
-mv_internal std::vector<std::string> founders =
+static std::vector<std::string> founders =
 {
 "Anthony Tanbakuchi",
 "Marco Studer",
@@ -72,11 +72,11 @@ void mvAboutWindow::drawWidgets()
     {
         if (i % 2 == 0)
         {
-            ImGui::TextColored(ImVec4(0.0f, 1.0f, (float)i / (float)founders.size(), 1.0f), founders[i].c_str());
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, (float)i / (float)founders.size(), 1.0f), "%s", founders[i].c_str());
             ImGui::SameLine(250.0f);
         }
         else
-            ImGui::TextColored(ImVec4((float)i / (float)founders.size(), 1.0f, 0.0f, 1.0f), founders[i].c_str());
+            ImGui::TextColored(ImVec4((float)i / (float)founders.size(), 1.0f, 0.0f, 1.0f), "%s", founders[i].c_str());
     }
 
     ImGui::EndChild();
@@ -91,7 +91,7 @@ void mvAboutWindow::drawWidgets()
     ImGui::Text("Dear ImGui Author, Omar Cornut and all Dear ImGui contributors.");
     ImGui::Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.");
 
-    mv_local_persist bool show_config_info = false;
+    static bool show_config_info = false;
     ImGui::Checkbox("Config/Build Information", &show_config_info);
     if (show_config_info)
     {

@@ -4,16 +4,14 @@
 #include <ImGuiFileDialog.h>
 #include <cstdlib>
 #include "mvToolManager.h"
-#include "mvBuffer.h"
-#include "mvVec4Type.h"
-#include "mvMat4Type.h"
-#include "mvPythonExceptions.h"
+#include "mvCustomTypes.h"
+#include "mvPyUtils.h"
 #include "mvViewport.h"
 #include <stb_image.h>
 #include "mvLog.h"
 #include "mvProfiler.h"
 
-mv_internal void
+static void
 InsertParser_Block0(std::map<std::string, mvPythonParser>& parsers)
 {
 	//-----------------------------------------------------------------------------
@@ -463,7 +461,7 @@ InsertParser_Block0(std::map<std::string, mvPythonParser>& parsers)
 	}
 }
 
-mv_internal void
+static void
 InsertParser_Block1(std::map<std::string, mvPythonParser>& parsers)
 {
 	//-----------------------------------------------------------------------------
@@ -889,7 +887,7 @@ InsertParser_Block1(std::map<std::string, mvPythonParser>& parsers)
 	}
 }
 
-mv_internal void
+static void
 InsertParser_Block2(std::map<std::string, mvPythonParser>& parsers)
 {
 	{
@@ -1242,7 +1240,7 @@ InsertParser_Block2(std::map<std::string, mvPythonParser>& parsers)
 	}
 }
 
-mv_internal void
+static void
 InsertParser_Block3(std::map<std::string, mvPythonParser>& parsers)
 {
 
@@ -1454,7 +1452,7 @@ InsertParser_Block3(std::map<std::string, mvPythonParser>& parsers)
 	}
 }
 
-mv_internal void
+static void
 InsertParser_Block4(std::map<std::string, mvPythonParser>& parsers)
 {
 	//-----------------------------------------------------------------------------

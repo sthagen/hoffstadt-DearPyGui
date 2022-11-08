@@ -1,7 +1,7 @@
 #include "mvGraphics.h"
 #include "mvWindowsSpecifics.h"
 
-mv_internal std::vector <IDXGIAdapter*>
+static std::vector <IDXGIAdapter*>
 EnumerateAdapters()
 {
 	IDXGIAdapter* pAdapter;
@@ -33,7 +33,7 @@ EnumerateAdapters()
 }
 
 mvGraphics
-setup_graphics(mvViewport& viewport, mvGraphicsSpec spec)
+setup_graphics(mvViewport& viewport)
 {
 	mvGraphics graphics{};
 	graphics.backendSpecifics = new mvGraphics_D3D11();

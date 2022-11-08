@@ -4,10 +4,8 @@
 #include <ImGuiFileDialog.h>
 #include <cstdlib>
 #include "mvToolManager.h"
-#include "mvBuffer.h"
-#include "mvVec4Type.h"
-#include "mvMat4Type.h"
-#include "mvPythonExceptions.h"
+#include "mvCustomTypes.h"
+#include "mvPyUtils.h"
 #include "mvViewport.h"
 #include "stb_image.h"
 #include "stb_image_write.h"
@@ -15,7 +13,7 @@
 #include "mvProfiler.h"
 #include "mvUtilities.h"
 
-mv_internal mv_python_function
+static PyObject*
 bind_colormap(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -91,7 +89,7 @@ bind_colormap(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 sample_colormap(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -133,7 +131,7 @@ sample_colormap(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyColor(resultColor);
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_colormap_color(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -169,7 +167,7 @@ get_colormap_color(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyColor(resultColor);
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_file_dialog_info(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* file_dialog_raw;
@@ -199,7 +197,7 @@ get_file_dialog_info(PyObject* self, PyObject* args, PyObject* kwargs)
 	return graph->getInfoDict();
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_x_scroll(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -245,7 +243,7 @@ set_x_scroll(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_y_scroll(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -291,7 +289,7 @@ set_y_scroll(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_x_scroll(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -335,7 +333,7 @@ get_x_scroll(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_y_scroll(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -379,7 +377,7 @@ get_y_scroll(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_x_scroll_max(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -423,7 +421,7 @@ get_x_scroll_max(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_y_scroll_max(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -467,7 +465,7 @@ get_y_scroll_max(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_clip_space(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -523,7 +521,7 @@ set_clip_space(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 apply_transform(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -563,10 +561,10 @@ apply_transform(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 create_rotation_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 {
-	mv_local_persist mvMat4 identity = mvIdentityMat4();
+	static mvMat4 identity = mvIdentityMat4();
 	float angle = 0.0f;
 	PyObject* axis;
 
@@ -587,7 +585,7 @@ create_rotation_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 	return newbuffer;
 }
 
-mv_internal mv_python_function
+static PyObject*
 create_perspective_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	float fov = 0.0f;
@@ -611,7 +609,7 @@ create_perspective_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 	return newbuffer;
 }
 
-mv_internal mv_python_function
+static PyObject*
 create_orthographic_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	float left = 0.0f;
@@ -637,10 +635,10 @@ create_orthographic_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 	return newbuffer;
 }
 
-mv_internal mv_python_function
+static PyObject*
 create_translation_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 {
-	mv_local_persist mvMat4 identity = mvIdentityMat4();
+	static mvMat4 identity = mvIdentityMat4();
 	PyObject* axis;
 
 	if (!Parse((GetParsers())["create_translation_matrix"], args, kwargs, __FUNCTION__, &axis))
@@ -660,10 +658,10 @@ create_translation_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 	return newbuffer;
 }
 
-mv_internal mv_python_function
+static PyObject*
 create_scale_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 {
-	mv_local_persist mvMat4 identity = mvIdentityMat4();
+	static mvMat4 identity = mvIdentityMat4();
 	PyObject* axis;
 
 	if (!Parse((GetParsers())["create_scale_matrix"], args, kwargs, __FUNCTION__, &axis))
@@ -683,10 +681,10 @@ create_scale_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 	return newbuffer;
 }
 
-mv_internal mv_python_function
+static PyObject*
 create_lookat_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 {
-	mv_local_persist mvMat4 identity = mvIdentityMat4();
+	static mvMat4 identity = mvIdentityMat4();
 	PyObject* eye;
 	PyObject* center;
 	PyObject* up;
@@ -711,10 +709,10 @@ create_lookat_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 	return newbuffer;
 }
 
-mv_internal mv_python_function
+static PyObject*
 create_fps_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 {
-	mv_local_persist mvMat4 identity = mvIdentityMat4();
+	static mvMat4 identity = mvIdentityMat4();
 	PyObject* eye;
 	f32 pitch = 0.0f;
 	f32 yaw = 0.0f;
@@ -736,7 +734,7 @@ create_fps_matrix(PyObject* self, PyObject* args, PyObject* kwargs)
 	return newbuffer;
 }
 
-mv_internal mv_python_function
+static PyObject*
 bind_font(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -780,7 +778,7 @@ bind_font(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_text_size(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -838,7 +836,7 @@ get_text_size(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_selected_nodes(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -874,7 +872,7 @@ get_selected_nodes(PyObject* self, PyObject* args, PyObject* kwargs)
 
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_selected_links(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* node_editor_raw;
@@ -908,7 +906,7 @@ get_selected_links(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyList(selected_links);
 }
 
-mv_internal mv_python_function
+static PyObject*
 clear_selected_links(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* node_editor_raw;
@@ -942,7 +940,7 @@ clear_selected_links(PyObject* self, PyObject* args, PyObject* kwargs)
 
 }
 
-mv_internal mv_python_function
+static PyObject*
 clear_selected_nodes(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* node_editor_raw;
@@ -976,7 +974,7 @@ clear_selected_nodes(PyObject* self, PyObject* args, PyObject* kwargs)
 
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_plot_queried(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* plotraw;
@@ -1008,7 +1006,7 @@ is_plot_queried(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(graph->configData._queried);
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_plot_query_area(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* plotraw;
@@ -1041,7 +1039,7 @@ get_plot_query_area(PyObject* self, PyObject* args, PyObject* kwargs)
 	return Py_BuildValue("(dddd)", result[0], result[1], result[2], result[3]);
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_axis_ticks(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* plotraw;
@@ -1094,7 +1092,7 @@ set_axis_ticks(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_axis_limits(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* axisraw;
@@ -1129,7 +1127,7 @@ set_axis_limits(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_axis_limits_auto(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* axisraw;
@@ -1163,7 +1161,7 @@ set_axis_limits_auto(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 fit_axis_data(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* axisraw;
@@ -1199,7 +1197,7 @@ fit_axis_data(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_axis_limits(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* plotraw;
@@ -1232,7 +1230,7 @@ get_axis_limits(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyPair(lim.x, lim.y);
 }
 
-mv_internal mv_python_function
+static PyObject*
 reset_axis_ticks(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* plotraw;
@@ -1268,7 +1266,7 @@ reset_axis_ticks(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 highlight_table_column(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* tableraw;
@@ -1313,7 +1311,7 @@ highlight_table_column(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 unhighlight_table_column(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* tableraw;
@@ -1355,7 +1353,7 @@ unhighlight_table_column(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_table_row_color(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* tableraw;
@@ -1400,7 +1398,7 @@ set_table_row_color(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 unset_table_row_color(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* tableraw;
@@ -1441,7 +1439,7 @@ unset_table_row_color(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 highlight_table_row(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* tableraw;
@@ -1486,7 +1484,7 @@ highlight_table_row(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 unhighlight_table_row(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* tableraw;
@@ -1528,7 +1526,7 @@ unhighlight_table_row(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 highlight_table_cell(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* tableraw;
@@ -1574,7 +1572,7 @@ highlight_table_cell(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 unhighlight_table_cell(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* tableraw;
@@ -1617,7 +1615,7 @@ unhighlight_table_cell(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_table_cell_highlighted(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* tableraw;
@@ -1665,7 +1663,7 @@ is_table_cell_highlighted(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(false);
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_table_row_highlighted(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* tableraw;
@@ -1705,7 +1703,7 @@ is_table_row_highlighted(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(tablecast->_rowSelectionColorsSet[row]);
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_table_column_highlighted(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* tableraw;
@@ -1745,7 +1743,7 @@ is_table_column_highlighted(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(tablecast->_columnColorsSet[column]);
 }
 
-mv_internal mv_python_function
+static PyObject*
 bind_theme(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -1790,7 +1788,7 @@ bind_theme(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_global_font_scale(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	float scale;
@@ -1804,13 +1802,13 @@ set_global_font_scale(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_global_font_scale(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	return ToPyFloat(mvToolManager::GetFontManager().getGlobalFontScale());
 }
 
-mv_internal mv_python_function
+static PyObject*
 show_tool(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* toolraw;
@@ -1826,7 +1824,7 @@ show_tool(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_frame_callback(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	i32 frame = 0;
@@ -1854,7 +1852,7 @@ set_frame_callback(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_exit_callback(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* callback;
@@ -1875,7 +1873,7 @@ set_exit_callback(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_viewport_resize_callback(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* callback = nullptr;
@@ -1900,7 +1898,7 @@ set_viewport_resize_callback(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_viewport_configuration(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -1936,7 +1934,7 @@ get_viewport_configuration(PyObject* self, PyObject* args, PyObject* kwargs)
 	return pdict;
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_viewport_ok(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -1952,7 +1950,7 @@ is_viewport_ok(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(false);
 }
 
-mv_internal mv_python_function
+static PyObject*
 create_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	const char* title = "Dear PyGui";
@@ -2008,7 +2006,7 @@ create_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 show_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	b32 minimized = false;
@@ -2022,8 +2020,7 @@ show_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 	if (viewport)
 	{
 		mvShowViewport(*viewport, minimized, maximized);
-		mvGraphicsSpec spec{}; // not used yet
-		GContext->graphics = setup_graphics(*viewport, spec);
+		GContext->graphics = setup_graphics(*viewport);
 		viewport->shown = true;
 	}
 	else
@@ -2032,7 +2029,7 @@ show_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 configure_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -2063,7 +2060,7 @@ configure_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 maximize_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2075,7 +2072,7 @@ maximize_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 minimize_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2087,7 +2084,7 @@ minimize_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 toggle_viewport_fullscreen(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2099,7 +2096,7 @@ toggle_viewport_fullscreen(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 save_init_file(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	const char* file;
@@ -2115,7 +2112,7 @@ save_init_file(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 split_frame(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	i32 delay = 32;
@@ -2135,7 +2132,7 @@ split_frame(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 lock_mutex(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	GContext->mutex.lock();
@@ -2144,7 +2141,7 @@ lock_mutex(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 unlock_mutex(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	GContext->mutex.unlock();
@@ -2153,14 +2150,14 @@ unlock_mutex(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_frame_count(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
 	return ToPyInt(GContext->frame);
 }
 
-mv_internal mv_python_function
+static PyObject*
 load_image(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	const char* file;
@@ -2210,7 +2207,7 @@ load_image(PyObject* self, PyObject* args, PyObject* kwargs)
 	return result;
 }
 
-mv_internal mv_python_function
+static PyObject*
 save_image(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	const char* file;
@@ -2291,42 +2288,43 @@ save_image(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	switch (imageType)
 	{
-	case MV_IMAGE_TYPE_PNG_:
-	{
-		std::vector<unsigned char> convertedData = ToUCharVect(data);
-		int result = stbi_write_png(file, width, height, components, convertedData.data(), sizeof(unsigned char)*components*width);
-		break;
-	}
-	case MV_IMAGE_TYPE_BMP_:
-	{
-		std::vector<unsigned char> convertedData = ToUCharVect(data);
-		int result = stbi_write_bmp(file, width, height, components, convertedData.data());
-		break;
-	}
-	case MV_IMAGE_TYPE_TGA_:
-	{
-		std::vector<unsigned char> convertedData = ToUCharVect(data);
-		int result = stbi_write_tga(file, width, height, components, convertedData.data());
-		break;
-	}
-	case MV_IMAGE_TYPE_HDR_:
-	{
-		std::vector<float> convertedData = ToFloatVect(data);
-		int result = stbi_write_hdr(file, width, height, components, convertedData.data());
-		break;
-	}
-	case MV_IMAGE_TYPE_JPG_:
-	{
-		std::vector<unsigned char> convertedData = ToUCharVect(data);
-		int result = stbi_write_jpg(file, width, height, components, convertedData.data(), quality);
-		break;
-	}
+        case MV_IMAGE_TYPE_PNG_:
+        {
+            std::vector<unsigned char> convertedData = ToUCharVect(data);
+            int result = stbi_write_png(file, width, height, components, convertedData.data(), sizeof(unsigned char)*components*width);
+            break;
+        }
+        case MV_IMAGE_TYPE_BMP_:
+        {
+            std::vector<unsigned char> convertedData = ToUCharVect(data);
+            int result = stbi_write_bmp(file, width, height, components, convertedData.data());
+            break;
+        }
+        case MV_IMAGE_TYPE_TGA_:
+        {
+            std::vector<unsigned char> convertedData = ToUCharVect(data);
+            int result = stbi_write_tga(file, width, height, components, convertedData.data());
+            break;
+        }
+        case MV_IMAGE_TYPE_HDR_:
+        {
+            std::vector<float> convertedData = ToFloatVect(data);
+            int result = stbi_write_hdr(file, width, height, components, convertedData.data());
+            break;
+        }
+        case MV_IMAGE_TYPE_JPG_:
+        {
+            std::vector<unsigned char> convertedData = ToUCharVect(data);
+            int result = stbi_write_jpg(file, width, height, components, convertedData.data(), quality);
+            break;
+        }
+        default: break;
 	}
 
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 output_frame_buffer(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	const char* file = "";
@@ -2382,13 +2380,13 @@ output_frame_buffer(PyObject* self, PyObject* args, PyObject* kwargs)
 }
 
 
-mv_internal mv_python_function
+static PyObject*
 is_dearpygui_running(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	return ToPyBool(GContext->started);
 }
 
-mv_internal mv_python_function
+static PyObject*
 setup_dearpygui(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -2404,19 +2402,13 @@ setup_dearpygui(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	while (!GContext->itemRegistry->containers.empty())
 		GContext->itemRegistry->containers.pop();
-	MV_ITEM_REGISTRY_INFO("Container stack emptied.");
-
 	GContext->started = true;
 	GContext->future = std::async(std::launch::async, []() {return mvRunCallbacks(); });
-
-	MV_CORE_INFO("application starting");
-
 	Py_END_ALLOW_THREADS;
-
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 render_dearpygui_frame(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	MV_PROFILE_SCOPE("Frame")
@@ -2435,7 +2427,7 @@ render_dearpygui_frame(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 create_context(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	Py_BEGIN_ALLOW_THREADS;
@@ -2464,7 +2456,7 @@ create_context(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 destroy_context(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	//if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2520,7 +2512,7 @@ destroy_context(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 stop_dearpygui(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2531,14 +2523,14 @@ stop_dearpygui(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_total_time(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
 	return ToPyFloat((f32)GContext->time);
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_delta_time(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2546,7 +2538,7 @@ get_delta_time(PyObject* self, PyObject* args, PyObject* kwargs)
 
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_frame_rate(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2554,13 +2546,13 @@ get_frame_rate(PyObject* self, PyObject* args, PyObject* kwargs)
 
 }
 
-mv_internal mv_python_function
+static PyObject*
 generate_uuid(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	return ToPyUUID(GenerateUUID());
 }
 
-mv_internal mv_python_function
+static PyObject*
 configure_app(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (kwargs == nullptr)
@@ -2604,7 +2596,7 @@ configure_app(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_app_configuration(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2631,7 +2623,7 @@ get_app_configuration(PyObject* self, PyObject* args, PyObject* kwargs)
 	return pdict;
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_mouse_pos(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	b32 local = true;
@@ -2649,7 +2641,7 @@ get_mouse_pos(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyPair(pos.x, pos.y);
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_plot_mouse_pos(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -2661,7 +2653,7 @@ get_plot_mouse_pos(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyPair(pos.x, pos.y);
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_drawing_mouse_pos(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -2673,7 +2665,7 @@ get_drawing_mouse_pos(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyPair(pos.x, pos.y);
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_mouse_drag_delta(PyObject* self, PyObject* arg, PyObject* kwargss)
 {
 
@@ -2681,7 +2673,7 @@ get_mouse_drag_delta(PyObject* self, PyObject* arg, PyObject* kwargss)
 	return ToPyPair(pos.x, pos.y);
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_key_pressed(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	i32 key;
@@ -2692,7 +2684,7 @@ is_key_pressed(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(GContext->input.keyspressed[key]);
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_key_released(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	i32 key;
@@ -2703,7 +2695,7 @@ is_key_released(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(GContext->input.keysreleased[key]);
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_key_down(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	i32 key;
@@ -2714,7 +2706,7 @@ is_key_down(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(GContext->input.keysdown[key]);
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_mouse_button_dragging(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	i32 button;
@@ -2726,7 +2718,7 @@ is_mouse_button_dragging(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool((f32)GContext->input.mousedownduration[button] / 100.0f >= threshold);
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_mouse_button_down(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	i32 button;
@@ -2737,7 +2729,7 @@ is_mouse_button_down(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(GContext->input.mousedown[button]);
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_mouse_button_clicked(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	i32 button;
@@ -2748,7 +2740,7 @@ is_mouse_button_clicked(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(GContext->input.mouseclick[button]);
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_mouse_button_double_clicked(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	i32 button;
@@ -2759,7 +2751,7 @@ is_mouse_button_double_clicked(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(GContext->input.mousedoubleclick[button]);
 }
 
-mv_internal mv_python_function
+static PyObject*
 is_mouse_button_released(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	i32 button;
@@ -2770,7 +2762,7 @@ is_mouse_button_released(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(GContext->input.mousereleased[button]);
 }
 
-mv_internal mv_python_function
+static PyObject*
 pop_container_stack(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -2779,7 +2771,6 @@ pop_container_stack(PyObject* self, PyObject* args, PyObject* kwargs)
 	if (GContext->itemRegistry->containers.empty())
 	{
 		mvThrowPythonError(mvErrorCode::mvContainerStackEmpty, "No container to pop.");
-		MV_ITEM_REGISTRY_WARN("No container to pop.");
 		assert(false);
 		return GetPyNone();
 	}
@@ -2794,7 +2785,7 @@ pop_container_stack(PyObject* self, PyObject* args, PyObject* kwargs)
 
 }
 
-mv_internal mv_python_function
+static PyObject*
 empty_container_stack(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2803,7 +2794,7 @@ empty_container_stack(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 top_container_stack(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2818,7 +2809,7 @@ top_container_stack(PyObject* self, PyObject* args, PyObject* kwargs)
 		return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 last_item(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2826,7 +2817,7 @@ last_item(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyUUID(GContext->itemRegistry->lastItemAdded);
 }
 
-mv_internal mv_python_function
+static PyObject*
 last_container(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2834,7 +2825,7 @@ last_container(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyUUID(GContext->itemRegistry->lastContainerAdded);
 }
 
-mv_internal mv_python_function
+static PyObject*
 last_root(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2842,7 +2833,7 @@ last_root(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyUUID(GContext->itemRegistry->lastRootAdded);
 }
 
-mv_internal mv_python_function
+static PyObject*
 push_container_stack(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -2866,7 +2857,7 @@ push_container_stack(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(false);
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_primary_window(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -2953,7 +2944,7 @@ set_primary_window(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_active_window(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
@@ -2961,7 +2952,7 @@ get_active_window(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyUUID(GContext->itemRegistry->activeWindow);
 }
 
-mv_internal mv_python_function
+static PyObject*
 move_item(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -2984,7 +2975,7 @@ move_item(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 delete_item(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3006,7 +2997,7 @@ delete_item(PyObject* self, PyObject* args, PyObject* kwargs)
 
 }
 
-mv_internal mv_python_function
+static PyObject*
 does_item_exist(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3024,7 +3015,7 @@ does_item_exist(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(false);
 }
 
-mv_internal mv_python_function
+static PyObject*
 move_item_up(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3043,7 +3034,7 @@ move_item_up(PyObject* self, PyObject* args, PyObject* kwargs)
 
 }
 
-mv_internal mv_python_function
+static PyObject*
 move_item_down(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3061,7 +3052,7 @@ move_item_down(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 reorder_items(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3080,9 +3071,9 @@ reorder_items(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	mvAppItem* parent = GetItem((*GContext->itemRegistry), container);
 
-	std::vector<mvRef<mvAppItem>>& children = parent->childslots[slot];
+	std::vector<std::shared_ptr<mvAppItem>>& children = parent->childslots[slot];
 
-	std::vector<mvRef<mvAppItem>> newchildren;
+	std::vector<std::shared_ptr<mvAppItem>> newchildren;
 	newchildren.reserve(children.size());
 
 	// todo: better sorting algorithm
@@ -3101,7 +3092,7 @@ reorder_items(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 unstage(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3143,7 +3134,7 @@ unstage(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 show_item_debug(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3171,12 +3162,12 @@ show_item_debug(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal void
-GetAllItemsRoot(std::vector<mvRef<mvAppItem>>& roots, std::vector<mvUUID>& childList)
+static void
+GetAllItemsRoot(std::vector<std::shared_ptr<mvAppItem>>& roots, std::vector<mvUUID>& childList)
 {
 	// to help recursively retrieve children
-	std::function<void(mvRef<mvAppItem>)> ChildRetriever;
-	ChildRetriever = [&childList, &ChildRetriever](mvRef<mvAppItem> item) {
+	std::function<void(std::shared_ptr<mvAppItem>)> ChildRetriever;
+	ChildRetriever = [&childList, &ChildRetriever](std::shared_ptr<mvAppItem> item) {
 		auto& children0 = item->childslots[0];
 		auto& children1 = item->childslots[1];
 		auto& children2 = item->childslots[2];
@@ -3208,7 +3199,7 @@ GetAllItemsRoot(std::vector<mvRef<mvAppItem>>& roots, std::vector<mvUUID>& child
 	}
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_all_items(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3233,7 +3224,7 @@ get_all_items(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyList(childList);
 }
 
-mv_internal mv_python_function
+static PyObject*
 show_imgui_demo(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3243,7 +3234,7 @@ show_imgui_demo(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 show_implot_demo(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3253,7 +3244,7 @@ show_implot_demo(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_windows(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3277,7 +3268,7 @@ get_windows(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyList(childList);
 }
 
-mv_internal mv_python_function
+static PyObject*
 add_alias(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3297,7 +3288,7 @@ add_alias(PyObject* self, PyObject* args, PyObject* kwargs)
 
 }
 
-mv_internal mv_python_function
+static PyObject*
 remove_alias(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3314,7 +3305,7 @@ remove_alias(PyObject* self, PyObject* args, PyObject* kwargs)
 
 }
 
-mv_internal mv_python_function
+static PyObject*
 does_alias_exist(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3330,7 +3321,7 @@ does_alias_exist(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyBool(result);
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_alias_id(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3346,7 +3337,7 @@ get_alias_id(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyUUID(result);
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_aliases(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3360,7 +3351,7 @@ get_aliases(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyList(aliases);
 }
 
-mv_internal mv_python_function
+static PyObject*
 bind_template_registry(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3393,7 +3384,7 @@ bind_template_registry(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 focus_item(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -3411,7 +3402,7 @@ focus_item(PyObject* self, PyObject* args, PyObject* kwargs)
 		{
 			if (GContext->itemRegistry->windowRoots[i]->uuid == item)
 			{
-				mvRef<mvAppItem> oldItem = GContext->itemRegistry->windowRoots.back();
+				std::shared_ptr<mvAppItem> oldItem = GContext->itemRegistry->windowRoots.back();
 				GContext->itemRegistry->windowRoots[GContext->itemRegistry->windowRoots.size() - 1] = GContext->itemRegistry->windowRoots[i];
 				GContext->itemRegistry->windowRoots[i] = oldItem;
 				break;
@@ -3434,7 +3425,7 @@ focus_item(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal std::vector<std::vector<mvUUID>>
+static std::vector<std::vector<mvUUID>>
 GetItemChildren(mvItemRegistry& registry, mvUUID uuid)
 {
 
@@ -3466,7 +3457,7 @@ GetItemChildren(mvItemRegistry& registry, mvUUID uuid)
 	return childList;
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_item_info(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -3546,7 +3537,7 @@ get_item_info(PyObject* self, PyObject* args, PyObject* kwargs)
 	return pdict;
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_item_configuration(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -3631,7 +3622,7 @@ get_item_configuration(PyObject* self, PyObject* args, PyObject* kwargs)
 	return pdict;
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_item_children(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -3651,7 +3642,7 @@ set_item_children(PyObject* self, PyObject* args, PyObject* kwargs)
 	auto& staging = GContext->itemRegistry->stagingRoots;
 
 	b8 stage_found = false;
-	mvRef<mvAppItem> staging_container = nullptr;
+	std::shared_ptr<mvAppItem> staging_container = nullptr;
 
 	for (auto& stage : staging)
 	{
@@ -3703,7 +3694,7 @@ set_item_children(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 bind_item_font(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -3745,7 +3736,7 @@ bind_item_font(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 bind_item_theme(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -3778,7 +3769,7 @@ bind_item_theme(PyObject* self, PyObject* args, PyObject* kwargs)
 				mvThrowPythonError(mvErrorCode::mvIncompatibleType, "bind_item_theme",
 					"Item not a theme: " + std::to_string(theme), nullptr);
 			}
-			appitem->theme = *(mvRef<mvTheme>*)(&apptheme);
+			appitem->theme = *(std::shared_ptr<mvTheme>*)(&apptheme);
 			return GetPyNone();
 		}
 		else
@@ -3792,7 +3783,7 @@ bind_item_theme(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 bind_item_handler_registry(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -3825,7 +3816,7 @@ bind_item_handler_registry(PyObject* self, PyObject* args, PyObject* kwargs)
 				mvThrowPythonError(mvErrorCode::mvIncompatibleType, "bind_item_handler_registry",
 					"Item not handler registry: " + std::to_string(reg), nullptr);
 			}
-			appitem->handlerRegistry = *(mvRef<mvItemHandlerRegistry>*)(&apptheme);
+			appitem->handlerRegistry = *(std::shared_ptr<mvItemHandlerRegistry>*)(&apptheme);
 			appitem->handlerRegistry->onBind(appitem);
 			return GetPyNone();
 		}
@@ -3840,7 +3831,7 @@ bind_item_handler_registry(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 reset_pos(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -3863,7 +3854,7 @@ reset_pos(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_item_state(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -3887,7 +3878,7 @@ get_item_state(PyObject* self, PyObject* args, PyObject* kwargs)
 	return pdict;
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_item_types(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3901,7 +3892,7 @@ get_item_types(PyObject* self, PyObject* args, PyObject* kwargs)
 	return pdict;
 }
 
-mv_internal mv_python_function
+static PyObject*
 configure_item(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -3922,7 +3913,7 @@ configure_item(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_value(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* nameraw;
@@ -3940,7 +3931,7 @@ get_value(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_values(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* items;
@@ -3969,7 +3960,7 @@ get_values(PyObject* self, PyObject* args, PyObject* kwargs)
 	return pyvalues;
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_value(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* nameraw;
@@ -3999,7 +3990,7 @@ set_value(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_item_alias(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -4018,7 +4009,7 @@ set_item_alias(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_item_alias(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* itemraw;
@@ -4036,7 +4027,7 @@ get_item_alias(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 capture_next_item(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyObject* callable;
@@ -4067,7 +4058,7 @@ capture_next_item(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_callback_queue(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	if (GContext->callbackRegistry->jobs.empty())
@@ -4104,7 +4095,7 @@ get_callback_queue(PyObject* self, PyObject* args, PyObject* kwargs)
 	return pArgs;
 }
 
-mv_internal mv_python_function
+static PyObject*
 set_clipboard_text(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -4121,7 +4112,7 @@ set_clipboard_text(PyObject* self, PyObject* args, PyObject* kwargs)
 	return GetPyNone();
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_clipboard_text(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 
@@ -4132,7 +4123,7 @@ get_clipboard_text(PyObject* self, PyObject* args, PyObject* kwargs)
 	return ToPyString(text);
 }
 
-mv_internal mv_python_function
+static PyObject*
 get_platform(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 

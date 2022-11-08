@@ -2,7 +2,6 @@
 
 #include <vector>
 #include "mvContext.h"
-#include "cpp.hint"
 #include "mvToolWindow.h"
 
 class mvFontManager;
@@ -22,6 +21,6 @@ public:
 
 private:
 
-	static std::vector<mvRef<mvToolWindow>> s_tools;
+	static std::vector<std::shared_ptr<mvToolWindow>> s_tools;
 
 };
