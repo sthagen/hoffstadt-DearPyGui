@@ -159,6 +159,13 @@ DearPyGui::fill_configuration_dict(const mvWindowAppItemConfig& inConfig, PyObje
     PyDict_SetItemString(outDict, "collapsed", mvPyObject(ToPyBool(inConfig.collapsed)));
     PyDict_SetItemString(outDict, "min_size", mvPyObject(ToPyPairII(inConfig.min_size.x, inConfig.min_size.y)));
     PyDict_SetItemString(outDict, "max_size", mvPyObject(ToPyPairII(inConfig.max_size.x, inConfig.max_size.y)));
+    if (inConfig.on_close)
+    {
+        Py_XINCREF(inConfig.on_close);
+        PyDict_SetItemString(outDict, "on_close", inConfig.on_close);
+    }
+    else
+        PyDict_SetItemString(outDict, "on_close", GetPyNone());
 
     // helper to check and set bit
     auto checkbitset = [outDict](const char* keyword, int flag, const int& flags)
@@ -166,7 +173,7 @@ DearPyGui::fill_configuration_dict(const mvWindowAppItemConfig& inConfig, PyObje
         PyDict_SetItemString(outDict, keyword, mvPyObject(ToPyBool(flags & flag)));
     };
 
-    // window flags
+        // window flags
     checkbitset("autosize", ImGuiWindowFlags_AlwaysAutoResize, inConfig.windowflags);
     checkbitset("no_resize", ImGuiWindowFlags_NoResize, inConfig.windowflags);
     checkbitset("no_title_bar", ImGuiWindowFlags_NoTitleBar, inConfig.windowflags);
@@ -366,8 +373,11 @@ DearPyGui::set_configuration(PyObject* inDict, mvAppItem& itemc, mvWindowAppItem
 
     if (PyObject* item = PyDict_GetItemString(inDict, "label"))
     {
-        itemc.info.dirtyPos = true;
-        itemc.info.dirty_size = true;
+        if (item != Py_None)
+        {
+            itemc.info.dirtyPos = true;
+            itemc.info.dirty_size = true;
+        }
     }
 
     if (PyObject* item = PyDict_GetItemString(inDict, "no_open_over_existing_popup")) outConfig.no_open_over_existing_popup = ToBool(item);
@@ -1131,7 +1141,7 @@ DearPyGui::draw_group(ImDrawList* drawlist, mvAppItem& item, mvGroupConfig& conf
 
             child->draw(drawlist, ImGui::GetCursorPosX(), ImGui::GetCursorPosY());
 
-            if (config.horizontal)
+            if (config.horizontal && child->config.show)
                 ImGui::SameLine((1 + child->info.location) * config.xoffset, config.hspacing);
 
             if (child->config.tracked)
