@@ -1926,6 +1926,7 @@ get_viewport_configuration(PyObject* self, PyObject* args, PyObject* kwargs)
 		PyDict_SetItemString(pdict, "always_on_top", mvPyObject(ToPyBool(viewport->alwaysOnTop)));
 		PyDict_SetItemString(pdict, "decorated", mvPyObject(ToPyBool(viewport->decorated)));
 		PyDict_SetItemString(pdict, "title", mvPyObject(ToPyString(viewport->title)));
+		PyDict_SetItemString(pdict, "disable_close", mvPyObject(ToPyBool(viewport->disableClose)));
 	}
 	else
 		mvThrowPythonError(mvErrorCode::mvNone, "No viewport created");
@@ -1968,6 +1969,7 @@ create_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 	b32 vsync = true;
 	b32 always_on_top = false;
 	b32 decorated = true;
+	b32 disable_close = false;
 
 	PyObject* color = PyList_New(4);
 	PyList_SetItem(color, 0, PyFloat_FromDouble(0.0));
@@ -1978,7 +1980,7 @@ create_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	if (!Parse((GetParsers())["create_viewport"], args, kwargs, __FUNCTION__,
 		&title, &small_icon, &large_icon, &width, &height, &x_pos, &y_pos, &min_width, &max_width, &min_height, &max_height,
-		&resizable, &vsync, &always_on_top, &decorated, &color
+		&resizable, &vsync, &always_on_top, &decorated, &color, &disable_close
 	))
 		return GetPyNone();
 
@@ -1999,6 +2001,7 @@ create_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 	if (PyObject* item = PyDict_GetItemString(kwargs, "always_on_top")) { viewport->modesDirty = true; viewport->alwaysOnTop = ToBool(item); }
 	if (PyObject* item = PyDict_GetItemString(kwargs, "decorated")) { viewport->modesDirty = true; viewport->decorated = ToBool(item); }
 	if (PyObject* item = PyDict_GetItemString(kwargs, "title")) { viewport->titleDirty = true; viewport->title = ToString(item); }
+	if (PyObject* item = PyDict_GetItemString(kwargs, "disable_close")) { viewport->modesDirty = true; viewport->disableClose = ToBool(item); }
 
 	GContext->viewport = viewport;
 
@@ -2051,6 +2054,8 @@ configure_viewport(PyObject* self, PyObject* args, PyObject* kwargs)
 		if (PyObject* item = PyDict_GetItemString(kwargs, "always_on_top")) { viewport->modesDirty = true; viewport->alwaysOnTop = ToBool(item); }
 		if (PyObject* item = PyDict_GetItemString(kwargs, "decorated")) { viewport->modesDirty = true; viewport->decorated = ToBool(item); }
 		if (PyObject* item = PyDict_GetItemString(kwargs, "title")) { viewport->titleDirty = true; viewport->title = ToString(item); }
+		if (PyObject* item = PyDict_GetItemString(kwargs, "disable_close")) { viewport->modesDirty = true; viewport->disableClose = ToBool(item); }
+
 
 	}
 	else
@@ -3348,39 +3353,6 @@ get_aliases(PyObject* self, PyObject* args, PyObject* kwargs)
 		aliases.push_back(alias.first);
 
 	return ToPyList(aliases);
-}
-
-static PyObject*
-bind_template_registry(PyObject* self, PyObject* args, PyObject* kwargs)
-{
-
-	PyObject* itemraw;
-
-	if (!Parse((GetParsers())["bind_template_registry"], args, kwargs, __FUNCTION__,
-		&itemraw))
-		return GetPyNone();
-
-	if (!GContext->manualMutexControl) std::lock_guard<std::mutex> lk(GContext->mutex);
-
-	mvUUID item = GetIDFromPyObject(itemraw);
-
-
-	if (item == 0)
-		GContext->itemRegistry->boundedTemplateRegistry = nullptr;
-	else
-	{
-		auto actualItem = GetRefItem((*GContext->itemRegistry), item);
-		if (actualItem)
-			GContext->itemRegistry->boundedTemplateRegistry = std::move(actualItem);
-		else
-		{
-			mvThrowPythonError(mvErrorCode::mvItemNotFound, "bind_template_registry",
-				"Item not found: " + std::to_string(item), nullptr);
-			return GetPyNone();
-		}
-	}
-
-	return GetPyNone();
 }
 
 static PyObject*
