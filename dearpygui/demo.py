@@ -18,13 +18,11 @@ def _hyperlink(text, address):
     dpg.bind_item_theme(b, "__demo_hyperlinkTheme")
 
 def _config(sender, keyword, user_data):
-
     widget_type = dpg.get_item_type(sender)
     items = user_data
 
     if widget_type == "mvAppItemType::mvRadioButton":
         value = True
-
     else:
         keyword = dpg.get_item_label(sender)
         value = dpg.get_value(sender)
@@ -36,7 +34,6 @@ def _config(sender, keyword, user_data):
         dpg.configure_item(items, **{keyword: value})
 
 def _add_config_options(item, columns, *names, **kwargs):
-    
     if columns == 1:
         if 'before' in kwargs:
             for name in names:
@@ -44,9 +41,7 @@ def _add_config_options(item, columns, *names, **kwargs):
         else:
             for name in names:
                 dpg.add_checkbox(label=name, callback=_config, user_data=item, default_value=dpg.get_item_configuration(item)[name])
-
     else:
-
         if 'before' in kwargs:
             dpg.push_container_stack(dpg.add_table(header_row=False, before=kwargs['before']))
         else:
@@ -55,10 +50,11 @@ def _add_config_options(item, columns, *names, **kwargs):
         for i in range(columns):
             dpg.add_table_column()
 
-        for i in range(int(len(names)/columns)):
-
+        for i in range((len(names)+(columns - 1))//columns):
             with dpg.table_row():
                 for j in range(columns):
+                    if (i*columns + j) >= len(names): 
+                        break
                     dpg.add_checkbox(label=names[i*columns + j], 
                                         callback=_config, user_data=item, 
                                         default_value=dpg.get_item_configuration(item)[names[i*columns + j]])
@@ -1723,6 +1719,46 @@ def show_demo():
 
                 #dpg.add_checkbox(label="sort_multi", before=table_id, user_data=table_id, callback=lambda sender, app_data, user_data:dpg.configure_item(user_data, sort_multi=app_data))
                 dpg.add_checkbox(label="sort_tristate", before="__demo_sorting_table", callback=lambda sender, app_data, user_data:dpg.configure_item("__demo_sorting_table", sort_tristate=app_data))
+
+            with dpg.tree_node(label="Selecting rows"):
+                with dpg.theme() as table_theme:
+                    with dpg.theme_component(dpg.mvTable):
+                        dpg.add_theme_color(dpg.mvThemeCol_HeaderActive, (0, 0, 0, 0), category=dpg.mvThemeCat_Core)
+                        dpg.add_theme_color(dpg.mvThemeCol_Header, (0, 0, 0, 0), category=dpg.mvThemeCat_Core)
+
+                def clb_selectable(sender, app_data, user_data):
+                    print(f"Row {user_data}")
+
+                with dpg.table(header_row=True) as table_sel_rows:
+                    dpg.add_table_column(label="First")
+                    dpg.add_table_column(label="Second")
+                    dpg.add_table_column(label="Third")
+
+                    for i in range(10):
+                        with dpg.table_row():
+                            for j in range(3):
+                                dpg.add_selectable(label=f"Row{i} Column{j}", span_columns=True, callback=clb_selectable, user_data=i)
+                dpg.bind_item_theme(table_sel_rows, table_theme)
+
+            with dpg.tree_node(label="Selecting cells"):
+                with dpg.theme() as table_theme:
+                    with dpg.theme_component(dpg.mvTable):
+                        dpg.add_theme_color(dpg.mvThemeCol_HeaderActive, (0, 0, 0, 0), category=dpg.mvThemeCat_Core)
+                        dpg.add_theme_color(dpg.mvThemeCol_Header, (0, 0, 0, 0), category=dpg.mvThemeCat_Core)
+
+                def clb_selectable(sender, app_data, user_data):
+                    print(f"Row {user_data}")
+
+                with dpg.table(header_row=True) as table_sel_cols:
+                    dpg.add_table_column(label="First")
+                    dpg.add_table_column(label="Second")
+                    dpg.add_table_column(label="Third")
+
+                    for i in range(10):
+                        with dpg.table_row():
+                            for j in range(3):
+                                dpg.add_selectable(label=f"Row{i} Column{j}", callback=clb_selectable, user_data=(i,j))
+                dpg.bind_item_theme(table_sel_cols, table_theme)
 
             with dpg.tree_node(label="Sizing Policy"):
 
