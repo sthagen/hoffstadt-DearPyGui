@@ -30,6 +30,10 @@ UpdateAppItemState(mvAppItemState& state)
     state.hovered = ImGui::IsItemHovered();
     state.active = ImGui::IsItemActive();
     state.focused = ImGui::IsItemFocused();
+    if (state.focused)
+    {
+        GContext->focusedItem = state.parent->uuid;
+    }
     state.leftclicked = ImGui::IsItemClicked();
     state.rightclicked = ImGui::IsItemClicked(1);
     state.middleclicked = ImGui::IsItemClicked(2);
