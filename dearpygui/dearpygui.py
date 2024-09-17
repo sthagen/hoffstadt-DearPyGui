@@ -1131,6 +1131,9 @@ def is_viewport_decorated() -> bool:
 # Deprecated Commands
 ##########################################################
 
+from typing import Union
+
+
 def deprecated(reason):
 
 	string_types = (type(b''), type(u''))
@@ -1173,11 +1176,6 @@ def deprecated(reason):
 			return func2(*args, **kwargs)
 
 		return new_func2
-
-@deprecated("Use 'configure_app(docking=True, docking_space=dock_space)'.")
-def enable_docking(dock_space=False):
-    """ deprecated function """
-    internal_dpg.configure_app(docking=True, docking_space=dock_space)
 
 @deprecated("Use 'configure_app(init_file=file)'.")
 def set_init_file(file="dpg.ini"):
@@ -1390,6 +1388,76 @@ def add_same_line(**kwargs):
     internal_dpg.capture_next_item(lambda s: internal_dpg.move_item(s, parent=group))
     return group
 
+@deprecated("Use: `get_plot_query_rects()`")
+def is_plot_queried(plot: Union[int, str], **kwargs):
+	"""	(deprecated function) Returns true if the plot is currently being queried. 
+
+	Args:
+		plot (Union[int, str]): 
+	Returns:
+		bool
+	"""
+
+	return len(internal_dpg.get_plot_query_rects(plot, **kwargs)) > 0
+
+@deprecated("Use: `get_plot_query_rects()`")
+def get_plot_query_area(plot: Union[int, str], **kwargs):
+	"""	(deprecated function) Returns the last/current query area of the plot. If no area is available [0, 0, 0, 0] will be returned.
+
+	Args:
+		plot (Union[int, str]): 
+	Returns:
+		Union[List[float], Tuple[float, ...]]
+	"""
+
+	if rects := internal_dpg.get_plot_query_rects(plot, **kwargs):
+		return rects[0]
+	else:
+		return [0, 0, 0, 0]
+
+@deprecated("Use: `add_inf_line_series(horizontal=True)`")
+def add_hline_series(x, **kwargs):
+	"""	(deprecated function) Adds an infinite horizontal line series to a plot.
+
+	Args:
+		x (Any): 
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		source (Union[int, str], optional): Overrides 'id' as value storage key.
+		show (bool, optional): Attempt to render widget.
+		id (Union[int, str], optional): (deprecated)
+	Returns:
+		Union[int, str]
+	"""
+
+	return internal_dpg.add_inf_line_series(x, **kwargs, horizontal=True)
+            
+
+@deprecated("Use: `add_inf_line_series()`")
+def add_vline_series(x, **kwargs):
+	"""	(deprecated function) Adds an infinite vertical line series to a plot.
+
+	Args:
+		x (Any): 
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		source (Union[int, str], optional): Overrides 'id' as value storage key.
+		show (bool, optional): Attempt to render widget.
+		id (Union[int, str], optional): (deprecated)
+	Returns:
+		Union[int, str]
+	"""
+
+	return internal_dpg.add_inf_line_series(x, **kwargs)
+
 
 @deprecated("Use: `add_child_window()`")
 def add_child(**kwargs):
@@ -1485,8 +1553,8 @@ def set_start_callback(callback):
 
 
 @contextmanager
-def child_window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, border: bool =True, autosize_x: bool =False, autosize_y: bool =False, no_scrollbar: bool =False, horizontal_scrollbar: bool =False, menubar: bool =False, no_scroll_with_mouse: bool =False, flattened_navigation: bool =True, **kwargs) -> Union[int, str]:
-	"""	 Adds an embedded child window. Will show scrollbars when items do not fit.
+def child_window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, border: bool =True, autosize_x: bool =False, autosize_y: bool =False, no_scrollbar: bool =False, horizontal_scrollbar: bool =False, menubar: bool =False, no_scroll_with_mouse: bool =False, flattened_navigation: bool =True, always_use_window_padding: bool =False, resizable_x: bool =False, resizable_y: bool =False, always_auto_resize: bool =False, frame_style: bool =False, auto_resize_x: bool =False, auto_resize_y: bool =False, **kwargs) -> Union[int, str]:
+	"""	 Adds an embedded child window. Will show scrollbars when items do not fit. About using auto_resize/resizable flags: size measurement for a given axis is only performed when the child window is within visible boundaries, or is just appearing and it won't update its auto-size while clipped. While not perfect, it is a better default behavior as the always-on performance gain is more valuable than the occasional 'resizing after becoming visible again' glitch. You may also use always_auto_resize to force an update even when child window is not in view. However doing so will degrade performance. Remember that combining both auto_resize_x and auto_resize_y defeats purpose of a scrolling region and is NOT recommended.
 
 	Args:
 		label (str, optional): Overrides 'name' as label.
@@ -1514,6 +1582,13 @@ def child_window(*, label: str =None, user_data: Any =None, use_internal_label: 
 		menubar (bool, optional): Shows/Hides the menubar at the top.
 		no_scroll_with_mouse (bool, optional): Disable user vertically scrolling with mouse wheel.
 		flattened_navigation (bool, optional): Allow gamepad/keyboard navigation to cross over parent border to this child (only use on child that have no scrolling!)
+		always_use_window_padding (bool, optional): Pad with style.WindowPadding even if no border are drawn (no padding by default for non-bordered child windows because it makes more sense)
+		resizable_x (bool, optional): Allow resize from right border (layout direction). Enable .ini saving.
+		resizable_y (bool, optional): Allow resize from bottom border (layout direction). 
+		always_auto_resize (bool, optional): Combined with auto_resize_x/auto_resize_y. Always measure size even when child is hidden and always disable clipping optimization! NOT RECOMMENDED.
+		frame_style (bool, optional): Style the child window like a framed item: use FrameBg, FrameRounding, FrameBorderSize, FramePadding instead of ChildBg, ChildRounding, ChildBorderSize, WindowPadding.
+		auto_resize_x (bool, optional): Enable auto-resizing width based on child content. Read 'IMPORTANT: Size measurement' details above.
+		auto_resize_y (bool, optional): Enable auto-resizing height based on child content. Read 'IMPORTANT: Size measurement' details above.
 		id (Union[int, str], optional): (deprecated) 
 	Yields:
 		Union[int, str]
@@ -1523,7 +1598,7 @@ def child_window(*, label: str =None, user_data: Any =None, use_internal_label: 
 		if 'id' in kwargs.keys():
 			warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 			tag=kwargs['id']
-		widget = internal_dpg.add_child_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, border=border, autosize_x=autosize_x, autosize_y=autosize_y, no_scrollbar=no_scrollbar, horizontal_scrollbar=horizontal_scrollbar, menubar=menubar, no_scroll_with_mouse=no_scroll_with_mouse, flattened_navigation=flattened_navigation, **kwargs)
+		widget = internal_dpg.add_child_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, border=border, autosize_x=autosize_x, autosize_y=autosize_y, no_scrollbar=no_scrollbar, horizontal_scrollbar=horizontal_scrollbar, menubar=menubar, no_scroll_with_mouse=no_scroll_with_mouse, flattened_navigation=flattened_navigation, always_use_window_padding=always_use_window_padding, resizable_x=resizable_x, resizable_y=resizable_y, always_auto_resize=always_auto_resize, frame_style=frame_style, auto_resize_x=auto_resize_x, auto_resize_y=auto_resize_y, **kwargs)
 		internal_dpg.push_container_stack(widget)
 		yield widget
 	finally:
@@ -1627,7 +1702,7 @@ def colormap_registry(*, label: str =None, user_data: Any =None, use_internal_la
 		internal_dpg.pop_container_stack()
 
 @contextmanager
-def custom_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], channel_count : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, callback: Callable =None, show: bool =True, y1: Any =[], y2: Any =[], y3: Any =[], tooltip: bool =True, **kwargs) -> Union[int, str]:
+def custom_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], channel_count : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, callback: Callable =None, show: bool =True, y1: Any =[], y2: Any =[], y3: Any =[], tooltip: bool =True, no_fit: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a custom series to a plot. New in 1.6.
 
 	Args:
@@ -1647,6 +1722,7 @@ def custom_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[floa
 		y2 (Any, optional): 
 		y3 (Any, optional): 
 		tooltip (bool, optional): Show tooltip when plot is hovered.
+		no_fit (bool, optional): the item won't be considered for plot fits
 		id (Union[int, str], optional): (deprecated) 
 	Yields:
 		Union[int, str]
@@ -1656,7 +1732,7 @@ def custom_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[floa
 		if 'id' in kwargs.keys():
 			warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 			tag=kwargs['id']
-		widget = internal_dpg.add_custom_series(x, y, channel_count, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, callback=callback, show=show, y1=y1, y2=y2, y3=y3, tooltip=tooltip, **kwargs)
+		widget = internal_dpg.add_custom_series(x, y, channel_count, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, callback=callback, show=show, y1=y1, y2=y2, y3=y3, tooltip=tooltip, no_fit=no_fit, **kwargs)
 		internal_dpg.push_container_stack(widget)
 		yield widget
 	finally:
@@ -1908,8 +1984,9 @@ def font_registry(*, label: str =None, user_data: Any =None, use_internal_label:
 		internal_dpg.pop_container_stack()
 
 @contextmanager
-def group(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, horizontal: bool =False, horizontal_spacing: float =-1, xoffset: float =0.0, **kwargs) -> Union[int, str]:
+def group(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, horizontal: bool =False, horizontal_spacing: float =-1, xoffset: float =0.0, **kwargs) -> Union[int, str]:
 	"""	 Creates a group that other widgets can belong to. The group allows item commands to be issued for all of its members.
+Enable property acts in a special way enabling/disabling everything inside the group. (Use mvStyleVar_DisabledAlpha to edit colors within the disabled group.)
 
 	Args:
 		label (str, optional): Overrides 'name' as label.
@@ -1925,6 +2002,7 @@ def group(*, label: str =None, user_data: Any =None, use_internal_label: bool =T
 		drag_callback (Callable, optional): Registers a drag callback for drag and drop.
 		drop_callback (Callable, optional): Registers a drop callback for drag and drop.
 		show (bool, optional): Attempt to render widget.
+		enabled (bool, optional): Turns off functionality of widget and applies the disabled theme.
 		pos (Union[List[int], Tuple[int, ...]], optional): Places the item relative to window coordinates, [0,0] is top left.
 		filter_key (str, optional): Used by filter widget.
 		delay_search (bool, optional): Delays searching container for specified items until the end of the app. Possible optimization when a container has many children that are not accessed often.
@@ -1942,7 +2020,7 @@ def group(*, label: str =None, user_data: Any =None, use_internal_label: bool =T
 		if 'id' in kwargs.keys():
 			warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 			tag=kwargs['id']
-		widget = internal_dpg.add_group(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, horizontal=horizontal, horizontal_spacing=horizontal_spacing, xoffset=xoffset, **kwargs)
+		widget = internal_dpg.add_group(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, horizontal=horizontal, horizontal_spacing=horizontal_spacing, xoffset=xoffset, **kwargs)
 		internal_dpg.push_container_stack(widget)
 		yield widget
 	finally:
@@ -2170,8 +2248,8 @@ def node_editor(*, label: str =None, user_data: Any =None, use_internal_label: b
 		internal_dpg.pop_container_stack()
 
 @contextmanager
-def plot(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, no_title: bool =False, no_menus: bool =False, no_box_select: bool =False, no_mouse_pos: bool =False, no_highlight: bool =False, no_child: bool =False, query: bool =False, crosshairs: bool =False, anti_aliased: bool =False, equal_aspects: bool =False, use_local_time: bool =False, use_ISO8601: bool =False, use_24hour_clock: bool =False, pan_button: int =internal_dpg.mvMouseButton_Left, pan_mod: int =-1, fit_button: int =internal_dpg.mvMouseButton_Left, context_menu_button: int =internal_dpg.mvMouseButton_Right, box_select_button: int =internal_dpg.mvMouseButton_Right, box_select_mod: int =-1, box_select_cancel_button: int =internal_dpg.mvMouseButton_Left, query_button: int =internal_dpg.mvMouseButton_Middle, query_mod: int =-1, query_toggle_mod: int =internal_dpg.mvKey_Control, horizontal_mod: int =internal_dpg.mvKey_Alt, vertical_mod: int =internal_dpg.mvKey_Shift, **kwargs) -> Union[int, str]:
-	"""	 Adds a plot which is used to hold series, and can be drawn to with draw commands.
+def plot(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, no_title: bool =False, no_menus: bool =False, no_box_select: bool =False, no_mouse_pos: bool =False, query: bool =False, query_color: Union[List[float], Tuple[float, ...]] =(0, 255, 0, 255), min_query_rects: int =1, max_query_rects: int =1, crosshairs: bool =False, equal_aspects: bool =False, no_inputs: bool =False, no_frame: bool =False, use_local_time: bool =False, use_ISO8601: bool =False, use_24hour_clock: bool =False, pan_button: int =internal_dpg.mvMouseButton_Left, pan_mod: int =internal_dpg.mvKey_None, context_menu_button: int =internal_dpg.mvMouseButton_Right, fit_button: int =internal_dpg.mvMouseButton_Left, box_select_button: int =internal_dpg.mvMouseButton_Right, box_select_mod: int =internal_dpg.mvKey_None, box_select_cancel_button: int =internal_dpg.mvMouseButton_Left, query_toggle_mod: int =internal_dpg.mvKey_ModCtrl, horizontal_mod: int =internal_dpg.mvKey_ModAlt, vertical_mod: int =internal_dpg.mvKey_ModShift, override_mod: int =internal_dpg.mvKey_ModCtrl, zoom_mod: int =internal_dpg.mvKey_None, zoom_rate: int =0.1, **kwargs) -> Union[int, str]:
+	"""	 Adds a plot which is used to hold series, and can be drawn to with draw commands. For all _mod parameters use mvKey_ModX enums, or mvKey_ModDisabled to disable the modifier.
 
 	Args:
 		label (str, optional): Overrides 'name' as label.
@@ -2196,29 +2274,37 @@ def plot(*, label: str =None, user_data: Any =None, use_internal_label: bool =Tr
 		no_title (bool, optional): the plot title will not be displayed
 		no_menus (bool, optional): the user will not be able to open context menus with right-click
 		no_box_select (bool, optional): the user will not be able to box-select with right-click drag
-		no_mouse_pos (bool, optional): the mouse position, in plot coordinates, will not be displayed inside of the plot
-		no_highlight (bool, optional): plot items will not be highlighted when their legend entry is hovered
-		no_child (bool, optional): a child window region will not be used to capture mouse scroll (can boost performance for single ImGui window applications)
-		query (bool, optional): the user will be able to draw query rects with middle - mouse or CTRL + right - click drag
+		no_mouse_pos (bool, optional): the text of mouse position, in plot coordinates, will not be displayed inside of the plot
+		query (bool, optional): the user will be able to draw query rects with CTRL + right-click drag
+		query_color (Union[List[float], Tuple[float, ...]], optional): Color of the query rectangles.
+		min_query_rects (int, optional): The minimum number of query rects that can be in the plot. If there are less rects than this value, it won't be possible to delete them.
+		max_query_rects (int, optional): The maximum number of query rects that can be in the plot. If the number is reached any rect added will replace the latest one. (0 means unlimited)
 		crosshairs (bool, optional): the default mouse cursor will be replaced with a crosshair when hovered
-		anti_aliased (bool, optional): plot lines will be software anti-aliased (not recommended for high density plots, prefer MSAA)
 		equal_aspects (bool, optional): primary x and y axes will be constrained to have the same units/pixel (does not apply to auxiliary y-axes)
+		no_inputs (bool, optional): the user will not be able to interact with the plot
+		no_frame (bool, optional): the ImGui frame will not be rendered
 		use_local_time (bool, optional): axis labels will be formatted for your timezone when
 		use_ISO8601 (bool, optional): dates will be formatted according to ISO 8601 where applicable (e.g. YYYY-MM-DD, YYYY-MM, --MM-DD, etc.)
 		use_24hour_clock (bool, optional): times will be formatted using a 24 hour clock
-		pan_button (int, optional): enables panning when held
+		pan_button (int, optional): mouse button that enables panning when held
 		pan_mod (int, optional): optional modifier that must be held for panning
+		context_menu_button (int, optional): opens context menus (if enabled) when clicked
 		fit_button (int, optional): fits visible data when double clicked
-		context_menu_button (int, optional): opens plot context menu (if enabled) when clicked
 		box_select_button (int, optional): begins box selection when pressed and confirms selection when released
 		box_select_mod (int, optional): begins box selection when pressed and confirms selection when released
 		box_select_cancel_button (int, optional): cancels active box selection when pressed
-		query_button (int, optional): begins query selection when pressed and end query selection when released
-		query_mod (int, optional): optional modifier that must be held for query selection
 		query_toggle_mod (int, optional): when held, active box selections turn into queries
 		horizontal_mod (int, optional): expands active box selection/query horizontally to plot edge when held
 		vertical_mod (int, optional): expands active box selection/query vertically to plot edge when held
+		override_mod (int, optional): when held, all input is ignored; used to enable axis/plots as DND sources
+		zoom_mod (int, optional): optional modifier that must be held for scroll wheel zooming
+		zoom_rate (int, optional): zoom rate for scroll (e.g. 0.1f = 10% plot range every scroll click); make negative to invert
 		id (Union[int, str], optional): (deprecated) 
+		no_highlight (bool, optional): (deprecated) Removed because not supported from the backend anymore. To control the highlighting of series use the same argument in `add_plot_legend`
+		no_child (bool, optional): (deprecated) a child window region will not be used to capture mouse scroll (can boost performance for single ImGui window applications)
+		anti_aliased (bool, optional): (deprecated) This feature was deprecated in ImPlot. To enable/disable anti_aliasing use `dpg.configure_app()` with the `anti_aliasing` parameters.
+		query_button (int, optional): (deprecated) This refers to the old way of querying of ImPlot, now replaced with `DragRect()`
+		query_mod (int, optional): (deprecated) This refers to the old way of querying of ImPlot, now replaced with `DragRect()`
 	Yields:
 		Union[int, str]
 	"""
@@ -2227,14 +2313,34 @@ def plot(*, label: str =None, user_data: Any =None, use_internal_label: bool =Tr
 		if 'id' in kwargs.keys():
 			warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 			tag=kwargs['id']
-		widget = internal_dpg.add_plot(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, no_title=no_title, no_menus=no_menus, no_box_select=no_box_select, no_mouse_pos=no_mouse_pos, no_highlight=no_highlight, no_child=no_child, query=query, crosshairs=crosshairs, anti_aliased=anti_aliased, equal_aspects=equal_aspects, use_local_time=use_local_time, use_ISO8601=use_ISO8601, use_24hour_clock=use_24hour_clock, pan_button=pan_button, pan_mod=pan_mod, fit_button=fit_button, context_menu_button=context_menu_button, box_select_button=box_select_button, box_select_mod=box_select_mod, box_select_cancel_button=box_select_cancel_button, query_button=query_button, query_mod=query_mod, query_toggle_mod=query_toggle_mod, horizontal_mod=horizontal_mod, vertical_mod=vertical_mod, **kwargs)
+
+		if 'no_highlight' in kwargs.keys():
+			warnings.warn('no_highlight keyword removed', DeprecationWarning, 2)
+			kwargs.pop('no_highlight', None)
+
+		if 'no_child' in kwargs.keys():
+			warnings.warn('no_child keyword removed', DeprecationWarning, 2)
+			kwargs.pop('no_child', None)
+
+		if 'anti_aliased' in kwargs.keys():
+			warnings.warn('anti_aliased keyword removed', DeprecationWarning, 2)
+			kwargs.pop('anti_aliased', None)
+
+		if 'query_button' in kwargs.keys():
+			warnings.warn('query_button keyword removed', DeprecationWarning, 2)
+			kwargs.pop('query_button', None)
+
+		if 'query_mod' in kwargs.keys():
+			warnings.warn('query_mod keyword removed', DeprecationWarning, 2)
+			kwargs.pop('query_mod', None)
+		widget = internal_dpg.add_plot(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, no_title=no_title, no_menus=no_menus, no_box_select=no_box_select, no_mouse_pos=no_mouse_pos, query=query, query_color=query_color, min_query_rects=min_query_rects, max_query_rects=max_query_rects, crosshairs=crosshairs, equal_aspects=equal_aspects, no_inputs=no_inputs, no_frame=no_frame, use_local_time=use_local_time, use_ISO8601=use_ISO8601, use_24hour_clock=use_24hour_clock, pan_button=pan_button, pan_mod=pan_mod, context_menu_button=context_menu_button, fit_button=fit_button, box_select_button=box_select_button, box_select_mod=box_select_mod, box_select_cancel_button=box_select_cancel_button, query_toggle_mod=query_toggle_mod, horizontal_mod=horizontal_mod, vertical_mod=vertical_mod, override_mod=override_mod, zoom_mod=zoom_mod, zoom_rate=zoom_rate, **kwargs)
 		internal_dpg.push_container_stack(widget)
 		yield widget
 	finally:
 		internal_dpg.pop_container_stack()
 
 @contextmanager
-def plot_axis(axis : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, no_gridlines: bool =False, no_tick_marks: bool =False, no_tick_labels: bool =False, log_scale: bool =False, invert: bool =False, lock_min: bool =False, lock_max: bool =False, time: bool =False, **kwargs) -> Union[int, str]:
+def plot_axis(axis : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, no_label: bool =False, no_gridlines: bool =False, no_tick_marks: bool =False, no_tick_labels: bool =False, no_initial_fit: bool =False, no_menus: bool =False, no_side_switch: bool =False, no_highlight: bool =False, opposite: bool =False, foreground_grid: bool =False, tick_format: str ='', scale: int =internal_dpg.mvPlotScale_Linear, invert: bool =False, auto_fit: bool =False, range_fit: bool =False, pan_stretch: bool =False, lock_min: bool =False, lock_max: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds an axis to a plot.
 
 	Args:
@@ -2247,15 +2353,27 @@ def plot_axis(axis : int, *, label: str =None, user_data: Any =None, use_interna
 		payload_type (str, optional): Sender string type must be the same as the target for the target to run the payload_callback.
 		drop_callback (Callable, optional): Registers a drop callback for drag and drop.
 		show (bool, optional): Attempt to render widget.
-		no_gridlines (bool, optional): 
-		no_tick_marks (bool, optional): 
-		no_tick_labels (bool, optional): 
-		log_scale (bool, optional): 
-		invert (bool, optional): 
-		lock_min (bool, optional): 
-		lock_max (bool, optional): 
-		time (bool, optional): 
+		no_label (bool, optional): the axis label will not be displayed
+		no_gridlines (bool, optional): no grid lines will be displayed
+		no_tick_marks (bool, optional): no tick marks will be displayed
+		no_tick_labels (bool, optional): no text labels will be displayed
+		no_initial_fit (bool, optional): axis will not be initially fit to data extents on the first rendered frame
+		no_menus (bool, optional): the user will not be able to open context menus with right-click
+		no_side_switch (bool, optional): the user will not be able to switch the axis side by dragging it
+		no_highlight (bool, optional): the axis will not have its background highlighted when hovered or held
+		opposite (bool, optional): axis ticks and labels will be rendered on the conventionally opposite side (i.e, right or top)
+		foreground_grid (bool, optional): grid lines will be displayed in the foreground (i.e. on top of data) instead of the background
+		tick_format (str, optional): Sets a custom tick label formatter
+		scale (int, optional): Sets the axis' scale. Can have only mvPlotScale_ values
+		invert (bool, optional): the axis values will be inverted (i.e. growing from right to left)
+		auto_fit (bool, optional): axis will be auto-fitting to data extents
+		range_fit (bool, optional): axis will only fit points if the point is in the visible range of the **orthogonal** axis
+		pan_stretch (bool, optional): panning in a locked or constrained state will cause the axis to stretch if possible
+		lock_min (bool, optional): the axis minimum value will be locked when panning/zooming
+		lock_max (bool, optional): the axis maximum value will be locked when panning/zooming
 		id (Union[int, str], optional): (deprecated) 
+		log_scale (bool, optional): (deprecated) Old way to set log scale in the axis. Use 'scale' argument instead.
+		time (bool, optional): (deprecated) Old way to set time scale in the axis. Use 'scale' argument instead.
 	Yields:
 		Union[int, str]
 	"""
@@ -2264,7 +2382,13 @@ def plot_axis(axis : int, *, label: str =None, user_data: Any =None, use_interna
 		if 'id' in kwargs.keys():
 			warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 			tag=kwargs['id']
-		widget = internal_dpg.add_plot_axis(axis, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, payload_type=payload_type, drop_callback=drop_callback, show=show, no_gridlines=no_gridlines, no_tick_marks=no_tick_marks, no_tick_labels=no_tick_labels, log_scale=log_scale, invert=invert, lock_min=lock_min, lock_max=lock_max, time=time, **kwargs)
+
+		if 'log_scale' in kwargs.keys():
+			warnings.warn('log_scale keyword deprecated. See the new scale argument.', DeprecationWarning, 2)
+
+		if 'time' in kwargs.keys():
+			warnings.warn('time keyword deprecated. See the new scale argument.', DeprecationWarning, 2)
+		widget = internal_dpg.add_plot_axis(axis, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, payload_type=payload_type, drop_callback=drop_callback, show=show, no_label=no_label, no_gridlines=no_gridlines, no_tick_marks=no_tick_marks, no_tick_labels=no_tick_labels, no_initial_fit=no_initial_fit, no_menus=no_menus, no_side_switch=no_side_switch, no_highlight=no_highlight, opposite=opposite, foreground_grid=foreground_grid, tick_format=tick_format, scale=scale, invert=invert, auto_fit=auto_fit, range_fit=range_fit, pan_stretch=pan_stretch, lock_min=lock_min, lock_max=lock_max, **kwargs)
 		internal_dpg.push_container_stack(widget)
 		yield widget
 	finally:
@@ -2295,7 +2419,7 @@ def stage(*, label: str =None, user_data: Any =None, use_internal_label: bool =T
 		internal_dpg.pop_container_stack()
 
 @contextmanager
-def subplots(rows : int, columns : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, row_ratios: Union[List[float], Tuple[float, ...]] =[], column_ratios: Union[List[float], Tuple[float, ...]] =[], no_title: bool =False, no_menus: bool =False, no_resize: bool =False, no_align: bool =False, link_rows: bool =False, link_columns: bool =False, link_all_x: bool =False, link_all_y: bool =False, column_major: bool =False, **kwargs) -> Union[int, str]:
+def subplots(rows : int, columns : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, row_ratios: Union[List[float], Tuple[float, ...]] =[], column_ratios: Union[List[float], Tuple[float, ...]] =[], no_title: bool =False, no_menus: bool =False, no_resize: bool =False, no_align: bool =False, share_series: bool =False, link_rows: bool =False, link_columns: bool =False, link_all_x: bool =False, link_all_y: bool =False, column_major: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a collection of plots.
 
 	Args:
@@ -2319,10 +2443,11 @@ def subplots(rows : int, columns : int, *, label: str =None, user_data: Any =Non
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		row_ratios (Union[List[float], Tuple[float, ...]], optional): 
 		column_ratios (Union[List[float], Tuple[float, ...]], optional): 
-		no_title (bool, optional): 
+		no_title (bool, optional): the subplot title will not be displayed
 		no_menus (bool, optional): the user will not be able to open context menus with right-click
 		no_resize (bool, optional): resize splitters between subplot cells will be not be provided
 		no_align (bool, optional): subplot edges will not be aligned vertically or horizontally
+		share_series (bool, optional): when set to True, series from all sub-plots will be shared to some extent, using a single common color set and showing them in a single legend in the subplots item. Otherwise each plot will be independent from others and will have its own legend
 		link_rows (bool, optional): link the y-axis limits of all plots in each row (does not apply auxiliary y-axes)
 		link_columns (bool, optional): link the x-axis limits of all plots in each column
 		link_all_x (bool, optional): link the x-axis limits in every plot in the subplot
@@ -2337,14 +2462,14 @@ def subplots(rows : int, columns : int, *, label: str =None, user_data: Any =Non
 		if 'id' in kwargs.keys():
 			warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 			tag=kwargs['id']
-		widget = internal_dpg.add_subplots(rows, columns, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, callback=callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, row_ratios=row_ratios, column_ratios=column_ratios, no_title=no_title, no_menus=no_menus, no_resize=no_resize, no_align=no_align, link_rows=link_rows, link_columns=link_columns, link_all_x=link_all_x, link_all_y=link_all_y, column_major=column_major, **kwargs)
+		widget = internal_dpg.add_subplots(rows, columns, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, callback=callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, row_ratios=row_ratios, column_ratios=column_ratios, no_title=no_title, no_menus=no_menus, no_resize=no_resize, no_align=no_align, share_series=share_series, link_rows=link_rows, link_columns=link_columns, link_all_x=link_all_x, link_all_y=link_all_y, column_major=column_major, **kwargs)
 		internal_dpg.push_container_stack(widget)
 		yield widget
 	finally:
 		internal_dpg.pop_container_stack()
 
 @contextmanager
-def tab(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, closable: bool =False, no_tooltip: bool =False, order_mode: bool =0, **kwargs) -> Union[int, str]:
+def tab(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, closable: bool =False, no_tooltip: bool =False, order_mode: int =0, **kwargs) -> Union[int, str]:
 	"""	 Adds a tab to a tab bar.
 
 	Args:
@@ -2364,7 +2489,7 @@ def tab(*, label: str =None, user_data: Any =None, use_internal_label: bool =Tru
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		closable (bool, optional): Creates a button on the tab that can hide the tab.
 		no_tooltip (bool, optional): Disable tooltip for the given tab.
-		order_mode (bool, optional): set using a constant: mvTabOrder_Reorderable: allows reordering, mvTabOrder_Fixed: fixed ordering, mvTabOrder_Leading: adds tab to front, mvTabOrder_Trailing: adds tab to back
+		order_mode (int, optional): set using a constant: mvTabOrder_Reorderable: allows reordering, mvTabOrder_Fixed: fixed ordering, mvTabOrder_Leading: adds tab to front, mvTabOrder_Trailing: adds tab to back
 		id (Union[int, str], optional): (deprecated) 
 	Yields:
 		Union[int, str]
@@ -2672,7 +2797,7 @@ def tooltip(parent : Union[int, str], *, label: str =None, user_data: Any =None,
 		internal_dpg.pop_container_stack()
 
 @contextmanager
-def tree_node(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, default_open: bool =False, open_on_double_click: bool =False, open_on_arrow: bool =False, leaf: bool =False, bullet: bool =False, selectable: bool =False, **kwargs) -> Union[int, str]:
+def tree_node(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, default_open: bool =False, open_on_double_click: bool =False, open_on_arrow: bool =False, leaf: bool =False, bullet: bool =False, selectable: bool =False, span_text_width: bool =False, span_full_width: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a tree node to add items to.
 
 	Args:
@@ -2698,6 +2823,8 @@ def tree_node(*, label: str =None, user_data: Any =None, use_internal_label: boo
 		leaf (bool, optional): No collapsing, no arrow (use as a convenience for leaf nodes).
 		bullet (bool, optional): Display a bullet instead of arrow.
 		selectable (bool, optional): Makes the tree selectable.
+		span_text_width (bool, optional): Makes hitbox and highlight only cover the label.
+		span_full_width (bool, optional): Extend hit box to the left-most and right-most edges (cover the indent area).
 		id (Union[int, str], optional): (deprecated) 
 	Yields:
 		Union[int, str]
@@ -2707,7 +2834,7 @@ def tree_node(*, label: str =None, user_data: Any =None, use_internal_label: boo
 		if 'id' in kwargs.keys():
 			warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 			tag=kwargs['id']
-		widget = internal_dpg.add_tree_node(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, indent=indent, parent=parent, before=before, payload_type=payload_type, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, default_open=default_open, open_on_double_click=open_on_double_click, open_on_arrow=open_on_arrow, leaf=leaf, bullet=bullet, selectable=selectable, **kwargs)
+		widget = internal_dpg.add_tree_node(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, indent=indent, parent=parent, before=before, payload_type=payload_type, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, default_open=default_open, open_on_double_click=open_on_double_click, open_on_arrow=open_on_arrow, leaf=leaf, bullet=bullet, selectable=selectable, span_text_width=span_text_width, span_full_width=span_full_width, **kwargs)
 		internal_dpg.push_container_stack(widget)
 		yield widget
 	finally:
@@ -2794,7 +2921,7 @@ def viewport_menu_bar(*, label: str =None, user_data: Any =None, use_internal_la
 		internal_dpg.pop_container_stack()
 
 @contextmanager
-def window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], delay_search: bool =False, min_size: Union[List[int], Tuple[int, ...]] =[100, 100], max_size: Union[List[int], Tuple[int, ...]] =[30000, 30000], menubar: bool =False, collapsed: bool =False, autosize: bool =False, no_resize: bool =False, no_title_bar: bool =False, no_move: bool =False, no_scrollbar: bool =False, no_collapse: bool =False, horizontal_scrollbar: bool =False, no_focus_on_appearing: bool =False, no_bring_to_front_on_focus: bool =False, no_close: bool =False, no_background: bool =False, modal: bool =False, popup: bool =False, no_saved_settings: bool =False, no_open_over_existing_popup: bool =True, no_scroll_with_mouse: bool =False, on_close: Callable =None, **kwargs) -> Union[int, str]:
+def window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], delay_search: bool =False, min_size: Union[List[int], Tuple[int, ...]] =[100, 100], max_size: Union[List[int], Tuple[int, ...]] =[30000, 30000], menubar: bool =False, collapsed: bool =False, autosize: bool =False, no_resize: bool =False, unsaved_document: bool =False, no_title_bar: bool =False, no_move: bool =False, no_scrollbar: bool =False, no_collapse: bool =False, horizontal_scrollbar: bool =False, no_focus_on_appearing: bool =False, no_bring_to_front_on_focus: bool =False, no_close: bool =False, no_background: bool =False, modal: bool =False, popup: bool =False, no_saved_settings: bool =False, no_open_over_existing_popup: bool =True, no_scroll_with_mouse: bool =False, on_close: Callable =None, **kwargs) -> Union[int, str]:
 	"""	 Creates a new window for following items to be added to.
 
 	Args:
@@ -2814,6 +2941,7 @@ def window(*, label: str =None, user_data: Any =None, use_internal_label: bool =
 		collapsed (bool, optional): Collapse the window.
 		autosize (bool, optional): Autosized the window to fit it's items.
 		no_resize (bool, optional): Allows for the window size to be changed or fixed.
+		unsaved_document (bool, optional): Show a special marker if the document is not saved.
 		no_title_bar (bool, optional): Title name for the title bar of the window.
 		no_move (bool, optional): Allows for the window's position to be changed or fixed.
 		no_scrollbar (bool, optional):  Disable scrollbars. (window can still scroll with mouse or programmatically)
@@ -2838,7 +2966,7 @@ def window(*, label: str =None, user_data: Any =None, use_internal_label: bool =
 		if 'id' in kwargs.keys():
 			warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 			tag=kwargs['id']
-		widget = internal_dpg.add_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, show=show, pos=pos, delay_search=delay_search, min_size=min_size, max_size=max_size, menubar=menubar, collapsed=collapsed, autosize=autosize, no_resize=no_resize, no_title_bar=no_title_bar, no_move=no_move, no_scrollbar=no_scrollbar, no_collapse=no_collapse, horizontal_scrollbar=horizontal_scrollbar, no_focus_on_appearing=no_focus_on_appearing, no_bring_to_front_on_focus=no_bring_to_front_on_focus, no_close=no_close, no_background=no_background, modal=modal, popup=popup, no_saved_settings=no_saved_settings, no_open_over_existing_popup=no_open_over_existing_popup, no_scroll_with_mouse=no_scroll_with_mouse, on_close=on_close, **kwargs)
+		widget = internal_dpg.add_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, show=show, pos=pos, delay_search=delay_search, min_size=min_size, max_size=max_size, menubar=menubar, collapsed=collapsed, autosize=autosize, no_resize=no_resize, unsaved_document=unsaved_document, no_title_bar=no_title_bar, no_move=no_move, no_scrollbar=no_scrollbar, no_collapse=no_collapse, horizontal_scrollbar=horizontal_scrollbar, no_focus_on_appearing=no_focus_on_appearing, no_bring_to_front_on_focus=no_bring_to_front_on_focus, no_close=no_close, no_background=no_background, modal=modal, popup=popup, no_saved_settings=no_saved_settings, no_open_over_existing_popup=no_open_over_existing_popup, no_scroll_with_mouse=no_scroll_with_mouse, on_close=on_close, **kwargs)
 		internal_dpg.push_container_stack(widget)
 		yield widget
 	finally:
@@ -2848,7 +2976,7 @@ def window(*, label: str =None, user_data: Any =None, use_internal_label: bool =
 # Core Wrappings
 ##########################################################
 
-def add_2d_histogram_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, xbins: int =-1, ybins: int =-1, xmin_range: float =0.0, xmax_range: float =1.0, ymin_range: float =0.0, ymax_range: float =1.0, density: bool =False, outliers: bool =True, **kwargs) -> Union[int, str]:
+def add_2d_histogram_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, xbins: int =-1, ybins: int =-1, xmin_range: float =0.0, xmax_range: float =0.0, ymin_range: float =0.0, ymax_range: float =0.0, density: bool =False, outliers: bool =False, col_major: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a 2d histogram series.
 
 	Args:
@@ -2864,12 +2992,13 @@ def add_2d_histogram_series(x : Union[List[float], Tuple[float, ...]], y : Union
 		show (bool, optional): Attempt to render widget.
 		xbins (int, optional): 
 		ybins (int, optional): 
-		xmin_range (float, optional): 
-		xmax_range (float, optional): 
-		ymin_range (float, optional): 
-		ymax_range (float, optional): 
-		density (bool, optional): 
-		outliers (bool, optional): 
+		xmin_range (float, optional): set the min x range value, the values under this min will be ignored
+		xmax_range (float, optional): set the max x range value, the values over this max will be ignored
+		ymin_range (float, optional): set the min y range value, the values under this min will be ignored
+		ymax_range (float, optional): set the max y range value, the values over this max will be ignored. If all xmin, xmax, ymin and ymax are 0.0, then the values will be the min and max values of the series
+		density (bool, optional): counts will be normalized, i.e. the PDF will be visualized
+		outliers (bool, optional): exclude values outside the specified histogram range from the count used for normalizing
+		col_major (bool, optional): data will be read in column major order
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -2879,7 +3008,7 @@ def add_2d_histogram_series(x : Union[List[float], Tuple[float, ...]], y : Union
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_2d_histogram_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, xbins=xbins, ybins=ybins, xmin_range=xmin_range, xmax_range=xmax_range, ymin_range=ymin_range, ymax_range=ymax_range, density=density, outliers=outliers, **kwargs)
+	return internal_dpg.add_2d_histogram_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, xbins=xbins, ybins=ybins, xmin_range=xmin_range, xmax_range=xmax_range, ymin_range=ymin_range, ymax_range=ymax_range, density=density, outliers=outliers, col_major=col_major, **kwargs)
 
 def add_3d_slider(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, default_value: Union[List[float], Tuple[float, ...]] =(0.0, 0.0, 0.0, 0.0), max_x: float =100.0, max_y: float =100.0, max_z: float =100.0, min_x: float =0.0, min_y: float =0.0, min_z: float =0.0, scale: float =1.0, **kwargs) -> Union[int, str]:
 	"""	 Adds a 3D box slider.
@@ -2962,6 +3091,62 @@ def add_area_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[fl
 
 	return internal_dpg.add_area_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, fill=fill, contribute_to_bounds=contribute_to_bounds, **kwargs)
 
+def add_axis_tag(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, default_value: float =0.0, color: Union[List[int], Tuple[int, ...]] =(0, 0, 0, -255), auto_rounding: bool =False, **kwargs) -> Union[int, str]:
+	"""	 Adds custom labels to axes.
+
+	Args:
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		source (Union[int, str], optional): Overrides 'id' as value storage key.
+		show (bool, optional): Attempt to render widget.
+		default_value (float, optional): 
+		color (Union[List[int], Tuple[int, ...]], optional): 
+		auto_rounding (bool, optional): When enabled, the value displayed on the tag will be automatically rounded to the precision of other values displayed at axis' ticks. Only makes sense when label is not set, i.e. when the tag displays its location on the axis.
+		id (Union[int, str], optional): (deprecated) 
+	Returns:
+		Union[int, str]
+	"""
+
+	if 'id' in kwargs.keys():
+		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
+		tag=kwargs['id']
+
+	return internal_dpg.add_axis_tag(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, default_value=default_value, color=color, auto_rounding=auto_rounding, **kwargs)
+
+def add_bar_group_series(values : Union[List[float], Tuple[float, ...]], label_ids : Union[List[str], Tuple[str, ...]], group_size : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, group_width: float =0.67, shift: int =0, horizontal: bool =False, stacked: bool =False, **kwargs) -> Union[int, str]:
+	"""	 Adds a bar groups series to a plot.
+
+	Args:
+		values (Any): 
+		label_ids (Union[List[str], Tuple[str, ...]]): Label of each bar in a group
+		group_size (int): Number of bars in a group
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		source (Union[int, str], optional): Overrides 'id' as value storage key.
+		show (bool, optional): Attempt to render widget.
+		group_width (float, optional): Size of bar groups
+		shift (int, optional): The position on the x axis where to start plotting bar groups
+		horizontal (bool, optional): bar groups will be rendered horizontally on the current y-axis
+		stacked (bool, optional): items in a group will be stacked on top of each other
+		id (Union[int, str], optional): (deprecated) 
+	Returns:
+		Union[int, str]
+	"""
+
+	if 'id' in kwargs.keys():
+		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
+		tag=kwargs['id']
+
+	return internal_dpg.add_bar_group_series(values, label_ids, group_size, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, group_width=group_width, shift=shift, horizontal=horizontal, stacked=stacked, **kwargs)
+
 def add_bar_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, weight: float =1.0, horizontal: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a bar series to a plot.
 
@@ -2977,7 +3162,7 @@ def add_bar_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[flo
 		source (Union[int, str], optional): Overrides 'id' as value storage key.
 		show (bool, optional): Attempt to render widget.
 		weight (float, optional): 
-		horizontal (bool, optional): 
+		horizontal (bool, optional): bars will be rendered horizontally on the current y-axis
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -3011,7 +3196,7 @@ def add_bool_value(*, label: str =None, user_data: Any =None, use_internal_label
 
 	return internal_dpg.add_bool_value(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, source=source, default_value=default_value, parent=parent, **kwargs)
 
-def add_button(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, small: bool =False, arrow: bool =False, direction: int =0, **kwargs) -> Union[int, str]:
+def add_button(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, small: bool =False, arrow: bool =False, direction: int =0, repeat: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a button.
 
 	Args:
@@ -3037,6 +3222,7 @@ def add_button(*, label: str =None, user_data: Any =None, use_internal_label: bo
 		small (bool, optional): Shrinks the size of the button to the text of the label it contains. Useful for embedding in text.
 		arrow (bool, optional): Displays an arrow in place of the text string. This requires the direction keyword.
 		direction (int, optional): Sets the cardinal direction for the arrow by using constants mvDir_Left, mvDir_Up, mvDir_Down, mvDir_Right, mvDir_None. Arrow keyword must be set to True.
+		repeat (bool, optional): Hold to continuosly repeat the click.
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -3046,7 +3232,7 @@ def add_button(*, label: str =None, user_data: Any =None, use_internal_label: bo
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_button(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, small=small, arrow=arrow, direction=direction, **kwargs)
+	return internal_dpg.add_button(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, small=small, arrow=arrow, direction=direction, repeat=repeat, **kwargs)
 
 def add_candle_series(dates : Union[List[float], Tuple[float, ...]], opens : Union[List[float], Tuple[float, ...]], closes : Union[List[float], Tuple[float, ...]], lows : Union[List[float], Tuple[float, ...]], highs : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, bull_color: Union[List[int], Tuple[int, ...]] =(0, 255, 113, 255), bear_color: Union[List[int], Tuple[int, ...]] =(218, 13, 79, 255), weight: float =0.25, tooltip: bool =True, time_unit: int =5, **kwargs) -> Union[int, str]:
 	"""	 Adds a candle series to a plot.
@@ -3137,8 +3323,8 @@ def add_checkbox(*, label: str =None, user_data: Any =None, use_internal_label: 
 
 	return internal_dpg.add_checkbox(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, default_value=default_value, **kwargs)
 
-def add_child_window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, border: bool =True, autosize_x: bool =False, autosize_y: bool =False, no_scrollbar: bool =False, horizontal_scrollbar: bool =False, menubar: bool =False, no_scroll_with_mouse: bool =False, flattened_navigation: bool =True, **kwargs) -> Union[int, str]:
-	"""	 Adds an embedded child window. Will show scrollbars when items do not fit.
+def add_child_window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, border: bool =True, autosize_x: bool =False, autosize_y: bool =False, no_scrollbar: bool =False, horizontal_scrollbar: bool =False, menubar: bool =False, no_scroll_with_mouse: bool =False, flattened_navigation: bool =True, always_use_window_padding: bool =False, resizable_x: bool =False, resizable_y: bool =False, always_auto_resize: bool =False, frame_style: bool =False, auto_resize_x: bool =False, auto_resize_y: bool =False, **kwargs) -> Union[int, str]:
+	"""	 Adds an embedded child window. Will show scrollbars when items do not fit. About using auto_resize/resizable flags: size measurement for a given axis is only performed when the child window is within visible boundaries, or is just appearing and it won't update its auto-size while clipped. While not perfect, it is a better default behavior as the always-on performance gain is more valuable than the occasional 'resizing after becoming visible again' glitch. You may also use always_auto_resize to force an update even when child window is not in view. However doing so will degrade performance. Remember that combining both auto_resize_x and auto_resize_y defeats purpose of a scrolling region and is NOT recommended.
 
 	Args:
 		label (str, optional): Overrides 'name' as label.
@@ -3166,6 +3352,13 @@ def add_child_window(*, label: str =None, user_data: Any =None, use_internal_lab
 		menubar (bool, optional): Shows/Hides the menubar at the top.
 		no_scroll_with_mouse (bool, optional): Disable user vertically scrolling with mouse wheel.
 		flattened_navigation (bool, optional): Allow gamepad/keyboard navigation to cross over parent border to this child (only use on child that have no scrolling!)
+		always_use_window_padding (bool, optional): Pad with style.WindowPadding even if no border are drawn (no padding by default for non-bordered child windows because it makes more sense)
+		resizable_x (bool, optional): Allow resize from right border (layout direction). Enable .ini saving.
+		resizable_y (bool, optional): Allow resize from bottom border (layout direction). 
+		always_auto_resize (bool, optional): Combined with auto_resize_x/auto_resize_y. Always measure size even when child is hidden and always disable clipping optimization! NOT RECOMMENDED.
+		frame_style (bool, optional): Style the child window like a framed item: use FrameBg, FrameRounding, FrameBorderSize, FramePadding instead of ChildBg, ChildRounding, ChildBorderSize, WindowPadding.
+		auto_resize_x (bool, optional): Enable auto-resizing width based on child content. Read 'IMPORTANT: Size measurement' details above.
+		auto_resize_y (bool, optional): Enable auto-resizing height based on child content. Read 'IMPORTANT: Size measurement' details above.
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -3175,7 +3368,7 @@ def add_child_window(*, label: str =None, user_data: Any =None, use_internal_lab
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_child_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, border=border, autosize_x=autosize_x, autosize_y=autosize_y, no_scrollbar=no_scrollbar, horizontal_scrollbar=horizontal_scrollbar, menubar=menubar, no_scroll_with_mouse=no_scroll_with_mouse, flattened_navigation=flattened_navigation, **kwargs)
+	return internal_dpg.add_child_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, border=border, autosize_x=autosize_x, autosize_y=autosize_y, no_scrollbar=no_scrollbar, horizontal_scrollbar=horizontal_scrollbar, menubar=menubar, no_scroll_with_mouse=no_scroll_with_mouse, flattened_navigation=flattened_navigation, always_use_window_padding=always_use_window_padding, resizable_x=resizable_x, resizable_y=resizable_y, always_auto_resize=always_auto_resize, frame_style=frame_style, auto_resize_x=auto_resize_x, auto_resize_y=auto_resize_y, **kwargs)
 
 def add_clipper(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, show: bool =True, delay_search: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Helper to manually clip large list of items. Increases performance by not searching or drawing widgets outside of the clipped region.
@@ -3277,7 +3470,7 @@ def add_color_button(default_value : Union[List[int], Tuple[int, ...]] =(0, 0, 0
 
 	return internal_dpg.add_color_button(default_value, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, no_alpha=no_alpha, no_border=no_border, no_drag_drop=no_drag_drop, **kwargs)
 
-def add_color_edit(default_value : Union[List[int], Tuple[int, ...]] =(0, 0, 0, 255), *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, no_alpha: bool =False, no_picker: bool =False, no_options: bool =False, no_small_preview: bool =False, no_inputs: bool =False, no_tooltip: bool =False, no_label: bool =False, no_drag_drop: bool =False, alpha_bar: bool =False, alpha_preview: int =0, display_mode: int =1048576, display_type: int =8388608, input_mode: int =134217728, **kwargs) -> Union[int, str]:
+def add_color_edit(default_value : Union[List[int], Tuple[int, ...]] =(0, 0, 0, 255), *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, no_alpha: bool =False, no_picker: bool =False, no_options: bool =False, no_small_preview: bool =False, no_inputs: bool =False, no_tooltip: bool =False, no_label: bool =False, no_drag_drop: bool =False, alpha_bar: bool =False, alpha_preview: int =0, display_mode: int =internal_dpg.mvColorEdit_rgb, display_type: int =internal_dpg.mvColorEdit_uint8, input_mode: int =internal_dpg.mvColorEdit_input_rgb, **kwargs) -> Union[int, str]:
 	"""	 Adds an RGBA color editor. Left clicking the small color preview will provide a color picker. Click and draging the small color preview will copy the color to be applied on any other color widget.
 
 	Args:
@@ -3314,7 +3507,7 @@ def add_color_edit(default_value : Union[List[int], Tuple[int, ...]] =(0, 0, 0, 
 		alpha_preview (int, optional): mvColorEdit_AlphaPreviewNone, mvColorEdit_AlphaPreview, or mvColorEdit_AlphaPreviewHalf
 		display_mode (int, optional): mvColorEdit_rgb, mvColorEdit_hsv, or mvColorEdit_hex
 		display_type (int, optional): mvColorEdit_uint8 or mvColorEdit_float
-		input_mode (int, optional): mvColorEdit_input_rgb or mvColorEdit_input_hsv
+		input_mode (int, optional): mvColorEdit_input_* values
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -3326,7 +3519,7 @@ def add_color_edit(default_value : Union[List[int], Tuple[int, ...]] =(0, 0, 0, 
 
 	return internal_dpg.add_color_edit(default_value, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, no_alpha=no_alpha, no_picker=no_picker, no_options=no_options, no_small_preview=no_small_preview, no_inputs=no_inputs, no_tooltip=no_tooltip, no_label=no_label, no_drag_drop=no_drag_drop, alpha_bar=alpha_bar, alpha_preview=alpha_preview, display_mode=display_mode, display_type=display_type, input_mode=input_mode, **kwargs)
 
-def add_color_picker(default_value : Union[List[int], Tuple[int, ...]] =(0, 0, 0, 255), *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, no_alpha: bool =False, no_side_preview: bool =False, no_small_preview: bool =False, no_inputs: bool =False, no_tooltip: bool =False, no_label: bool =False, alpha_bar: bool =False, display_rgb: bool =False, display_hsv: bool =False, display_hex: bool =False, picker_mode: int =33554432, alpha_preview: int =0, display_type: int =8388608, input_mode: int =134217728, **kwargs) -> Union[int, str]:
+def add_color_picker(default_value : Union[List[int], Tuple[int, ...]] =(0, 0, 0, 255), *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, no_alpha: bool =False, no_side_preview: bool =False, no_small_preview: bool =False, no_inputs: bool =False, no_tooltip: bool =False, no_label: bool =False, alpha_bar: bool =False, display_rgb: bool =False, display_hsv: bool =False, display_hex: bool =False, picker_mode: int =internal_dpg.mvColorPicker_bar, alpha_preview: int =0, display_type: int =internal_dpg.mvColorEdit_uint8, input_mode: int =internal_dpg.mvColorEdit_input_rgb, **kwargs) -> Union[int, str]:
 	"""	 Adds an RGB color picker. Right click the color picker for options. Click and drag the color preview to copy the color and drop on any other color widget to apply. Right Click allows the style of the color picker to be changed.
 
 	Args:
@@ -3364,7 +3557,7 @@ def add_color_picker(default_value : Union[List[int], Tuple[int, ...]] =(0, 0, 0
 		picker_mode (int, optional): mvColorPicker_bar or mvColorPicker_wheel
 		alpha_preview (int, optional): mvColorEdit_AlphaPreviewNone, mvColorEdit_AlphaPreview, or mvColorEdit_AlphaPreviewHalf
 		display_type (int, optional): mvColorEdit_uint8 or mvColorEdit_float
-		input_mode (int, optional): mvColorEdit_input_rgb or mvColorEdit_input_hsv
+		input_mode (int, optional): mvColorEdit_input_* values.
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -3476,7 +3669,7 @@ def add_colormap_registry(*, label: str =None, user_data: Any =None, use_interna
 
 	return internal_dpg.add_colormap_registry(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, show=show, **kwargs)
 
-def add_colormap_scale(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], colormap: Union[int, str] =0, min_scale: float =0.0, max_scale: float =1.0, **kwargs) -> Union[int, str]:
+def add_colormap_scale(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], colormap: Union[int, str] =0, min_scale: float =0.0, max_scale: float =1.0, format: str ='%g', reverse_dir: bool =False, mirror: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a legend that pairs values with colors. This is typically used with a heat series. 
 
 	Args:
@@ -3497,6 +3690,9 @@ def add_colormap_scale(*, label: str =None, user_data: Any =None, use_internal_l
 		colormap (Union[int, str], optional): mvPlotColormap_* constants or mvColorMap uuid from a color map registry
 		min_scale (float, optional): Sets the min number of the color scale. Typically is the same as the min scale from the heat series.
 		max_scale (float, optional): Sets the max number of the color scale. Typically is the same as the max scale from the heat series.
+		format (str, optional): Formatting used for the labels.
+		reverse_dir (bool, optional): invert the colormap bar and axis scale (this only affects rendering; if you only want to reverse the scale mapping, make scale_min > scale_max)
+		mirror (bool, optional): render the colormap label and tick labels on the opposite side
 		id (Union[int, str], optional): (deprecated) 
 		drag_callback (Callable, optional): (deprecated) 
 	Returns:
@@ -3513,7 +3709,7 @@ def add_colormap_scale(*, label: str =None, user_data: Any =None, use_internal_l
 
 		kwargs.pop('drag_callback', None)
 
-	return internal_dpg.add_colormap_scale(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, drop_callback=drop_callback, show=show, pos=pos, colormap=colormap, min_scale=min_scale, max_scale=max_scale, **kwargs)
+	return internal_dpg.add_colormap_scale(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, drop_callback=drop_callback, show=show, pos=pos, colormap=colormap, min_scale=min_scale, max_scale=max_scale, format=format, reverse_dir=reverse_dir, mirror=mirror, **kwargs)
 
 def add_colormap_slider(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, default_value: float =0.0, **kwargs) -> Union[int, str]:
 	"""	 Adds a color slider that a color map can be bound to.
@@ -3555,7 +3751,7 @@ def add_colormap_slider(*, label: str =None, user_data: Any =None, use_internal_
 
 	return internal_dpg.add_colormap_slider(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, callback=callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, default_value=default_value, **kwargs)
 
-def add_combo(items : Union[List[str], Tuple[str, ...]] =(), *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, default_value: str ='', popup_align_left: bool =False, no_arrow_button: bool =False, no_preview: bool =False, height_mode: int =1, **kwargs) -> Union[int, str]:
+def add_combo(items : Union[List[str], Tuple[str, ...]] =(), *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, default_value: str ='', popup_align_left: bool =False, no_arrow_button: bool =False, no_preview: bool =False, fit_width: bool =False, height_mode: int =1, **kwargs) -> Union[int, str]:
 	"""	 Adds a combo dropdown that allows a user to select a single option from a drop down window. All items will be shown as selectables on the dropdown.
 
 	Args:
@@ -3583,6 +3779,7 @@ def add_combo(items : Union[List[str], Tuple[str, ...]] =(), *, label: str =None
 		popup_align_left (bool, optional): Align the contents on the popup toward the left.
 		no_arrow_button (bool, optional): Display the preview box without the square arrow button indicating dropdown activity.
 		no_preview (bool, optional): Display only the square arrow button and not the selected value.
+		fit_width (bool, optional): Fit the available width.
 		height_mode (int, optional): Controlls the number of items shown in the dropdown by the constants mvComboHeight_Small, mvComboHeight_Regular, mvComboHeight_Large, mvComboHeight_Largest
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
@@ -3593,9 +3790,9 @@ def add_combo(items : Union[List[str], Tuple[str, ...]] =(), *, label: str =None
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_combo(items, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, default_value=default_value, popup_align_left=popup_align_left, no_arrow_button=no_arrow_button, no_preview=no_preview, height_mode=height_mode, **kwargs)
+	return internal_dpg.add_combo(items, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, default_value=default_value, popup_align_left=popup_align_left, no_arrow_button=no_arrow_button, no_preview=no_preview, fit_width=fit_width, height_mode=height_mode, **kwargs)
 
-def add_custom_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], channel_count : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, callback: Callable =None, show: bool =True, y1: Any =[], y2: Any =[], y3: Any =[], tooltip: bool =True, **kwargs) -> Union[int, str]:
+def add_custom_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], channel_count : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, callback: Callable =None, show: bool =True, y1: Any =[], y2: Any =[], y3: Any =[], tooltip: bool =True, no_fit: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a custom series to a plot. New in 1.6.
 
 	Args:
@@ -3615,6 +3812,7 @@ def add_custom_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[
 		y2 (Any, optional): 
 		y3 (Any, optional): 
 		tooltip (bool, optional): Show tooltip when plot is hovered.
+		no_fit (bool, optional): the item won't be considered for plot fits
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -3624,7 +3822,7 @@ def add_custom_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_custom_series(x, y, channel_count, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, callback=callback, show=show, y1=y1, y2=y2, y3=y3, tooltip=tooltip, **kwargs)
+	return internal_dpg.add_custom_series(x, y, channel_count, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, callback=callback, show=show, y1=y1, y2=y2, y3=y3, tooltip=tooltip, no_fit=no_fit, **kwargs)
 
 def add_date_picker(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, default_value: dict ={'month_day': 14, 'year':20, 'month':5}, level: int =0, **kwargs) -> Union[int, str]:
 	"""	 Adds a data picker.
@@ -3658,6 +3856,31 @@ def add_date_picker(*, label: str =None, user_data: Any =None, use_internal_labe
 		tag=kwargs['id']
 
 	return internal_dpg.add_date_picker(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, indent=indent, parent=parent, before=before, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, default_value=default_value, level=level, **kwargs)
+
+def add_digital_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, **kwargs) -> Union[int, str]:
+	"""	 Adds a digital series to a plot. Digital plots do not respond to y drag or zoom, and are always referenced to the bottom of the plot.
+
+	Args:
+		x (Any): 
+		y (Any): 
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		source (Union[int, str], optional): Overrides 'id' as value storage key.
+		show (bool, optional): Attempt to render widget.
+		id (Union[int, str], optional): (deprecated) 
+	Returns:
+		Union[int, str]
+	"""
+
+	if 'id' in kwargs.keys():
+		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
+		tag=kwargs['id']
+
+	return internal_dpg.add_digital_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, **kwargs)
 
 def add_double4_value(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, source: Union[int, str] =0, default_value: Any =(0.0, 0.0, 0.0, 0.0), parent: Union[int, str] =internal_dpg.mvReservedUUID_3, **kwargs) -> Union[int, str]:
 	"""	 Adds a double value.
@@ -3952,7 +4175,7 @@ def add_drag_intx(*, label: str =None, user_data: Any =None, use_internal_label:
 
 	return internal_dpg.add_drag_intx(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, default_value=default_value, size=size, format=format, speed=speed, min_value=min_value, max_value=max_value, no_input=no_input, clamped=clamped, **kwargs)
 
-def add_drag_line(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, callback: Callable =None, show: bool =True, default_value: Any =0.0, color: Union[List[int], Tuple[int, ...]] =(0, 0, 0, -255), thickness: float =1.0, show_label: bool =True, vertical: bool =True, **kwargs) -> Union[int, str]:
+def add_drag_line(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, callback: Callable =None, show: bool =True, default_value: float =0.0, color: Union[List[int], Tuple[int, ...]] =(0, 0, 0, -255), thickness: float =1.0, show_label: bool =True, vertical: bool =True, delayed: bool =False, no_cursor: bool =False, no_fit: bool =False, no_inputs: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a drag line to a plot.
 
 	Args:
@@ -3965,11 +4188,15 @@ def add_drag_line(*, label: str =None, user_data: Any =None, use_internal_label:
 		source (Union[int, str], optional): Overrides 'id' as value storage key.
 		callback (Callable, optional): Registers a callback.
 		show (bool, optional): Attempt to render widget.
-		default_value (Any, optional): 
+		default_value (float, optional): 
 		color (Union[List[int], Tuple[int, ...]], optional): 
 		thickness (float, optional): 
 		show_label (bool, optional): 
 		vertical (bool, optional): 
+		delayed (bool, optional): tool rendering will be delayed one frame; useful when applying position-constraints
+		no_cursor (bool, optional): drag tools won't change cursor icons when hovered or held
+		no_fit (bool, optional): the drag tool won't be considered for plot fits
+		no_inputs (bool, optional): lock the tool from user inputs
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -3979,7 +4206,7 @@ def add_drag_line(*, label: str =None, user_data: Any =None, use_internal_label:
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_drag_line(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, callback=callback, show=show, default_value=default_value, color=color, thickness=thickness, show_label=show_label, vertical=vertical, **kwargs)
+	return internal_dpg.add_drag_line(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, callback=callback, show=show, default_value=default_value, color=color, thickness=thickness, show_label=show_label, vertical=vertical, delayed=delayed, no_cursor=no_cursor, no_fit=no_fit, no_inputs=no_inputs, **kwargs)
 
 def add_drag_payload(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, show: bool =True, drag_data: Any =None, drop_data: Any =None, payload_type: str ='$$DPG_PAYLOAD', **kwargs) -> Union[int, str]:
 	"""	 User data payload for drag and drop operations.
@@ -4005,7 +4232,7 @@ def add_drag_payload(*, label: str =None, user_data: Any =None, use_internal_lab
 
 	return internal_dpg.add_drag_payload(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, show=show, drag_data=drag_data, drop_data=drop_data, payload_type=payload_type, **kwargs)
 
-def add_drag_point(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, callback: Callable =None, show: bool =True, default_value: Any =(0.0, 0.0), color: Union[List[int], Tuple[int, ...]] =(0, 0, 0, -255), thickness: float =1.0, show_label: bool =True, **kwargs) -> Union[int, str]:
+def add_drag_point(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, callback: Callable =None, show: bool =True, default_value: Any =(0.0, 0.0), color: Union[List[int], Tuple[int, ...]] =(0, 0, 0, -255), thickness: float =1.0, show_label: bool =True, offset: Union[List[float], Tuple[float, ...]] =(16.0, 8.0), clamped: bool =True, delayed: bool =False, no_cursor: bool =False, no_fit: bool =False, no_inputs: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a drag point to a plot.
 
 	Args:
@@ -4022,6 +4249,12 @@ def add_drag_point(*, label: str =None, user_data: Any =None, use_internal_label
 		color (Union[List[int], Tuple[int, ...]], optional): 
 		thickness (float, optional): 
 		show_label (bool, optional): 
+		offset (Union[List[float], Tuple[float, ...]], optional): Offset of the label, in pixels, relative to the drag point itself
+		clamped (bool, optional): Keep the label within the visible area of the plot even if the drag point itself goes outside of the visible area
+		delayed (bool, optional): tool rendering will be delayed one frame; useful when applying position-constraints
+		no_cursor (bool, optional): drag tools won't change cursor icons when hovered or held
+		no_fit (bool, optional): the drag tool won't be considered for plot fits
+		no_inputs (bool, optional): lock the tool from user inputs
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -4031,7 +4264,37 @@ def add_drag_point(*, label: str =None, user_data: Any =None, use_internal_label
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_drag_point(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, callback=callback, show=show, default_value=default_value, color=color, thickness=thickness, show_label=show_label, **kwargs)
+	return internal_dpg.add_drag_point(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, callback=callback, show=show, default_value=default_value, color=color, thickness=thickness, show_label=show_label, offset=offset, clamped=clamped, delayed=delayed, no_cursor=no_cursor, no_fit=no_fit, no_inputs=no_inputs, **kwargs)
+
+def add_drag_rect(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, callback: Callable =None, show: bool =True, default_value: Any =(0.0, 0.0, 0.0, 0.0), color: Union[List[int], Tuple[int, ...]] =(0, 0, 0, -255), delayed: bool =False, no_cursor: bool =False, no_fit: bool =False, no_inputs: bool =False, **kwargs) -> Union[int, str]:
+	"""	 Adds a drag rectangle to a plot.
+
+	Args:
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		source (Union[int, str], optional): Overrides 'id' as value storage key.
+		callback (Callable, optional): Registers a callback.
+		show (bool, optional): Attempt to render widget.
+		default_value (Any, optional): The coordinates are specified in a sequence of: (xmin, ymin, xmax, ymax)
+		color (Union[List[int], Tuple[int, ...]], optional): 
+		delayed (bool, optional): tool rendering will be delayed one frame; useful when applying position-constraints
+		no_cursor (bool, optional): drag tools won't change cursor icons when hovered or held
+		no_fit (bool, optional): the drag tool won't be considered for plot fits
+		no_inputs (bool, optional): lock the tool from user inputs
+		id (Union[int, str], optional): (deprecated) 
+	Returns:
+		Union[int, str]
+	"""
+
+	if 'id' in kwargs.keys():
+		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
+		tag=kwargs['id']
+
+	return internal_dpg.add_drag_rect(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, callback=callback, show=show, default_value=default_value, color=color, delayed=delayed, no_cursor=no_cursor, no_fit=no_fit, no_inputs=no_inputs, **kwargs)
 
 def add_draw_layer(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, show: bool =True, perspective_divide: bool =False, depth_clipping: bool =False, cull_mode: int =0, **kwargs) -> Union[int, str]:
 	"""	 New in 1.1. Creates a layer useful for grouping drawlist items.
@@ -4424,8 +4687,9 @@ def add_font_registry(*, label: str =None, user_data: Any =None, use_internal_la
 
 	return internal_dpg.add_font_registry(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, show=show, **kwargs)
 
-def add_group(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, horizontal: bool =False, horizontal_spacing: float =-1, xoffset: float =0.0, **kwargs) -> Union[int, str]:
+def add_group(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, horizontal: bool =False, horizontal_spacing: float =-1, xoffset: float =0.0, **kwargs) -> Union[int, str]:
 	"""	 Creates a group that other widgets can belong to. The group allows item commands to be issued for all of its members.
+Enable property acts in a special way enabling/disabling everything inside the group. (Use mvStyleVar_DisabledAlpha to edit colors within the disabled group.)
 
 	Args:
 		label (str, optional): Overrides 'name' as label.
@@ -4441,6 +4705,7 @@ def add_group(*, label: str =None, user_data: Any =None, use_internal_label: boo
 		drag_callback (Callable, optional): Registers a drag callback for drag and drop.
 		drop_callback (Callable, optional): Registers a drop callback for drag and drop.
 		show (bool, optional): Attempt to render widget.
+		enabled (bool, optional): Turns off functionality of widget and applies the disabled theme.
 		pos (Union[List[int], Tuple[int, ...]], optional): Places the item relative to window coordinates, [0,0] is top left.
 		filter_key (str, optional): Used by filter widget.
 		delay_search (bool, optional): Delays searching container for specified items until the end of the app. Possible optimization when a container has many children that are not accessed often.
@@ -4458,7 +4723,7 @@ def add_group(*, label: str =None, user_data: Any =None, use_internal_label: boo
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_group(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, horizontal=horizontal, horizontal_spacing=horizontal_spacing, xoffset=xoffset, **kwargs)
+	return internal_dpg.add_group(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, horizontal=horizontal, horizontal_spacing=horizontal_spacing, xoffset=xoffset, **kwargs)
 
 def add_handler_registry(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, show: bool =True, **kwargs) -> Union[int, str]:
 	"""	 Adds a handler registry.
@@ -4480,7 +4745,7 @@ def add_handler_registry(*, label: str =None, user_data: Any =None, use_internal
 
 	return internal_dpg.add_handler_registry(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, show=show, **kwargs)
 
-def add_heat_series(x : Union[List[float], Tuple[float, ...]], rows : int, cols : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, scale_min: float =0.0, scale_max: float =1.0, bounds_min: Any =(0.0, 0.0), bounds_max: Any =(1.0, 1.0), format: str ='%0.1f', contribute_to_bounds: bool =True, **kwargs) -> Union[int, str]:
+def add_heat_series(x : Union[List[float], Tuple[float, ...]], rows : int, cols : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, scale_min: float =0.0, scale_max: float =1.0, bounds_min: Any =(0.0, 0.0), bounds_max: Any =(1.0, 1.0), format: str ='%0.1f', contribute_to_bounds: bool =True, col_major: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a heat series to a plot.
 
 	Args:
@@ -4501,6 +4766,7 @@ def add_heat_series(x : Union[List[float], Tuple[float, ...]], rows : int, cols 
 		bounds_max (Any, optional): 
 		format (str, optional): 
 		contribute_to_bounds (bool, optional): 
+		col_major (bool, optional): data will be read in column major order
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -4510,9 +4776,9 @@ def add_heat_series(x : Union[List[float], Tuple[float, ...]], rows : int, cols 
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_heat_series(x, rows, cols, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, scale_min=scale_min, scale_max=scale_max, bounds_min=bounds_min, bounds_max=bounds_max, format=format, contribute_to_bounds=contribute_to_bounds, **kwargs)
+	return internal_dpg.add_heat_series(x, rows, cols, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, scale_min=scale_min, scale_max=scale_max, bounds_min=bounds_min, bounds_max=bounds_max, format=format, contribute_to_bounds=contribute_to_bounds, col_major=col_major, **kwargs)
 
-def add_histogram_series(x : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, bins: int =-1, bar_scale: float =1.0, min_range: float =0.0, max_range: float =1.0, cumlative: bool =False, density: bool =False, outliers: bool =True, contribute_to_bounds: bool =True, **kwargs) -> Union[int, str]:
+def add_histogram_series(x : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, bins: int =-1, bar_scale: float =1.0, min_range: float =0.0, max_range: float =0.0, cumulative: bool =False, density: bool =False, outliers: bool =True, horizontal: bool =False, contribute_to_bounds: bool =True, **kwargs) -> Union[int, str]:
 	"""	 Adds a histogram series to a plot.
 
 	Args:
@@ -4527,13 +4793,15 @@ def add_histogram_series(x : Union[List[float], Tuple[float, ...]], *, label: st
 		show (bool, optional): Attempt to render widget.
 		bins (int, optional): 
 		bar_scale (float, optional): 
-		min_range (float, optional): 
-		max_range (float, optional): 
-		cumlative (bool, optional): 
-		density (bool, optional): 
-		outliers (bool, optional): 
+		min_range (float, optional): set the min range value, the values under this min will be ignored
+		max_range (float, optional): set the max range value, the values over this max will be ignored. If both min and max are 0.0, then the values will be the min and max values of the series
+		cumulative (bool, optional): each bin will contain its count plus the counts of all previous bins
+		density (bool, optional): counts will be normalized, i.e. the PDF will be visualized, or the CDF will be visualized if Cumulative is also set
+		outliers (bool, optional): exclude values outside the specifed histogram range from the count toward normalizing and cumulative counts
+		horizontal (bool, optional): histogram bars will be rendered horizontally
 		contribute_to_bounds (bool, optional): 
 		id (Union[int, str], optional): (deprecated) 
+		cumlative (bool, optional): (deprecated) Deprecated because of typo
 	Returns:
 		Union[int, str]
 	"""
@@ -4542,31 +4810,11 @@ def add_histogram_series(x : Union[List[float], Tuple[float, ...]], *, label: st
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_histogram_series(x, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, bins=bins, bar_scale=bar_scale, min_range=min_range, max_range=max_range, cumlative=cumlative, density=density, outliers=outliers, contribute_to_bounds=contribute_to_bounds, **kwargs)
+	if 'cumlative' in kwargs.keys():
+		warnings.warn('cumlative keyword renamed to cumulative', DeprecationWarning, 2)
+		cumulative=kwargs['cumlative']
 
-def add_hline_series(x : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, **kwargs) -> Union[int, str]:
-	"""	 Adds an infinite horizontal line series to a plot.
-
-	Args:
-		x (Any): 
-		label (str, optional): Overrides 'name' as label.
-		user_data (Any, optional): User data for callbacks
-		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
-		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
-		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
-		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
-		source (Union[int, str], optional): Overrides 'id' as value storage key.
-		show (bool, optional): Attempt to render widget.
-		id (Union[int, str], optional): (deprecated) 
-	Returns:
-		Union[int, str]
-	"""
-
-	if 'id' in kwargs.keys():
-		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
-		tag=kwargs['id']
-
-	return internal_dpg.add_hline_series(x, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, **kwargs)
+	return internal_dpg.add_histogram_series(x, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, bins=bins, bar_scale=bar_scale, min_range=min_range, max_range=max_range, cumulative=cumulative, density=density, outliers=outliers, horizontal=horizontal, contribute_to_bounds=contribute_to_bounds, **kwargs)
 
 def add_image(texture_tag : Union[int, str], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, tint_color: Union[List[float], Tuple[float, ...]] =(255, 255, 255, 255), border_color: Union[List[float], Tuple[float, ...]] =(0, 0, 0, 0), uv_min: Union[List[float], Tuple[float, ...]] =(0.0, 0.0), uv_max: Union[List[float], Tuple[float, ...]] =(1.0, 1.0), **kwargs) -> Union[int, str]:
 	"""	 Adds an image from a specified texture. uv_min and uv_max represent the normalized texture coordinates of the original image that will be shown. Using range (0.0,0.0)->(1.0,1.0) for texture coordinates will generally display the entire texture.
@@ -4606,7 +4854,7 @@ def add_image(texture_tag : Union[int, str], *, label: str =None, user_data: Any
 
 	return internal_dpg.add_image(texture_tag, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, tint_color=tint_color, border_color=border_color, uv_min=uv_min, uv_max=uv_max, **kwargs)
 
-def add_image_button(texture_tag : Union[int, str], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, frame_padding: int =-1, tint_color: Union[List[float], Tuple[float, ...]] =(255, 255, 255, 255), background_color: Union[List[float], Tuple[float, ...]] =(0, 0, 0, 0), uv_min: Union[List[float], Tuple[float, ...]] =(0.0, 0.0), uv_max: Union[List[float], Tuple[float, ...]] =(1.0, 1.0), **kwargs) -> Union[int, str]:
+def add_image_button(texture_tag : Union[int, str], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, tint_color: Union[List[float], Tuple[float, ...]] =(255, 255, 255, 255), background_color: Union[List[float], Tuple[float, ...]] =(0, 0, 0, 0), uv_min: Union[List[float], Tuple[float, ...]] =(0.0, 0.0), uv_max: Union[List[float], Tuple[float, ...]] =(1.0, 1.0), **kwargs) -> Union[int, str]:
 	"""	 Adds an button with a texture. uv_min and uv_max represent the normalized texture coordinates of the original image that will be shown. Using range (0.0,0.0)->(1.0,1.0) texture coordinates will generally display the entire texture
 
 	Args:
@@ -4631,12 +4879,12 @@ def add_image_button(texture_tag : Union[int, str], *, label: str =None, user_da
 		filter_key (str, optional): Used by filter widget.
 		tracked (bool, optional): Scroll tracking
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
-		frame_padding (int, optional): Empty space around the outside of the texture. Button will show around the texture.
 		tint_color (Union[List[float], Tuple[float, ...]], optional): Applies a color tint to the entire texture.
 		background_color (Union[List[float], Tuple[float, ...]], optional): Displays a border of the specified color around the texture.
 		uv_min (Union[List[float], Tuple[float, ...]], optional): Normalized texture coordinates min point.
 		uv_max (Union[List[float], Tuple[float, ...]], optional): Normalized texture coordinates max point.
 		id (Union[int, str], optional): (deprecated) 
+		frame_padding (int, optional): (deprecated) Empty space around the outside of the texture. Button will show around the texture.
 	Returns:
 		Union[int, str]
 	"""
@@ -4645,7 +4893,10 @@ def add_image_button(texture_tag : Union[int, str], *, label: str =None, user_da
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_image_button(texture_tag, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, frame_padding=frame_padding, tint_color=tint_color, background_color=background_color, uv_min=uv_min, uv_max=uv_max, **kwargs)
+	if 'frame_padding' in kwargs.keys():
+		warnings.warn('frame_padding keyword deprecated. This is not supported anymore by ImGui but still used here as deprecated.', DeprecationWarning, 2)
+
+	return internal_dpg.add_image_button(texture_tag, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, tint_color=tint_color, background_color=background_color, uv_min=uv_min, uv_max=uv_max, **kwargs)
 
 def add_image_series(texture_tag : Union[int, str], bounds_min : Union[List[float], Tuple[float, ...]], bounds_max : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, uv_min: Union[List[float], Tuple[float, ...]] =(0.0, 0.0), uv_max: Union[List[float], Tuple[float, ...]] =(1.0, 1.0), tint_color: Union[List[int], Tuple[int, ...]] =(255, 255, 255, 255), **kwargs) -> Union[int, str]:
 	"""	 Adds an image series to a plot.
@@ -4675,6 +4926,31 @@ def add_image_series(texture_tag : Union[int, str], bounds_min : Union[List[floa
 		tag=kwargs['id']
 
 	return internal_dpg.add_image_series(texture_tag, bounds_min, bounds_max, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, uv_min=uv_min, uv_max=uv_max, tint_color=tint_color, **kwargs)
+
+def add_inf_line_series(x : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, horizontal: bool =False, **kwargs) -> Union[int, str]:
+	"""	 Adds an infinite line series to a plot.
+
+	Args:
+		x (Any): 
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		source (Union[int, str], optional): Overrides 'id' as value storage key.
+		show (bool, optional): Attempt to render widget.
+		horizontal (bool, optional): 
+		id (Union[int, str], optional): (deprecated) 
+	Returns:
+		Union[int, str]
+	"""
+
+	if 'id' in kwargs.keys():
+		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
+		tag=kwargs['id']
+
+	return internal_dpg.add_inf_line_series(x, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, horizontal=horizontal, **kwargs)
 
 def add_input_double(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, default_value: float =0.0, format: str ='%.3f', min_value: float =0.0, max_value: float =100.0, step: float =0.1, step_fast: float =1.0, min_clamped: bool =False, max_clamped: bool =False, on_enter: bool =False, readonly: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds input for an double. Useful when input float is not accurate enough. +/- buttons can be activated by setting the value of step.
@@ -4935,7 +5211,7 @@ def add_input_intx(*, label: str =None, user_data: Any =None, use_internal_label
 
 	return internal_dpg.add_input_intx(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, default_value=default_value, min_value=min_value, max_value=max_value, size=size, min_clamped=min_clamped, max_clamped=max_clamped, on_enter=on_enter, readonly=readonly, **kwargs)
 
-def add_input_text(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, default_value: str ='', hint: str ='', multiline: bool =False, no_spaces: bool =False, uppercase: bool =False, tab_input: bool =False, decimal: bool =False, hexadecimal: bool =False, readonly: bool =False, password: bool =False, scientific: bool =False, on_enter: bool =False, **kwargs) -> Union[int, str]:
+def add_input_text(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, default_value: str ='', hint: str ='', multiline: bool =False, no_spaces: bool =False, uppercase: bool =False, tab_input: bool =False, decimal: bool =False, hexadecimal: bool =False, readonly: bool =False, password: bool =False, scientific: bool =False, on_enter: bool =False, auto_select_all: bool =False, ctrl_enter_for_new_line: bool =False, no_horizontal_scroll: bool =False, always_overwrite: bool =False, no_undo_redo: bool =False, escape_clears_all: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds input for text.
 
 	Args:
@@ -4971,6 +5247,12 @@ def add_input_text(*, label: str =None, user_data: Any =None, use_internal_label
 		password (bool, optional): Display all input characters as '*'.
 		scientific (bool, optional): Only allow characters 0123456789.+-*/eE (Scientific notation input)
 		on_enter (bool, optional): Only runs callback on enter key press.
+		auto_select_all (bool, optional): Select entire text when first taking mouse focus
+		ctrl_enter_for_new_line (bool, optional): In multi-line mode, unfocus with Enter, add new line with Ctrl+Enter (default is opposite: unfocus with Ctrl+Enter, add line with Enter).
+		no_horizontal_scroll (bool, optional): Disable following the cursor horizontally
+		always_overwrite (bool, optional): Overwrite mode
+		no_undo_redo (bool, optional): Disable undo/redo.
+		escape_clears_all (bool, optional): Escape key clears content if not empty, and deactivate otherwise (contrast to default behavior of Escape to revert)
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -4980,7 +5262,7 @@ def add_input_text(*, label: str =None, user_data: Any =None, use_internal_label
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_input_text(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, default_value=default_value, hint=hint, multiline=multiline, no_spaces=no_spaces, uppercase=uppercase, tab_input=tab_input, decimal=decimal, hexadecimal=hexadecimal, readonly=readonly, password=password, scientific=scientific, on_enter=on_enter, **kwargs)
+	return internal_dpg.add_input_text(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, default_value=default_value, hint=hint, multiline=multiline, no_spaces=no_spaces, uppercase=uppercase, tab_input=tab_input, decimal=decimal, hexadecimal=hexadecimal, readonly=readonly, password=password, scientific=scientific, on_enter=on_enter, auto_select_all=auto_select_all, ctrl_enter_for_new_line=ctrl_enter_for_new_line, no_horizontal_scroll=no_horizontal_scroll, always_overwrite=always_overwrite, no_undo_redo=no_undo_redo, escape_clears_all=escape_clears_all, **kwargs)
 
 def add_int4_value(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, source: Union[int, str] =0, default_value: Union[List[int], Tuple[int, ...]] =(0, 0, 0, 0), parent: Union[int, str] =internal_dpg.mvReservedUUID_3, **kwargs) -> Union[int, str]:
 	"""	 Adds a int4 value.
@@ -5312,7 +5594,7 @@ def add_item_visible_handler(*, label: str =None, user_data: Any =None, use_inte
 
 	return internal_dpg.add_item_visible_handler(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, callback=callback, show=show, **kwargs)
 
-def add_key_down_handler(key : int =-1, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, callback: Callable =None, show: bool =True, parent: Union[int, str] =internal_dpg.mvReservedUUID_1, **kwargs) -> Union[int, str]:
+def add_key_down_handler(key : int =internal_dpg.mvKey_None, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, callback: Callable =None, show: bool =True, parent: Union[int, str] =internal_dpg.mvReservedUUID_1, **kwargs) -> Union[int, str]:
 	"""	 Adds a key down handler.
 
 	Args:
@@ -5335,7 +5617,7 @@ def add_key_down_handler(key : int =-1, *, label: str =None, user_data: Any =Non
 
 	return internal_dpg.add_key_down_handler(key, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, callback=callback, show=show, parent=parent, **kwargs)
 
-def add_key_press_handler(key : int =-1, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, callback: Callable =None, show: bool =True, parent: Union[int, str] =internal_dpg.mvReservedUUID_1, **kwargs) -> Union[int, str]:
+def add_key_press_handler(key : int =internal_dpg.mvKey_None, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, callback: Callable =None, show: bool =True, parent: Union[int, str] =internal_dpg.mvReservedUUID_1, **kwargs) -> Union[int, str]:
 	"""	 Adds a key press handler.
 
 	Args:
@@ -5358,7 +5640,7 @@ def add_key_press_handler(key : int =-1, *, label: str =None, user_data: Any =No
 
 	return internal_dpg.add_key_press_handler(key, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, callback=callback, show=show, parent=parent, **kwargs)
 
-def add_key_release_handler(key : int =-1, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, callback: Callable =None, show: bool =True, parent: Union[int, str] =internal_dpg.mvReservedUUID_1, **kwargs) -> Union[int, str]:
+def add_key_release_handler(key : int =internal_dpg.mvKey_None, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, callback: Callable =None, show: bool =True, parent: Union[int, str] =internal_dpg.mvReservedUUID_1, **kwargs) -> Union[int, str]:
 	"""	 Adds a key release handler.
 
 	Args:
@@ -5419,7 +5701,7 @@ def add_knob_float(*, label: str =None, user_data: Any =None, use_internal_label
 
 	return internal_dpg.add_knob_float(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, default_value=default_value, min_value=min_value, max_value=max_value, **kwargs)
 
-def add_line_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, **kwargs) -> Union[int, str]:
+def add_line_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, segments: bool =False, loop: bool =False, skip_nan: bool =False, no_clip: bool =False, shaded: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a line series to a plot.
 
 	Args:
@@ -5433,6 +5715,11 @@ def add_line_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[fl
 		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
 		source (Union[int, str], optional): Overrides 'id' as value storage key.
 		show (bool, optional): Attempt to render widget.
+		segments (bool, optional): a line segment will be rendered from every two consecutive points
+		loop (bool, optional): the last and first point will be connected to form a closed loop
+		skip_nan (bool, optional): NaNs values will be skipped instead of rendered as missing data
+		no_clip (bool, optional): markers (if displayed) on the edge of a plot will not be clipped
+		shaded (bool, optional): a filled region between the line and horizontal origin will be rendered; use add_shade_series for more advanced cases
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -5442,7 +5729,7 @@ def add_line_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[fl
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_line_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, **kwargs)
+	return internal_dpg.add_line_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, segments=segments, loop=loop, skip_nan=skip_nan, no_clip=no_clip, shaded=shaded, **kwargs)
 
 def add_listbox(items : Union[List[str], Tuple[str, ...]] =(), *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, default_value: str ='', num_items: int =3, **kwargs) -> Union[int, str]:
 	"""	 Adds a listbox. If height is not large enough to show all items a scroll bar will appear.
@@ -5885,7 +6172,7 @@ def add_node_link(attr_1 : Union[int, str], attr_2 : Union[int, str], *, label: 
 
 	return internal_dpg.add_node_link(attr_1, attr_2, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, show=show, **kwargs)
 
-def add_pie_series(x : float, y : float, radius : float, values : Union[List[float], Tuple[float, ...]], labels : Union[List[str], Tuple[str, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, format: str ='%0.2f', angle: float =90.0, normalize: bool =False, **kwargs) -> Union[int, str]:
+def add_pie_series(x : float, y : float, radius : float, values : Union[List[float], Tuple[float, ...]], labels : Union[List[str], Tuple[str, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, format: str ='%0.2f', angle: float =90.0, normalize: bool =False, ignore_hidden: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds an pie series to a plot.
 
 	Args:
@@ -5904,7 +6191,8 @@ def add_pie_series(x : float, y : float, radius : float, values : Union[List[flo
 		show (bool, optional): Attempt to render widget.
 		format (str, optional): 
 		angle (float, optional): 
-		normalize (bool, optional): 
+		normalize (bool, optional): force normalization of pie chart values (i.e. always make a full circle if sum < 0)
+		ignore_hidden (bool, optional): ignore hidden slices when drawing the pie chart (as if they were not there)
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -5914,10 +6202,10 @@ def add_pie_series(x : float, y : float, radius : float, values : Union[List[flo
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_pie_series(x, y, radius, values, labels, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, format=format, angle=angle, normalize=normalize, **kwargs)
+	return internal_dpg.add_pie_series(x, y, radius, values, labels, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, format=format, angle=angle, normalize=normalize, ignore_hidden=ignore_hidden, **kwargs)
 
-def add_plot(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, no_title: bool =False, no_menus: bool =False, no_box_select: bool =False, no_mouse_pos: bool =False, no_highlight: bool =False, no_child: bool =False, query: bool =False, crosshairs: bool =False, anti_aliased: bool =False, equal_aspects: bool =False, use_local_time: bool =False, use_ISO8601: bool =False, use_24hour_clock: bool =False, pan_button: int =internal_dpg.mvMouseButton_Left, pan_mod: int =-1, fit_button: int =internal_dpg.mvMouseButton_Left, context_menu_button: int =internal_dpg.mvMouseButton_Right, box_select_button: int =internal_dpg.mvMouseButton_Right, box_select_mod: int =-1, box_select_cancel_button: int =internal_dpg.mvMouseButton_Left, query_button: int =internal_dpg.mvMouseButton_Middle, query_mod: int =-1, query_toggle_mod: int =internal_dpg.mvKey_Control, horizontal_mod: int =internal_dpg.mvKey_Alt, vertical_mod: int =internal_dpg.mvKey_Shift, **kwargs) -> Union[int, str]:
-	"""	 Adds a plot which is used to hold series, and can be drawn to with draw commands.
+def add_plot(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, no_title: bool =False, no_menus: bool =False, no_box_select: bool =False, no_mouse_pos: bool =False, query: bool =False, query_color: Union[List[float], Tuple[float, ...]] =(0, 255, 0, 255), min_query_rects: int =1, max_query_rects: int =1, crosshairs: bool =False, equal_aspects: bool =False, no_inputs: bool =False, no_frame: bool =False, use_local_time: bool =False, use_ISO8601: bool =False, use_24hour_clock: bool =False, pan_button: int =internal_dpg.mvMouseButton_Left, pan_mod: int =internal_dpg.mvKey_None, context_menu_button: int =internal_dpg.mvMouseButton_Right, fit_button: int =internal_dpg.mvMouseButton_Left, box_select_button: int =internal_dpg.mvMouseButton_Right, box_select_mod: int =internal_dpg.mvKey_None, box_select_cancel_button: int =internal_dpg.mvMouseButton_Left, query_toggle_mod: int =internal_dpg.mvKey_ModCtrl, horizontal_mod: int =internal_dpg.mvKey_ModAlt, vertical_mod: int =internal_dpg.mvKey_ModShift, override_mod: int =internal_dpg.mvKey_ModCtrl, zoom_mod: int =internal_dpg.mvKey_None, zoom_rate: int =0.1, **kwargs) -> Union[int, str]:
+	"""	 Adds a plot which is used to hold series, and can be drawn to with draw commands. For all _mod parameters use mvKey_ModX enums, or mvKey_ModDisabled to disable the modifier.
 
 	Args:
 		label (str, optional): Overrides 'name' as label.
@@ -5942,29 +6230,37 @@ def add_plot(*, label: str =None, user_data: Any =None, use_internal_label: bool
 		no_title (bool, optional): the plot title will not be displayed
 		no_menus (bool, optional): the user will not be able to open context menus with right-click
 		no_box_select (bool, optional): the user will not be able to box-select with right-click drag
-		no_mouse_pos (bool, optional): the mouse position, in plot coordinates, will not be displayed inside of the plot
-		no_highlight (bool, optional): plot items will not be highlighted when their legend entry is hovered
-		no_child (bool, optional): a child window region will not be used to capture mouse scroll (can boost performance for single ImGui window applications)
-		query (bool, optional): the user will be able to draw query rects with middle - mouse or CTRL + right - click drag
+		no_mouse_pos (bool, optional): the text of mouse position, in plot coordinates, will not be displayed inside of the plot
+		query (bool, optional): the user will be able to draw query rects with CTRL + right-click drag
+		query_color (Union[List[float], Tuple[float, ...]], optional): Color of the query rectangles.
+		min_query_rects (int, optional): The minimum number of query rects that can be in the plot. If there are less rects than this value, it won't be possible to delete them.
+		max_query_rects (int, optional): The maximum number of query rects that can be in the plot. If the number is reached any rect added will replace the latest one. (0 means unlimited)
 		crosshairs (bool, optional): the default mouse cursor will be replaced with a crosshair when hovered
-		anti_aliased (bool, optional): plot lines will be software anti-aliased (not recommended for high density plots, prefer MSAA)
 		equal_aspects (bool, optional): primary x and y axes will be constrained to have the same units/pixel (does not apply to auxiliary y-axes)
+		no_inputs (bool, optional): the user will not be able to interact with the plot
+		no_frame (bool, optional): the ImGui frame will not be rendered
 		use_local_time (bool, optional): axis labels will be formatted for your timezone when
 		use_ISO8601 (bool, optional): dates will be formatted according to ISO 8601 where applicable (e.g. YYYY-MM-DD, YYYY-MM, --MM-DD, etc.)
 		use_24hour_clock (bool, optional): times will be formatted using a 24 hour clock
-		pan_button (int, optional): enables panning when held
+		pan_button (int, optional): mouse button that enables panning when held
 		pan_mod (int, optional): optional modifier that must be held for panning
+		context_menu_button (int, optional): opens context menus (if enabled) when clicked
 		fit_button (int, optional): fits visible data when double clicked
-		context_menu_button (int, optional): opens plot context menu (if enabled) when clicked
 		box_select_button (int, optional): begins box selection when pressed and confirms selection when released
 		box_select_mod (int, optional): begins box selection when pressed and confirms selection when released
 		box_select_cancel_button (int, optional): cancels active box selection when pressed
-		query_button (int, optional): begins query selection when pressed and end query selection when released
-		query_mod (int, optional): optional modifier that must be held for query selection
 		query_toggle_mod (int, optional): when held, active box selections turn into queries
 		horizontal_mod (int, optional): expands active box selection/query horizontally to plot edge when held
 		vertical_mod (int, optional): expands active box selection/query vertically to plot edge when held
+		override_mod (int, optional): when held, all input is ignored; used to enable axis/plots as DND sources
+		zoom_mod (int, optional): optional modifier that must be held for scroll wheel zooming
+		zoom_rate (int, optional): zoom rate for scroll (e.g. 0.1f = 10% plot range every scroll click); make negative to invert
 		id (Union[int, str], optional): (deprecated) 
+		no_highlight (bool, optional): (deprecated) Removed because not supported from the backend anymore. To control the highlighting of series use the same argument in `add_plot_legend`
+		no_child (bool, optional): (deprecated) a child window region will not be used to capture mouse scroll (can boost performance for single ImGui window applications)
+		anti_aliased (bool, optional): (deprecated) This feature was deprecated in ImPlot. To enable/disable anti_aliasing use `dpg.configure_app()` with the `anti_aliasing` parameters.
+		query_button (int, optional): (deprecated) This refers to the old way of querying of ImPlot, now replaced with `DragRect()`
+		query_mod (int, optional): (deprecated) This refers to the old way of querying of ImPlot, now replaced with `DragRect()`
 	Returns:
 		Union[int, str]
 	"""
@@ -5973,7 +6269,37 @@ def add_plot(*, label: str =None, user_data: Any =None, use_internal_label: bool
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_plot(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, no_title=no_title, no_menus=no_menus, no_box_select=no_box_select, no_mouse_pos=no_mouse_pos, no_highlight=no_highlight, no_child=no_child, query=query, crosshairs=crosshairs, anti_aliased=anti_aliased, equal_aspects=equal_aspects, use_local_time=use_local_time, use_ISO8601=use_ISO8601, use_24hour_clock=use_24hour_clock, pan_button=pan_button, pan_mod=pan_mod, fit_button=fit_button, context_menu_button=context_menu_button, box_select_button=box_select_button, box_select_mod=box_select_mod, box_select_cancel_button=box_select_cancel_button, query_button=query_button, query_mod=query_mod, query_toggle_mod=query_toggle_mod, horizontal_mod=horizontal_mod, vertical_mod=vertical_mod, **kwargs)
+	if 'no_highlight' in kwargs.keys():
+
+		warnings.warn('no_highlight keyword removed', DeprecationWarning, 2)
+
+		kwargs.pop('no_highlight', None)
+
+	if 'no_child' in kwargs.keys():
+
+		warnings.warn('no_child keyword removed', DeprecationWarning, 2)
+
+		kwargs.pop('no_child', None)
+
+	if 'anti_aliased' in kwargs.keys():
+
+		warnings.warn('anti_aliased keyword removed', DeprecationWarning, 2)
+
+		kwargs.pop('anti_aliased', None)
+
+	if 'query_button' in kwargs.keys():
+
+		warnings.warn('query_button keyword removed', DeprecationWarning, 2)
+
+		kwargs.pop('query_button', None)
+
+	if 'query_mod' in kwargs.keys():
+
+		warnings.warn('query_mod keyword removed', DeprecationWarning, 2)
+
+		kwargs.pop('query_mod', None)
+
+	return internal_dpg.add_plot(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, no_title=no_title, no_menus=no_menus, no_box_select=no_box_select, no_mouse_pos=no_mouse_pos, query=query, query_color=query_color, min_query_rects=min_query_rects, max_query_rects=max_query_rects, crosshairs=crosshairs, equal_aspects=equal_aspects, no_inputs=no_inputs, no_frame=no_frame, use_local_time=use_local_time, use_ISO8601=use_ISO8601, use_24hour_clock=use_24hour_clock, pan_button=pan_button, pan_mod=pan_mod, context_menu_button=context_menu_button, fit_button=fit_button, box_select_button=box_select_button, box_select_mod=box_select_mod, box_select_cancel_button=box_select_cancel_button, query_toggle_mod=query_toggle_mod, horizontal_mod=horizontal_mod, vertical_mod=vertical_mod, override_mod=override_mod, zoom_mod=zoom_mod, zoom_rate=zoom_rate, **kwargs)
 
 def add_plot_annotation(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, default_value: Any =(0.0, 0.0), offset: Union[List[float], Tuple[float, ...]] =(0.0, 0.0), color: Union[List[int], Tuple[int, ...]] =(0, 0, 0, -255), clamped: bool =True, **kwargs) -> Union[int, str]:
 	"""	 Adds an annotation to a plot.
@@ -6002,7 +6328,7 @@ def add_plot_annotation(*, label: str =None, user_data: Any =None, use_internal_
 
 	return internal_dpg.add_plot_annotation(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, default_value=default_value, offset=offset, color=color, clamped=clamped, **kwargs)
 
-def add_plot_axis(axis : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, no_gridlines: bool =False, no_tick_marks: bool =False, no_tick_labels: bool =False, log_scale: bool =False, invert: bool =False, lock_min: bool =False, lock_max: bool =False, time: bool =False, **kwargs) -> Union[int, str]:
+def add_plot_axis(axis : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, no_label: bool =False, no_gridlines: bool =False, no_tick_marks: bool =False, no_tick_labels: bool =False, no_initial_fit: bool =False, no_menus: bool =False, no_side_switch: bool =False, no_highlight: bool =False, opposite: bool =False, foreground_grid: bool =False, tick_format: str ='', scale: int =internal_dpg.mvPlotScale_Linear, invert: bool =False, auto_fit: bool =False, range_fit: bool =False, pan_stretch: bool =False, lock_min: bool =False, lock_max: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds an axis to a plot.
 
 	Args:
@@ -6015,15 +6341,27 @@ def add_plot_axis(axis : int, *, label: str =None, user_data: Any =None, use_int
 		payload_type (str, optional): Sender string type must be the same as the target for the target to run the payload_callback.
 		drop_callback (Callable, optional): Registers a drop callback for drag and drop.
 		show (bool, optional): Attempt to render widget.
-		no_gridlines (bool, optional): 
-		no_tick_marks (bool, optional): 
-		no_tick_labels (bool, optional): 
-		log_scale (bool, optional): 
-		invert (bool, optional): 
-		lock_min (bool, optional): 
-		lock_max (bool, optional): 
-		time (bool, optional): 
+		no_label (bool, optional): the axis label will not be displayed
+		no_gridlines (bool, optional): no grid lines will be displayed
+		no_tick_marks (bool, optional): no tick marks will be displayed
+		no_tick_labels (bool, optional): no text labels will be displayed
+		no_initial_fit (bool, optional): axis will not be initially fit to data extents on the first rendered frame
+		no_menus (bool, optional): the user will not be able to open context menus with right-click
+		no_side_switch (bool, optional): the user will not be able to switch the axis side by dragging it
+		no_highlight (bool, optional): the axis will not have its background highlighted when hovered or held
+		opposite (bool, optional): axis ticks and labels will be rendered on the conventionally opposite side (i.e, right or top)
+		foreground_grid (bool, optional): grid lines will be displayed in the foreground (i.e. on top of data) instead of the background
+		tick_format (str, optional): Sets a custom tick label formatter
+		scale (int, optional): Sets the axis' scale. Can have only mvPlotScale_ values
+		invert (bool, optional): the axis values will be inverted (i.e. growing from right to left)
+		auto_fit (bool, optional): axis will be auto-fitting to data extents
+		range_fit (bool, optional): axis will only fit points if the point is in the visible range of the **orthogonal** axis
+		pan_stretch (bool, optional): panning in a locked or constrained state will cause the axis to stretch if possible
+		lock_min (bool, optional): the axis minimum value will be locked when panning/zooming
+		lock_max (bool, optional): the axis maximum value will be locked when panning/zooming
 		id (Union[int, str], optional): (deprecated) 
+		log_scale (bool, optional): (deprecated) Old way to set log scale in the axis. Use 'scale' argument instead.
+		time (bool, optional): (deprecated) Old way to set time scale in the axis. Use 'scale' argument instead.
 	Returns:
 		Union[int, str]
 	"""
@@ -6032,9 +6370,15 @@ def add_plot_axis(axis : int, *, label: str =None, user_data: Any =None, use_int
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_plot_axis(axis, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, payload_type=payload_type, drop_callback=drop_callback, show=show, no_gridlines=no_gridlines, no_tick_marks=no_tick_marks, no_tick_labels=no_tick_labels, log_scale=log_scale, invert=invert, lock_min=lock_min, lock_max=lock_max, time=time, **kwargs)
+	if 'log_scale' in kwargs.keys():
+		warnings.warn('log_scale keyword deprecated. See the new scale argument.', DeprecationWarning, 2)
 
-def add_plot_legend(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, location: int =5, horizontal: bool =False, outside: bool =False, **kwargs) -> Union[int, str]:
+	if 'time' in kwargs.keys():
+		warnings.warn('time keyword deprecated. See the new scale argument.', DeprecationWarning, 2)
+
+	return internal_dpg.add_plot_axis(axis, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, payload_type=payload_type, drop_callback=drop_callback, show=show, no_label=no_label, no_gridlines=no_gridlines, no_tick_marks=no_tick_marks, no_tick_labels=no_tick_labels, no_initial_fit=no_initial_fit, no_menus=no_menus, no_side_switch=no_side_switch, no_highlight=no_highlight, opposite=opposite, foreground_grid=foreground_grid, tick_format=tick_format, scale=scale, invert=invert, auto_fit=auto_fit, range_fit=range_fit, pan_stretch=pan_stretch, lock_min=lock_min, lock_max=lock_max, **kwargs)
+
+def add_plot_legend(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, location: int =5, horizontal: bool =False, sort: bool =False, outside: bool =False, no_highlight_item: bool =False, no_highlight_axis: bool =False, no_menus: bool =False, no_buttons: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a plot legend to a plot.
 
 	Args:
@@ -6047,8 +6391,13 @@ def add_plot_legend(*, label: str =None, user_data: Any =None, use_internal_labe
 		drop_callback (Callable, optional): Registers a drop callback for drag and drop.
 		show (bool, optional): Attempt to render widget.
 		location (int, optional): location, mvPlot_Location_*
-		horizontal (bool, optional): 
-		outside (bool, optional): 
+		horizontal (bool, optional): legend entries will be displayed horizontally
+		sort (bool, optional): legend entries will be displayed in alphabetical order
+		outside (bool, optional): legend will be rendered outside of the plot area
+		no_highlight_item (bool, optional): plot items will not be highlighted when their legend entry is hovered
+		no_highlight_axis (bool, optional): axes will not be highlighted when legend entries are hovered (only relevant if x/y-axis count > 1)
+		no_menus (bool, optional): the user will not be able to open context menus with right-click
+		no_buttons (bool, optional): legend icons will not function as hide/show buttons
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -6058,7 +6407,7 @@ def add_plot_legend(*, label: str =None, user_data: Any =None, use_internal_labe
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_plot_legend(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, payload_type=payload_type, drop_callback=drop_callback, show=show, location=location, horizontal=horizontal, outside=outside, **kwargs)
+	return internal_dpg.add_plot_legend(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, payload_type=payload_type, drop_callback=drop_callback, show=show, location=location, horizontal=horizontal, sort=sort, outside=outside, no_highlight_item=no_highlight_item, no_highlight_axis=no_highlight_axis, no_menus=no_menus, no_buttons=no_buttons, **kwargs)
 
 def add_progress_bar(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, overlay: str ='', default_value: float =0.0, **kwargs) -> Union[int, str]:
 	"""	 Adds a progress bar.
@@ -6083,7 +6432,7 @@ def add_progress_bar(*, label: str =None, user_data: Any =None, use_internal_lab
 		tracked (bool, optional): Scroll tracking
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		overlay (str, optional): Overlayed text onto the bar that typically used to display the value of the progress.
-		default_value (float, optional): Normalized value to fill the bar from 0.0 to 1.0.
+		default_value (float, optional): Normalized value to fill the bar from 0.0 to 1.0. Put a negative value to show an indeterminate progress bar.
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -6155,7 +6504,7 @@ def add_raw_texture(width : int, height : int, default_value : Union[List[float]
 
 	return internal_dpg.add_raw_texture(width, height, default_value, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, format=format, parent=parent, **kwargs)
 
-def add_scatter_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, **kwargs) -> Union[int, str]:
+def add_scatter_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, no_clip: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a scatter series to a plot.
 
 	Args:
@@ -6169,6 +6518,7 @@ def add_scatter_series(x : Union[List[float], Tuple[float, ...]], y : Union[List
 		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
 		source (Union[int, str], optional): Overrides 'id' as value storage key.
 		show (bool, optional): Attempt to render widget.
+		no_clip (bool, optional): markers on the edge of a plot will not be clipped
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -6178,7 +6528,7 @@ def add_scatter_series(x : Union[List[float], Tuple[float, ...]], y : Union[List
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_scatter_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, **kwargs)
+	return internal_dpg.add_scatter_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, no_clip=no_clip, **kwargs)
 
 def add_selectable(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', callback: Callable =None, drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, enabled: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', tracked: bool =False, track_offset: float =0.5, default_value: bool =False, span_columns: bool =False, disable_popup_close: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a selectable. Similar to a button but can indicate its selected state.
@@ -6219,7 +6569,7 @@ def add_selectable(*, label: str =None, user_data: Any =None, use_internal_label
 	return internal_dpg.add_selectable(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, callback=callback, drag_callback=drag_callback, drop_callback=drop_callback, show=show, enabled=enabled, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, default_value=default_value, span_columns=span_columns, disable_popup_close=disable_popup_close, **kwargs)
 
 def add_separator(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], **kwargs) -> Union[int, str]:
-	"""	 Adds a horizontal line separator.
+	"""	 Adds a horizontal line separator. Use 'label' parameter to add text and mvStyleVar_SeparatorText* elements to style it.
 
 	Args:
 		label (str, optional): Overrides 'name' as label.
@@ -6622,7 +6972,7 @@ def add_stage(*, label: str =None, user_data: Any =None, use_internal_label: boo
 
 	return internal_dpg.add_stage(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, **kwargs)
 
-def add_stair_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, **kwargs) -> Union[int, str]:
+def add_stair_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, pre_step: bool =False, shaded: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a stair series to a plot.
 
 	Args:
@@ -6636,6 +6986,8 @@ def add_stair_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[f
 		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
 		source (Union[int, str], optional): Overrides 'id' as value storage key.
 		show (bool, optional): Attempt to render widget.
+		pre_step (bool, optional): the y value is continued constantly to the left from every x position, i.e. the interval (x[i-1], x[i]] has the value y[i]
+		shaded (bool, optional): a filled region between the line and horizontal origin will be rendered; use add_shade_series for more advanced cases
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -6645,7 +6997,7 @@ def add_stair_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[f
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_stair_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, **kwargs)
+	return internal_dpg.add_stair_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, pre_step=pre_step, shaded=shaded, **kwargs)
 
 def add_static_texture(width : int, height : int, default_value : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =internal_dpg.mvReservedUUID_2, **kwargs) -> Union[int, str]:
 	"""	 Adds a static texture.
@@ -6670,7 +7022,7 @@ def add_static_texture(width : int, height : int, default_value : Union[List[flo
 
 	return internal_dpg.add_static_texture(width, height, default_value, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, **kwargs)
 
-def add_stem_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, **kwargs) -> Union[int, str]:
+def add_stem_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, horizontal: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a stem series to a plot.
 
 	Args:
@@ -6685,6 +7037,7 @@ def add_stem_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[fl
 		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
 		source (Union[int, str], optional): Overrides 'id' as value storage key.
 		show (bool, optional): Attempt to render widget.
+		horizontal (bool, optional): stems will be rendered horizontally on the current y-axis
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -6694,7 +7047,7 @@ def add_stem_series(x : Union[List[float], Tuple[float, ...]], y : Union[List[fl
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_stem_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, indent=indent, parent=parent, before=before, source=source, show=show, **kwargs)
+	return internal_dpg.add_stem_series(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, indent=indent, parent=parent, before=before, source=source, show=show, horizontal=horizontal, **kwargs)
 
 def add_string_value(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, source: Union[int, str] =0, default_value: str ='', parent: Union[int, str] =internal_dpg.mvReservedUUID_3, **kwargs) -> Union[int, str]:
 	"""	 Adds a string value.
@@ -6718,7 +7071,7 @@ def add_string_value(*, label: str =None, user_data: Any =None, use_internal_lab
 
 	return internal_dpg.add_string_value(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, source=source, default_value=default_value, parent=parent, **kwargs)
 
-def add_subplots(rows : int, columns : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, row_ratios: Union[List[float], Tuple[float, ...]] =[], column_ratios: Union[List[float], Tuple[float, ...]] =[], no_title: bool =False, no_menus: bool =False, no_resize: bool =False, no_align: bool =False, link_rows: bool =False, link_columns: bool =False, link_all_x: bool =False, link_all_y: bool =False, column_major: bool =False, **kwargs) -> Union[int, str]:
+def add_subplots(rows : int, columns : int, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, row_ratios: Union[List[float], Tuple[float, ...]] =[], column_ratios: Union[List[float], Tuple[float, ...]] =[], no_title: bool =False, no_menus: bool =False, no_resize: bool =False, no_align: bool =False, share_series: bool =False, link_rows: bool =False, link_columns: bool =False, link_all_x: bool =False, link_all_y: bool =False, column_major: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a collection of plots.
 
 	Args:
@@ -6742,10 +7095,11 @@ def add_subplots(rows : int, columns : int, *, label: str =None, user_data: Any 
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		row_ratios (Union[List[float], Tuple[float, ...]], optional): 
 		column_ratios (Union[List[float], Tuple[float, ...]], optional): 
-		no_title (bool, optional): 
+		no_title (bool, optional): the subplot title will not be displayed
 		no_menus (bool, optional): the user will not be able to open context menus with right-click
 		no_resize (bool, optional): resize splitters between subplot cells will be not be provided
 		no_align (bool, optional): subplot edges will not be aligned vertically or horizontally
+		share_series (bool, optional): when set to True, series from all sub-plots will be shared to some extent, using a single common color set and showing them in a single legend in the subplots item. Otherwise each plot will be independent from others and will have its own legend
 		link_rows (bool, optional): link the y-axis limits of all plots in each row (does not apply auxiliary y-axes)
 		link_columns (bool, optional): link the x-axis limits of all plots in each column
 		link_all_x (bool, optional): link the x-axis limits in every plot in the subplot
@@ -6760,9 +7114,9 @@ def add_subplots(rows : int, columns : int, *, label: str =None, user_data: Any 
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_subplots(rows, columns, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, callback=callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, row_ratios=row_ratios, column_ratios=column_ratios, no_title=no_title, no_menus=no_menus, no_resize=no_resize, no_align=no_align, link_rows=link_rows, link_columns=link_columns, link_all_x=link_all_x, link_all_y=link_all_y, column_major=column_major, **kwargs)
+	return internal_dpg.add_subplots(rows, columns, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, parent=parent, before=before, callback=callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, row_ratios=row_ratios, column_ratios=column_ratios, no_title=no_title, no_menus=no_menus, no_resize=no_resize, no_align=no_align, share_series=share_series, link_rows=link_rows, link_columns=link_columns, link_all_x=link_all_x, link_all_y=link_all_y, column_major=column_major, **kwargs)
 
-def add_tab(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, closable: bool =False, no_tooltip: bool =False, order_mode: bool =0, **kwargs) -> Union[int, str]:
+def add_tab(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drop_callback: Callable =None, show: bool =True, filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, closable: bool =False, no_tooltip: bool =False, order_mode: int =0, **kwargs) -> Union[int, str]:
 	"""	 Adds a tab to a tab bar.
 
 	Args:
@@ -6782,7 +7136,7 @@ def add_tab(*, label: str =None, user_data: Any =None, use_internal_label: bool 
 		track_offset (float, optional): 0.0f:top, 0.5f:center, 1.0f:bottom
 		closable (bool, optional): Creates a button on the tab that can hide the tab.
 		no_tooltip (bool, optional): Disable tooltip for the given tab.
-		order_mode (bool, optional): set using a constant: mvTabOrder_Reorderable: allows reordering, mvTabOrder_Fixed: fixed ordering, mvTabOrder_Leading: adds tab to front, mvTabOrder_Trailing: adds tab to back
+		order_mode (int, optional): set using a constant: mvTabOrder_Reorderable: allows reordering, mvTabOrder_Fixed: fixed ordering, mvTabOrder_Leading: adds tab to front, mvTabOrder_Trailing: adds tab to back
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -6941,7 +7295,7 @@ def add_table_cell(*, label: str =None, user_data: Any =None, use_internal_label
 
 	return internal_dpg.add_table_cell(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, height=height, parent=parent, before=before, show=show, filter_key=filter_key, **kwargs)
 
-def add_table_column(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, parent: Union[int, str] =0, before: Union[int, str] =0, show: bool =True, enabled: bool =True, init_width_or_weight: float =0.0, default_hide: bool =False, default_sort: bool =False, width_stretch: bool =False, width_fixed: bool =False, no_resize: bool =False, no_reorder: bool =False, no_hide: bool =False, no_clip: bool =False, no_sort: bool =False, no_sort_ascending: bool =False, no_sort_descending: bool =False, no_header_width: bool =False, prefer_sort_ascending: bool =True, prefer_sort_descending: bool =False, indent_enable: bool =False, indent_disable: bool =False, **kwargs) -> Union[int, str]:
+def add_table_column(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, parent: Union[int, str] =0, before: Union[int, str] =0, show: bool =True, enabled: bool =True, init_width_or_weight: float =0.0, default_hide: bool =False, default_sort: bool =False, width_stretch: bool =False, width_fixed: bool =False, no_resize: bool =False, no_reorder: bool =False, no_hide: bool =False, no_clip: bool =False, no_sort: bool =False, no_sort_ascending: bool =False, no_sort_descending: bool =False, no_header_width: bool =False, prefer_sort_ascending: bool =True, prefer_sort_descending: bool =False, indent_enable: bool =False, indent_disable: bool =False, angled_header: bool =False, no_header_label: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a table column.
 
 	Args:
@@ -6971,6 +7325,8 @@ def add_table_column(*, label: str =None, user_data: Any =None, use_internal_lab
 		prefer_sort_descending (bool, optional): Make the initial sort direction Descending when first sorting on this column.
 		indent_enable (bool, optional): Use current Indent value when entering cell (default for column 0).
 		indent_disable (bool, optional): Ignore current Indent value when entering cell (default for columns > 0). Indentation changes _within_ the cell will still be honored.
+		angled_header (bool, optional): Set this parameter to True to display the header text for this column in an angled (diagonal) orientation. This will add an additional row to accommodate the angled text.
+		no_header_label (bool, optional): Disable horizontal label for this column. Name will still appear in context menu or in angled headers.
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -6980,7 +7336,7 @@ def add_table_column(*, label: str =None, user_data: Any =None, use_internal_lab
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_table_column(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, parent=parent, before=before, show=show, enabled=enabled, init_width_or_weight=init_width_or_weight, default_hide=default_hide, default_sort=default_sort, width_stretch=width_stretch, width_fixed=width_fixed, no_resize=no_resize, no_reorder=no_reorder, no_hide=no_hide, no_clip=no_clip, no_sort=no_sort, no_sort_ascending=no_sort_ascending, no_sort_descending=no_sort_descending, no_header_width=no_header_width, prefer_sort_ascending=prefer_sort_ascending, prefer_sort_descending=prefer_sort_descending, indent_enable=indent_enable, indent_disable=indent_disable, **kwargs)
+	return internal_dpg.add_table_column(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, parent=parent, before=before, show=show, enabled=enabled, init_width_or_weight=init_width_or_weight, default_hide=default_hide, default_sort=default_sort, width_stretch=width_stretch, width_fixed=width_fixed, no_resize=no_resize, no_reorder=no_reorder, no_hide=no_hide, no_clip=no_clip, no_sort=no_sort, no_sort_ascending=no_sort_ascending, no_sort_descending=no_sort_descending, no_header_width=no_header_width, prefer_sort_ascending=prefer_sort_ascending, prefer_sort_descending=prefer_sort_descending, indent_enable=indent_enable, indent_disable=indent_disable, angled_header=angled_header, no_header_label=no_header_label, **kwargs)
 
 def add_table_row(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, height: int =0, parent: Union[int, str] =0, before: Union[int, str] =0, show: bool =True, filter_key: str ='', **kwargs) -> Union[int, str]:
 	"""	 Adds a table row.
@@ -7061,8 +7417,8 @@ def add_text(default_value : str ='', *, label: str =None, user_data: Any =None,
 
 	return internal_dpg.add_text(default_value, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, indent=indent, parent=parent, before=before, source=source, payload_type=payload_type, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, tracked=tracked, track_offset=track_offset, wrap=wrap, bullet=bullet, color=color, show_label=show_label, **kwargs)
 
-def add_text_point(x : float, y : float, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, x_offset: int =..., y_offset: int =..., vertical: bool =False, **kwargs) -> Union[int, str]:
-	"""	 Adds a label series to a plot.
+def add_text_point(x : float, y : float, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, offset: Union[List[float], Tuple[float, ...]] =(0.0, 0.0), vertical: bool =False, **kwargs) -> Union[int, str]:
+	"""	 Adds a label series to a plot. x and y can only have one elements each.
 
 	Args:
 		x (float): 
@@ -7075,10 +7431,11 @@ def add_text_point(x : float, y : float, *, label: str =None, user_data: Any =No
 		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
 		source (Union[int, str], optional): Overrides 'id' as value storage key.
 		show (bool, optional): Attempt to render widget.
-		x_offset (int, optional): 
-		y_offset (int, optional): 
+		offset (Union[List[float], Tuple[float, ...]], optional): Offset of the label, in pixels, relative to the coordinates.
 		vertical (bool, optional): 
 		id (Union[int, str], optional): (deprecated) 
+		x_offset (int, optional): (deprecated) Old way to set x offset of the label. Use `offset` argument instead.
+		y_offset (int, optional): (deprecated) Old way to set y offset of the label. Use `offset` argument instead.
 	Returns:
 		Union[int, str]
 	"""
@@ -7087,7 +7444,13 @@ def add_text_point(x : float, y : float, *, label: str =None, user_data: Any =No
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_text_point(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, x_offset=x_offset, y_offset=y_offset, vertical=vertical, **kwargs)
+	if 'x_offset' in kwargs.keys():
+		warnings.warn('x_offset keyword deprecated. See the new offset argument.', DeprecationWarning, 2)
+
+	if 'y_offset' in kwargs.keys():
+		warnings.warn('y_offset keyword deprecated. See the new offset argument.', DeprecationWarning, 2)
+
+	return internal_dpg.add_text_point(x, y, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, offset=offset, vertical=vertical, **kwargs)
 
 def add_texture_registry(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, show: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a dynamic texture.
@@ -7261,7 +7624,7 @@ def add_tooltip(parent : Union[int, str], *, label: str =None, user_data: Any =N
 
 	return internal_dpg.add_tooltip(parent, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, show=show, delay=delay, hide_on_activity=hide_on_activity, **kwargs)
 
-def add_tree_node(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, default_open: bool =False, open_on_double_click: bool =False, open_on_arrow: bool =False, leaf: bool =False, bullet: bool =False, selectable: bool =False, **kwargs) -> Union[int, str]:
+def add_tree_node(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, indent: int =-1, parent: Union[int, str] =0, before: Union[int, str] =0, payload_type: str ='$$DPG_PAYLOAD', drag_callback: Callable =None, drop_callback: Callable =None, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], filter_key: str ='', delay_search: bool =False, tracked: bool =False, track_offset: float =0.5, default_open: bool =False, open_on_double_click: bool =False, open_on_arrow: bool =False, leaf: bool =False, bullet: bool =False, selectable: bool =False, span_text_width: bool =False, span_full_width: bool =False, **kwargs) -> Union[int, str]:
 	"""	 Adds a tree node to add items to.
 
 	Args:
@@ -7287,6 +7650,8 @@ def add_tree_node(*, label: str =None, user_data: Any =None, use_internal_label:
 		leaf (bool, optional): No collapsing, no arrow (use as a convenience for leaf nodes).
 		bullet (bool, optional): Display a bullet instead of arrow.
 		selectable (bool, optional): Makes the tree selectable.
+		span_text_width (bool, optional): Makes hitbox and highlight only cover the label.
+		span_full_width (bool, optional): Extend hit box to the left-most and right-most edges (cover the indent area).
 		id (Union[int, str], optional): (deprecated) 
 	Returns:
 		Union[int, str]
@@ -7296,7 +7661,7 @@ def add_tree_node(*, label: str =None, user_data: Any =None, use_internal_label:
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_tree_node(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, indent=indent, parent=parent, before=before, payload_type=payload_type, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, default_open=default_open, open_on_double_click=open_on_double_click, open_on_arrow=open_on_arrow, leaf=leaf, bullet=bullet, selectable=selectable, **kwargs)
+	return internal_dpg.add_tree_node(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, indent=indent, parent=parent, before=before, payload_type=payload_type, drag_callback=drag_callback, drop_callback=drop_callback, show=show, pos=pos, filter_key=filter_key, delay_search=delay_search, tracked=tracked, track_offset=track_offset, default_open=default_open, open_on_double_click=open_on_double_click, open_on_arrow=open_on_arrow, leaf=leaf, bullet=bullet, selectable=selectable, span_text_width=span_text_width, span_full_width=span_full_width, **kwargs)
 
 def add_value_registry(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, **kwargs) -> Union[int, str]:
 	"""	 Adds a value registry.
@@ -7363,31 +7728,7 @@ def add_viewport_menu_bar(*, label: str =None, user_data: Any =None, use_interna
 
 	return internal_dpg.add_viewport_menu_bar(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, indent=indent, parent=parent, show=show, delay_search=delay_search, **kwargs)
 
-def add_vline_series(x : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, source: Union[int, str] =0, show: bool =True, **kwargs) -> Union[int, str]:
-	"""	 Adds an infinite vertical line series to a plot.
-
-	Args:
-		x (Any): 
-		label (str, optional): Overrides 'name' as label.
-		user_data (Any, optional): User data for callbacks
-		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
-		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
-		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
-		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
-		source (Union[int, str], optional): Overrides 'id' as value storage key.
-		show (bool, optional): Attempt to render widget.
-		id (Union[int, str], optional): (deprecated) 
-	Returns:
-		Union[int, str]
-	"""
-
-	if 'id' in kwargs.keys():
-		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
-		tag=kwargs['id']
-
-	return internal_dpg.add_vline_series(x, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, source=source, show=show, **kwargs)
-
-def add_window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], delay_search: bool =False, min_size: Union[List[int], Tuple[int, ...]] =[100, 100], max_size: Union[List[int], Tuple[int, ...]] =[30000, 30000], menubar: bool =False, collapsed: bool =False, autosize: bool =False, no_resize: bool =False, no_title_bar: bool =False, no_move: bool =False, no_scrollbar: bool =False, no_collapse: bool =False, horizontal_scrollbar: bool =False, no_focus_on_appearing: bool =False, no_bring_to_front_on_focus: bool =False, no_close: bool =False, no_background: bool =False, modal: bool =False, popup: bool =False, no_saved_settings: bool =False, no_open_over_existing_popup: bool =True, no_scroll_with_mouse: bool =False, on_close: Callable =None, **kwargs) -> Union[int, str]:
+def add_window(*, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, width: int =0, height: int =0, indent: int =-1, show: bool =True, pos: Union[List[int], Tuple[int, ...]] =[], delay_search: bool =False, min_size: Union[List[int], Tuple[int, ...]] =[100, 100], max_size: Union[List[int], Tuple[int, ...]] =[30000, 30000], menubar: bool =False, collapsed: bool =False, autosize: bool =False, no_resize: bool =False, unsaved_document: bool =False, no_title_bar: bool =False, no_move: bool =False, no_scrollbar: bool =False, no_collapse: bool =False, horizontal_scrollbar: bool =False, no_focus_on_appearing: bool =False, no_bring_to_front_on_focus: bool =False, no_close: bool =False, no_background: bool =False, modal: bool =False, popup: bool =False, no_saved_settings: bool =False, no_open_over_existing_popup: bool =True, no_scroll_with_mouse: bool =False, on_close: Callable =None, **kwargs) -> Union[int, str]:
 	"""	 Creates a new window for following items to be added to.
 
 	Args:
@@ -7407,6 +7748,7 @@ def add_window(*, label: str =None, user_data: Any =None, use_internal_label: bo
 		collapsed (bool, optional): Collapse the window.
 		autosize (bool, optional): Autosized the window to fit it's items.
 		no_resize (bool, optional): Allows for the window size to be changed or fixed.
+		unsaved_document (bool, optional): Show a special marker if the document is not saved.
 		no_title_bar (bool, optional): Title name for the title bar of the window.
 		no_move (bool, optional): Allows for the window's position to be changed or fixed.
 		no_scrollbar (bool, optional):  Disable scrollbars. (window can still scroll with mouse or programmatically)
@@ -7431,7 +7773,7 @@ def add_window(*, label: str =None, user_data: Any =None, use_internal_label: bo
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.add_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, show=show, pos=pos, delay_search=delay_search, min_size=min_size, max_size=max_size, menubar=menubar, collapsed=collapsed, autosize=autosize, no_resize=no_resize, no_title_bar=no_title_bar, no_move=no_move, no_scrollbar=no_scrollbar, no_collapse=no_collapse, horizontal_scrollbar=horizontal_scrollbar, no_focus_on_appearing=no_focus_on_appearing, no_bring_to_front_on_focus=no_bring_to_front_on_focus, no_close=no_close, no_background=no_background, modal=modal, popup=popup, no_saved_settings=no_saved_settings, no_open_over_existing_popup=no_open_over_existing_popup, no_scroll_with_mouse=no_scroll_with_mouse, on_close=on_close, **kwargs)
+	return internal_dpg.add_window(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, width=width, height=height, indent=indent, show=show, pos=pos, delay_search=delay_search, min_size=min_size, max_size=max_size, menubar=menubar, collapsed=collapsed, autosize=autosize, no_resize=no_resize, unsaved_document=unsaved_document, no_title_bar=no_title_bar, no_move=no_move, no_scrollbar=no_scrollbar, no_collapse=no_collapse, horizontal_scrollbar=horizontal_scrollbar, no_focus_on_appearing=no_focus_on_appearing, no_bring_to_front_on_focus=no_bring_to_front_on_focus, no_close=no_close, no_background=no_background, modal=modal, popup=popup, no_saved_settings=no_saved_settings, no_open_over_existing_popup=no_open_over_existing_popup, no_scroll_with_mouse=no_scroll_with_mouse, on_close=on_close, **kwargs)
 
 def apply_transform(item : Union[int, str], transform : Any, **kwargs) -> None:
 	"""	 New in 1.1. Applies a transformation matrix to a layer.
@@ -8028,7 +8370,7 @@ def draw_quad(p1 : Union[List[float], Tuple[float, ...]], p2 : Union[List[float]
 
 	return internal_dpg.draw_quad(p1, p2, p3, p4, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, show=show, color=color, fill=fill, thickness=thickness, **kwargs)
 
-def draw_rectangle(pmin : Union[List[float], Tuple[float, ...]], pmax : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, show: bool =True, color: Union[List[int], Tuple[int, ...]] =(255, 255, 255, 255), color_upper_left: Union[List[int], Tuple[int, ...]] =(255, 255, 255, 255), color_upper_right: Union[List[int], Tuple[int, ...]] =(255, 255, 255, 255), color_bottom_right: Union[List[int], Tuple[int, ...]] =(255, 255, 255, 255), color_bottom_left: Union[List[int], Tuple[int, ...]] =(255, 255, 255, 255), fill: Union[List[int], Tuple[int, ...]] =(0, 0, 0, -255), multicolor: bool =False, rounding: float =0.0, thickness: float =1.0, corner_colors: Any =[(255, 255, 255, 255), (255, 255, 255, 255), (255, 255, 255, 255), (255, 255, 255, 255)], **kwargs) -> Union[int, str]:
+def draw_rectangle(pmin : Union[List[float], Tuple[float, ...]], pmax : Union[List[float], Tuple[float, ...]], *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, show: bool =True, color: Union[List[int], Tuple[int, ...]] =(255, 255, 255, 255), fill: Union[List[int], Tuple[int, ...]] =(0, 0, 0, -255), multicolor: bool =False, rounding: float =0.0, thickness: float =1.0, corner_colors: Any =None, **kwargs) -> Union[int, str]:
 	"""	 Adds a rectangle.
 
 	Args:
@@ -8042,16 +8384,16 @@ def draw_rectangle(pmin : Union[List[float], Tuple[float, ...]], pmax : Union[Li
 		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
 		show (bool, optional): Attempt to render widget.
 		color (Union[List[int], Tuple[int, ...]], optional): 
-		color_upper_left (Union[List[int], Tuple[int, ...]], optional): 'multicolor' must be set to 'True'
-		color_upper_right (Union[List[int], Tuple[int, ...]], optional): 'multicolor' must be set to 'True'
-		color_bottom_right (Union[List[int], Tuple[int, ...]], optional): 'multicolor' must be set to 'True'
-		color_bottom_left (Union[List[int], Tuple[int, ...]], optional): 'multicolor' must be set to 'True'
 		fill (Union[List[int], Tuple[int, ...]], optional): 
 		multicolor (bool, optional): 
 		rounding (float, optional): Number of pixels of the radius that will round the corners of the rectangle. Note: doesn't work with multicolor
 		thickness (float, optional): 
 		corner_colors (Any, optional): Corner colors in a list, starting with upper-left and going clockwise: (upper-left, upper-right, bottom-right, bottom-left). 'multicolor' must be set to 'True'.
 		id (Union[int, str], optional): (deprecated) 
+		color_upper_left (Union[List[int], Tuple[int, ...]], optional): (deprecated) Use corner_colors instead
+		color_upper_right (Union[List[int], Tuple[int, ...]], optional): (deprecated) Use corner_colors instead
+		color_bottom_right (Union[List[int], Tuple[int, ...]], optional): (deprecated) Use corner_colors instead
+		color_bottom_left (Union[List[int], Tuple[int, ...]], optional): (deprecated) Use corner_colors instead
 	Returns:
 		Union[int, str]
 	"""
@@ -8060,7 +8402,19 @@ def draw_rectangle(pmin : Union[List[float], Tuple[float, ...]], pmax : Union[Li
 		warnings.warn('id keyword renamed to tag', DeprecationWarning, 2)
 		tag=kwargs['id']
 
-	return internal_dpg.draw_rectangle(pmin, pmax, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, show=show, color=color, color_upper_left=color_upper_left, color_upper_right=color_upper_right, color_bottom_right=color_bottom_right, color_bottom_left=color_bottom_left, fill=fill, multicolor=multicolor, rounding=rounding, thickness=thickness, corner_colors=corner_colors, **kwargs)
+	if 'color_upper_left' in kwargs.keys():
+		warnings.warn('color_upper_left keyword deprecated. Use corner_colors instead.', DeprecationWarning, 2)
+
+	if 'color_upper_right' in kwargs.keys():
+		warnings.warn('color_upper_right keyword deprecated. Use corner_colors instead.', DeprecationWarning, 2)
+
+	if 'color_bottom_right' in kwargs.keys():
+		warnings.warn('color_bottom_right keyword deprecated. Use corner_colors instead.', DeprecationWarning, 2)
+
+	if 'color_bottom_left' in kwargs.keys():
+		warnings.warn('color_bottom_left keyword deprecated. Use corner_colors instead.', DeprecationWarning, 2)
+
+	return internal_dpg.draw_rectangle(pmin, pmax, label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, parent=parent, before=before, show=show, color=color, fill=fill, multicolor=multicolor, rounding=rounding, thickness=thickness, corner_colors=corner_colors, **kwargs)
 
 def draw_text(pos : Union[List[float], Tuple[float, ...]], text : str, *, label: str =None, user_data: Any =None, use_internal_label: bool =True, tag: Union[int, str] =0, parent: Union[int, str] =0, before: Union[int, str] =0, show: bool =True, color: Union[List[int], Tuple[int, ...]] =(255, 255, 255, 255), size: float =10.0, **kwargs) -> Union[int, str]:
 	"""	 Adds text (drawlist).
@@ -8418,16 +8772,16 @@ def get_plot_mouse_pos(**kwargs) -> Union[List[int], Tuple[int, ...]]:
 
 	return internal_dpg.get_plot_mouse_pos(**kwargs)
 
-def get_plot_query_area(plot : Union[int, str], **kwargs) -> Union[List[float], Tuple[float, ...]]:
-	"""	 Returns the last/current query area of the plot. (Requires plot 'query' kwarg to be enabled)
+def get_plot_query_rects(plot : Union[int, str], **kwargs) -> List[List[float]]:
+	"""	 Returns the query rects of the plot. Returns an array of array containing the top-left coordinates and bottom-right coordinates of the plot area.
 
 	Args:
 		plot (Union[int, str]): 
 	Returns:
-		Union[List[float], Tuple[float, ...]]
+		List[List[float]]
 	"""
 
-	return internal_dpg.get_plot_query_area(plot, **kwargs)
+	return internal_dpg.get_plot_query_rects(plot, **kwargs)
 
 def get_selected_links(node_editor : Union[int, str], **kwargs) -> List[List[str]]:
 	"""	 Returns a node editor's selected links.
@@ -8700,17 +9054,6 @@ def is_mouse_button_released(button : int, **kwargs) -> bool:
 
 	return internal_dpg.is_mouse_button_released(button, **kwargs)
 
-def is_plot_queried(plot : Union[int, str], **kwargs) -> bool:
-	"""	 Returns true if the plot is currently being queried. (Requires plot 'query' kwarg to be enabled)
-
-	Args:
-		plot (Union[int, str]): 
-	Returns:
-		bool
-	"""
-
-	return internal_dpg.is_plot_queried(plot, **kwargs)
-
 def is_table_cell_highlighted(table : Union[int, str], row : int, column : int, **kwargs) -> bool:
 	"""	 Checks if a table cell is highlighted.
 
@@ -8933,6 +9276,17 @@ def reorder_items(container : Union[int, str], slot : int, new_order : Union[Lis
 
 	return internal_dpg.reorder_items(container, slot, new_order, **kwargs)
 
+def reset_axis_limits_constraints(axis : Union[int, str], **kwargs) -> None:
+	"""	 Remove an axis' limits constraints
+
+	Args:
+		axis (Union[int, str]): 
+	Returns:
+		None
+	"""
+
+	return internal_dpg.reset_axis_limits_constraints(axis, **kwargs)
+
 def reset_axis_ticks(axis : Union[int, str], **kwargs) -> None:
 	"""	 Removes the manually set axis ticks and applies the default axis ticks
 
@@ -8943,6 +9297,17 @@ def reset_axis_ticks(axis : Union[int, str], **kwargs) -> None:
 	"""
 
 	return internal_dpg.reset_axis_ticks(axis, **kwargs)
+
+def reset_axis_zoom_constraints(axis : Union[int, str], **kwargs) -> None:
+	"""	 Remove an axis' zoom constraints
+
+	Args:
+		axis (Union[int, str]): 
+	Returns:
+		None
+	"""
+
+	return internal_dpg.reset_axis_zoom_constraints(axis, **kwargs)
 
 def reset_pos(item : Union[int, str], **kwargs) -> None:
 	"""	 Resets an item's position after using 'set_item_pos'.
@@ -9018,6 +9383,19 @@ def set_axis_limits_auto(axis : Union[int, str], **kwargs) -> None:
 
 	return internal_dpg.set_axis_limits_auto(axis, **kwargs)
 
+def set_axis_limits_constraints(axis : Union[int, str], vmin : float, vmax : float, **kwargs) -> None:
+	"""	 Sets an axis' limits constraints so that users can't pan beyond a min or max value
+
+	Args:
+		axis (Union[int, str]): 
+		vmin (float): 
+		vmax (float): 
+	Returns:
+		None
+	"""
+
+	return internal_dpg.set_axis_limits_constraints(axis, vmin, vmax, **kwargs)
+
 def set_axis_ticks(axis : Union[int, str], label_pairs : Any, **kwargs) -> None:
 	"""	 Replaces axis ticks with 'label_pairs' argument.
 
@@ -9029,6 +9407,19 @@ def set_axis_ticks(axis : Union[int, str], label_pairs : Any, **kwargs) -> None:
 	"""
 
 	return internal_dpg.set_axis_ticks(axis, label_pairs, **kwargs)
+
+def set_axis_zoom_constraints(axis : Union[int, str], vmin : float, vmax : float, **kwargs) -> None:
+	"""	 Sets an axis' zoom constraints so that users can't zoom beyond a min or max value
+
+	Args:
+		axis (Union[int, str]): 
+		vmin (float): 
+		vmax (float): 
+	Returns:
+		None
+	"""
+
+	return internal_dpg.set_axis_zoom_constraints(axis, vmin, vmax, **kwargs)
 
 def set_clip_space(item : Union[int, str], top_left_x : float, top_left_y : float, width : float, height : float, min_depth : float, max_depth : float, **kwargs) -> None:
 	"""	 New in 1.1. Set the clip space for depth clipping and 'viewport' transformation.
@@ -9396,6 +9787,8 @@ mvMouseButton_Right=internal_dpg.mvMouseButton_Right
 mvMouseButton_Middle=internal_dpg.mvMouseButton_Middle
 mvMouseButton_X1=internal_dpg.mvMouseButton_X1
 mvMouseButton_X2=internal_dpg.mvMouseButton_X2
+mvKey_ModDisabled=internal_dpg.mvKey_ModDisabled
+mvKey_None=internal_dpg.mvKey_None
 mvKey_0=internal_dpg.mvKey_0
 mvKey_1=internal_dpg.mvKey_1
 mvKey_2=internal_dpg.mvKey_2
@@ -9434,34 +9827,26 @@ mvKey_Y=internal_dpg.mvKey_Y
 mvKey_Z=internal_dpg.mvKey_Z
 mvKey_Back=internal_dpg.mvKey_Back
 mvKey_Tab=internal_dpg.mvKey_Tab
-mvKey_Clear=internal_dpg.mvKey_Clear
 mvKey_Return=internal_dpg.mvKey_Return
-mvKey_Shift=internal_dpg.mvKey_Shift
-mvKey_Control=internal_dpg.mvKey_Control
-mvKey_Alt=internal_dpg.mvKey_Alt
+mvKey_LShift=internal_dpg.mvKey_LShift
+mvKey_RShift=internal_dpg.mvKey_RShift
+mvKey_LControl=internal_dpg.mvKey_LControl
+mvKey_RControl=internal_dpg.mvKey_RControl
+mvKey_LAlt=internal_dpg.mvKey_LAlt
+mvKey_RAlt=internal_dpg.mvKey_RAlt
 mvKey_Pause=internal_dpg.mvKey_Pause
-mvKey_Capital=internal_dpg.mvKey_Capital
+mvKey_CapsLock=internal_dpg.mvKey_CapsLock
 mvKey_Escape=internal_dpg.mvKey_Escape
 mvKey_Spacebar=internal_dpg.mvKey_Spacebar
-mvKey_Prior=internal_dpg.mvKey_Prior
-mvKey_Next=internal_dpg.mvKey_Next
 mvKey_End=internal_dpg.mvKey_End
 mvKey_Home=internal_dpg.mvKey_Home
 mvKey_Left=internal_dpg.mvKey_Left
 mvKey_Up=internal_dpg.mvKey_Up
 mvKey_Right=internal_dpg.mvKey_Right
 mvKey_Down=internal_dpg.mvKey_Down
-mvKey_Select=internal_dpg.mvKey_Select
 mvKey_Print=internal_dpg.mvKey_Print
-mvKey_Execute=internal_dpg.mvKey_Execute
-mvKey_PrintScreen=internal_dpg.mvKey_PrintScreen
 mvKey_Insert=internal_dpg.mvKey_Insert
 mvKey_Delete=internal_dpg.mvKey_Delete
-mvKey_Help=internal_dpg.mvKey_Help
-mvKey_LWin=internal_dpg.mvKey_LWin
-mvKey_RWin=internal_dpg.mvKey_RWin
-mvKey_Apps=internal_dpg.mvKey_Apps
-mvKey_Sleep=internal_dpg.mvKey_Sleep
 mvKey_NumPad0=internal_dpg.mvKey_NumPad0
 mvKey_NumPad1=internal_dpg.mvKey_NumPad1
 mvKey_NumPad2=internal_dpg.mvKey_NumPad2
@@ -9472,12 +9857,11 @@ mvKey_NumPad6=internal_dpg.mvKey_NumPad6
 mvKey_NumPad7=internal_dpg.mvKey_NumPad7
 mvKey_NumPad8=internal_dpg.mvKey_NumPad8
 mvKey_NumPad9=internal_dpg.mvKey_NumPad9
-mvKey_Multiply=internal_dpg.mvKey_Multiply
-mvKey_Add=internal_dpg.mvKey_Add
-mvKey_Separator=internal_dpg.mvKey_Separator
 mvKey_Subtract=internal_dpg.mvKey_Subtract
 mvKey_Decimal=internal_dpg.mvKey_Decimal
 mvKey_Divide=internal_dpg.mvKey_Divide
+mvKey_Multiply=internal_dpg.mvKey_Multiply
+mvKey_Add=internal_dpg.mvKey_Add
 mvKey_F1=internal_dpg.mvKey_F1
 mvKey_F2=internal_dpg.mvKey_F2
 mvKey_F3=internal_dpg.mvKey_F3
@@ -9502,17 +9886,32 @@ mvKey_F21=internal_dpg.mvKey_F21
 mvKey_F22=internal_dpg.mvKey_F22
 mvKey_F23=internal_dpg.mvKey_F23
 mvKey_F24=internal_dpg.mvKey_F24
-mvKey_F25=internal_dpg.mvKey_F25
 mvKey_NumLock=internal_dpg.mvKey_NumLock
 mvKey_ScrollLock=internal_dpg.mvKey_ScrollLock
-mvKey_LShift=internal_dpg.mvKey_LShift
-mvKey_RShift=internal_dpg.mvKey_RShift
-mvKey_LControl=internal_dpg.mvKey_LControl
-mvKey_RControl=internal_dpg.mvKey_RControl
-mvKey_LMenu=internal_dpg.mvKey_LMenu
-mvKey_RMenu=internal_dpg.mvKey_RMenu
+mvKey_Period=internal_dpg.mvKey_Period
+mvKey_Slash=internal_dpg.mvKey_Slash
+mvKey_Backslash=internal_dpg.mvKey_Backslash
+mvKey_Open_Brace=internal_dpg.mvKey_Open_Brace
+mvKey_Close_Brace=internal_dpg.mvKey_Close_Brace
 mvKey_Browser_Back=internal_dpg.mvKey_Browser_Back
 mvKey_Browser_Forward=internal_dpg.mvKey_Browser_Forward
+mvKey_Comma=internal_dpg.mvKey_Comma
+mvKey_Minus=internal_dpg.mvKey_Minus
+mvKey_Menu=internal_dpg.mvKey_Menu
+mvKey_ModSuper=internal_dpg.mvKey_ModSuper
+mvKey_ModShift=internal_dpg.mvKey_ModShift
+mvKey_ModAlt=internal_dpg.mvKey_ModAlt
+mvKey_ModCtrl=internal_dpg.mvKey_ModCtrl
+mvKey_Clear=internal_dpg.mvKey_Clear
+mvKey_Prior=internal_dpg.mvKey_Prior
+mvKey_Next=internal_dpg.mvKey_Next
+mvKey_Select=internal_dpg.mvKey_Select
+mvKey_Execute=internal_dpg.mvKey_Execute
+mvKey_LWin=internal_dpg.mvKey_LWin
+mvKey_RWin=internal_dpg.mvKey_RWin
+mvKey_Apps=internal_dpg.mvKey_Apps
+mvKey_Sleep=internal_dpg.mvKey_Sleep
+mvKey_Help=internal_dpg.mvKey_Help
 mvKey_Browser_Refresh=internal_dpg.mvKey_Browser_Refresh
 mvKey_Browser_Stop=internal_dpg.mvKey_Browser_Stop
 mvKey_Browser_Search=internal_dpg.mvKey_Browser_Search
@@ -9531,21 +9930,16 @@ mvKey_Launch_App1=internal_dpg.mvKey_Launch_App1
 mvKey_Launch_App2=internal_dpg.mvKey_Launch_App2
 mvKey_Colon=internal_dpg.mvKey_Colon
 mvKey_Plus=internal_dpg.mvKey_Plus
-mvKey_Comma=internal_dpg.mvKey_Comma
-mvKey_Minus=internal_dpg.mvKey_Minus
-mvKey_Period=internal_dpg.mvKey_Period
-mvKey_Slash=internal_dpg.mvKey_Slash
 mvKey_Tilde=internal_dpg.mvKey_Tilde
-mvKey_Open_Brace=internal_dpg.mvKey_Open_Brace
-mvKey_Backslash=internal_dpg.mvKey_Backslash
-mvKey_Close_Brace=internal_dpg.mvKey_Close_Brace
 mvKey_Quote=internal_dpg.mvKey_Quote
+mvKey_F25=internal_dpg.mvKey_F25
 mvAll=internal_dpg.mvAll
 mvTool_About=internal_dpg.mvTool_About
 mvTool_Debug=internal_dpg.mvTool_Debug
 mvTool_Doc=internal_dpg.mvTool_Doc
 mvTool_ItemRegistry=internal_dpg.mvTool_ItemRegistry
 mvTool_Metrics=internal_dpg.mvTool_Metrics
+mvTool_Stack=internal_dpg.mvTool_Stack
 mvTool_Style=internal_dpg.mvTool_Style
 mvTool_Font=internal_dpg.mvTool_Font
 mvFontAtlas=internal_dpg.mvFontAtlas
@@ -9632,7 +10026,15 @@ mvPlotBin_Sturges=internal_dpg.mvPlotBin_Sturges
 mvPlotBin_Rice=internal_dpg.mvPlotBin_Rice
 mvPlotBin_Scott=internal_dpg.mvPlotBin_Scott
 mvXAxis=internal_dpg.mvXAxis
+mvXAxis2=internal_dpg.mvXAxis2
+mvXAxis3=internal_dpg.mvXAxis3
 mvYAxis=internal_dpg.mvYAxis
+mvYAxis2=internal_dpg.mvYAxis2
+mvYAxis3=internal_dpg.mvYAxis3
+mvPlotScale_Linear=internal_dpg.mvPlotScale_Linear
+mvPlotScale_Time=internal_dpg.mvPlotScale_Time
+mvPlotScale_Log10=internal_dpg.mvPlotScale_Log10
+mvPlotScale_SymLog=internal_dpg.mvPlotScale_SymLog
 mvPlotMarker_None=internal_dpg.mvPlotMarker_None
 mvPlotMarker_Circle=internal_dpg.mvPlotMarker_Circle
 mvPlotMarker_Square=internal_dpg.mvPlotMarker_Square
@@ -9734,16 +10136,12 @@ mvPlotCol_LegendBorder=internal_dpg.mvPlotCol_LegendBorder
 mvPlotCol_LegendText=internal_dpg.mvPlotCol_LegendText
 mvPlotCol_TitleText=internal_dpg.mvPlotCol_TitleText
 mvPlotCol_InlayText=internal_dpg.mvPlotCol_InlayText
-mvPlotCol_XAxis=internal_dpg.mvPlotCol_XAxis
-mvPlotCol_XAxisGrid=internal_dpg.mvPlotCol_XAxisGrid
-mvPlotCol_YAxis=internal_dpg.mvPlotCol_YAxis
-mvPlotCol_YAxisGrid=internal_dpg.mvPlotCol_YAxisGrid
-mvPlotCol_YAxis2=internal_dpg.mvPlotCol_YAxis2
-mvPlotCol_YAxisGrid2=internal_dpg.mvPlotCol_YAxisGrid2
-mvPlotCol_YAxis3=internal_dpg.mvPlotCol_YAxis3
-mvPlotCol_YAxisGrid3=internal_dpg.mvPlotCol_YAxisGrid3
+mvPlotCol_AxisBg=internal_dpg.mvPlotCol_AxisBg
+mvPlotCol_AxisBgActive=internal_dpg.mvPlotCol_AxisBgActive
+mvPlotCol_AxisBgHovered=internal_dpg.mvPlotCol_AxisBgHovered
+mvPlotCol_AxisGrid=internal_dpg.mvPlotCol_AxisGrid
+mvPlotCol_AxisText=internal_dpg.mvPlotCol_AxisText
 mvPlotCol_Selection=internal_dpg.mvPlotCol_Selection
-mvPlotCol_Query=internal_dpg.mvPlotCol_Query
 mvPlotCol_Crosshairs=internal_dpg.mvPlotCol_Crosshairs
 mvNodeCol_NodeBackground=internal_dpg.mvNodeCol_NodeBackground
 mvNodeCol_NodeBackgroundHovered=internal_dpg.mvNodeCol_NodeBackgroundHovered
@@ -9775,6 +10173,7 @@ mvNodesCol_MiniMapLinkSelected=internal_dpg.mvNodesCol_MiniMapLinkSelected
 mvNodesCol_MiniMapCanvas=internal_dpg.mvNodesCol_MiniMapCanvas
 mvNodesCol_MiniMapCanvasOutline=internal_dpg.mvNodesCol_MiniMapCanvasOutline
 mvStyleVar_Alpha=internal_dpg.mvStyleVar_Alpha
+mvStyleVar_DisabledAlpha=internal_dpg.mvStyleVar_DisabledAlpha
 mvStyleVar_WindowPadding=internal_dpg.mvStyleVar_WindowPadding
 mvStyleVar_WindowRounding=internal_dpg.mvStyleVar_WindowRounding
 mvStyleVar_WindowBorderSize=internal_dpg.mvStyleVar_WindowBorderSize
@@ -9796,8 +10195,16 @@ mvStyleVar_ScrollbarRounding=internal_dpg.mvStyleVar_ScrollbarRounding
 mvStyleVar_GrabMinSize=internal_dpg.mvStyleVar_GrabMinSize
 mvStyleVar_GrabRounding=internal_dpg.mvStyleVar_GrabRounding
 mvStyleVar_TabRounding=internal_dpg.mvStyleVar_TabRounding
+mvStyleVar_TabBorderSize=internal_dpg.mvStyleVar_TabBorderSize
+mvStyleVar_TabBarBorderSize=internal_dpg.mvStyleVar_TabBarBorderSize
+mvStyleVar_TableAngledHeadersAngle=internal_dpg.mvStyleVar_TableAngledHeadersAngle
+mvStyleVar_TableAngledHeadersTextAlign=internal_dpg.mvStyleVar_TableAngledHeadersTextAlign
 mvStyleVar_ButtonTextAlign=internal_dpg.mvStyleVar_ButtonTextAlign
 mvStyleVar_SelectableTextAlign=internal_dpg.mvStyleVar_SelectableTextAlign
+mvStyleVar_SeparatorTextBorderSize=internal_dpg.mvStyleVar_SeparatorTextBorderSize
+mvStyleVar_SeparatorTextAlign=internal_dpg.mvStyleVar_SeparatorTextAlign
+mvStyleVar_SeparatorTextPadding=internal_dpg.mvStyleVar_SeparatorTextPadding
+mvStyleVar_DockingSeparatorSize=internal_dpg.mvStyleVar_DockingSeparatorSize
 mvPlotStyleVar_LineWeight=internal_dpg.mvPlotStyleVar_LineWeight
 mvPlotStyleVar_Marker=internal_dpg.mvPlotStyleVar_Marker
 mvPlotStyleVar_MarkerSize=internal_dpg.mvPlotStyleVar_MarkerSize
@@ -9912,21 +10319,24 @@ mvInputIntMulti=internal_dpg.mvInputIntMulti
 mvInputFloatMulti=internal_dpg.mvInputFloatMulti
 mvDragPoint=internal_dpg.mvDragPoint
 mvDragLine=internal_dpg.mvDragLine
+mvDragRect=internal_dpg.mvDragRect
 mvAnnotation=internal_dpg.mvAnnotation
+mvAxisTag=internal_dpg.mvAxisTag
 mvLineSeries=internal_dpg.mvLineSeries
 mvScatterSeries=internal_dpg.mvScatterSeries
 mvStemSeries=internal_dpg.mvStemSeries
 mvStairSeries=internal_dpg.mvStairSeries
 mvBarSeries=internal_dpg.mvBarSeries
+mvBarGroupSeries=internal_dpg.mvBarGroupSeries
 mvErrorSeries=internal_dpg.mvErrorSeries
-mvVLineSeries=internal_dpg.mvVLineSeries
-mvHLineSeries=internal_dpg.mvHLineSeries
+mvInfLineSeries=internal_dpg.mvInfLineSeries
 mvHeatSeries=internal_dpg.mvHeatSeries
 mvImageSeries=internal_dpg.mvImageSeries
 mvPieSeries=internal_dpg.mvPieSeries
 mvShadeSeries=internal_dpg.mvShadeSeries
 mvLabelSeries=internal_dpg.mvLabelSeries
 mvHistogramSeries=internal_dpg.mvHistogramSeries
+mvDigitalSeries=internal_dpg.mvDigitalSeries
 mv2dHistogramSeries=internal_dpg.mv2dHistogramSeries
 mvCandleSeries=internal_dpg.mvCandleSeries
 mvAreaSeries=internal_dpg.mvAreaSeries
@@ -10016,3 +10426,4 @@ mvReservedUUID_6=internal_dpg.mvReservedUUID_6
 mvReservedUUID_7=internal_dpg.mvReservedUUID_7
 mvReservedUUID_8=internal_dpg.mvReservedUUID_8
 mvReservedUUID_9=internal_dpg.mvReservedUUID_9
+mvReservedUUID_10=internal_dpg.mvReservedUUID_10

@@ -2166,7 +2166,7 @@ VerifyKeywordArguments(const mvPythonParser& parser, PyObject* args)
             continue;
 
         mvThrowPythonError(mvErrorCode::mvNone, sitem + " keyword does not exist.");
-        assert(false);
+        IM_ASSERT(false);
         exists = false;
         break;
     }
@@ -2396,6 +2396,12 @@ GenerateCoreFile(std::ofstream& stream)
                 stream << "\n\t\twarnings.warn('" << args.name << " keyword renamed to " << args.new_name << "', DeprecationWarning, 2)";
                 stream << "\n\t\t" << args.new_name << "=kwargs['" << args.name << "']";
             }
+
+            else if (args.arg_type == mvArgType::DEPRECATED_KEYWORD_ARG)
+            {
+                stream << "\n\n\tif '" << args.name << "' in kwargs.keys():";
+                stream << "\n\t\twarnings.warn('" << args.name << " keyword deprecated. " << args.new_name << "', DeprecationWarning, 2)";
+            }
         }
 
         stream << "\n\n\treturn internal_dpg." << parser.first << "(";
@@ -2535,6 +2541,12 @@ GenerateContextsFile(std::ofstream& stream)
                 stream << "\n\n\t\tif '" << args.name << "' in kwargs.keys():";
                 stream << "\n\t\t\twarnings.warn('" << args.name << " keyword renamed to " << args.new_name << "', DeprecationWarning, 2)";
                 stream << "\n\t\t\t" << args.new_name << "=kwargs['" << args.name << "']";
+            }
+
+            else if (args.arg_type == mvArgType::DEPRECATED_KEYWORD_ARG)
+            {
+                stream << "\n\n\t\tif '" << args.name << "' in kwargs.keys():";
+                stream << "\n\t\t\twarnings.warn('" << args.name << " keyword deprecated. " << args.new_name << "', DeprecationWarning, 2)";
             }
         }
 

@@ -3,7 +3,7 @@
 #include "mvViewport.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-
+#include "mvProfiler.h"
 mvGraphics
 setup_graphics(mvViewport& viewport)
 {
@@ -29,6 +29,8 @@ cleanup_graphics(mvGraphics& graphics)
 void
 present(mvGraphics& graphics, mvColor& clearColor, bool vsync)
 {
+    MV_PROFILE_SCOPE("Presentation")
+
     mvViewport* viewport = GContext->viewport;
     auto viewportData = (mvViewportData*)viewport->platformSpecifics;
 

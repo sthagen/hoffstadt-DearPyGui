@@ -998,7 +998,6 @@ MoveItemDown(mvItemRegistry& registry, mvUUID uuid)
 void 
 RenderItemRegistry(mvItemRegistry& registry)
 {
-
     // TODO: figure out why delayedSearch can
     //       still have values (sometimes).
     //       It should be empty after every search.
@@ -1182,7 +1181,6 @@ DelaySearch(mvItemRegistry& registry, mvAppItem* item)
 mvAppItem* 
 GetItem(mvItemRegistry& registry, mvUUID uuid)
 {
-
     // check captured
     if(registry.capturedItem)
     {
@@ -1432,7 +1430,7 @@ AddItemWithRuntimeChecks(mvItemRegistry& registry, std::shared_ptr<mvAppItem> it
     if (parentPtr == nullptr)
     {
         mvThrowPythonError(mvErrorCode::mvParentNotDeduced, "add_*", "Parent could not be deduced.", item.get());
-        assert(false);
+        IM_ASSERT(false && "Parent could not be deduced.");
         return false;
     }
 
@@ -1469,7 +1467,7 @@ AddItemWithRuntimeChecks(mvItemRegistry& registry, std::shared_ptr<mvAppItem> it
             mvThrowPythonError(mvErrorCode::mvIncompatibleParent, GetEntityCommand(item->type),
                 "Incompatible parent. Acceptable parents include:\t" + acceptableParentTypes, item.get());
 
-            assert(false);
+            IM_ASSERT(false && "Incompatible parent.");
             return false;
         }
     }
@@ -1507,7 +1505,7 @@ AddItemWithRuntimeChecks(mvItemRegistry& registry, std::shared_ptr<mvAppItem> it
             mvThrowPythonError(mvErrorCode::mvIncompatibleChild, GetEntityCommand(parentPtr->type),
                 "Incompatible child. Acceptable children include:\t" + acceptableChildTypes, parentPtr);
 
-            assert(false);
+            IM_ASSERT(false && "Incompatible child.");
             return false;
         }
     }

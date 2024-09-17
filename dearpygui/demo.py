@@ -1,8 +1,12 @@
 import dearpygui.dearpygui as dpg
 import math
-from math import sin, cos
+from math import sin, cos, log10
 import random
 import webbrowser
+
+count_2d_histogram = 50_000
+xybin_2d_histogram = [100, 100]
+t_digital_plot = 0
 
 def _help(message):
     last_item = dpg.last_item()
@@ -258,6 +262,7 @@ def show_demo():
                 dpg.add_menu_item(label="Show Style Editor", callback=lambda:dpg.show_tool(dpg.mvTool_Style))
                 dpg.add_menu_item(label="Show Font Manager", callback=lambda:dpg.show_tool(dpg.mvTool_Font))
                 dpg.add_menu_item(label="Show Item Registry", callback=lambda:dpg.show_tool(dpg.mvTool_ItemRegistry))
+                dpg.add_menu_item(label="Show Stack Tool", callback=lambda:dpg.show_tool(dpg.mvTool_Stack))
 
             with dpg.menu(label="Settings"):
 
@@ -277,7 +282,8 @@ def show_demo():
             _add_config_options("__demo_id", 3, 
                                         "no_title_bar", "no_scrollbar", "menubar", 
                                         "no_move", "no_resize", "no_collapse",
-                                        "no_close", "no_background", "no_bring_to_front_on_focus"
+                                        "no_close", "no_background", "no_bring_to_front_on_focus",
+                                        "unsaved_document"
                                         )
   
         with dpg.collapsing_header(label="Widgets"):
@@ -291,6 +297,8 @@ def show_demo():
                     dpg.add_button(label="Button", callback=_log, arrow=True, direction=dpg.mvDir_Left)
                     dpg.add_button(label="Button", callback=_log, arrow=True, direction=dpg.mvDir_Right)
                     dpg.add_button(label="Button", callback=_log, arrow=True, direction=dpg.mvDir_Down)
+                    
+                dpg.add_button(label="Hold me button", callback=_log, repeat=True)
 
                 dpg.add_checkbox(label="checkbox", callback=_log)
                 dpg.add_radio_button(("radio a", "radio b", "radio c"), callback=_log, horizontal=True)
@@ -322,7 +330,7 @@ def show_demo():
                 with dpg.tooltip(dpg.last_item()):
                     dpg.add_text("I'm a simple tooltip!")
 
-                dpg.add_separator()
+                dpg.add_separator(label="This is a separator with text")
 
                 dpg.add_text("Value", label="Label", show_label=True)
                 dpg.add_combo(("AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK"), label="combo", default_value="AAAA", callback=_log)
@@ -368,8 +376,18 @@ def show_demo():
             with dpg.tree_node(label="Combo"):
 
                 items = ("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z")
-                combo_id = dpg.add_combo(items, label="combo", height_mode=dpg.mvComboHeight_Small)
-                _add_config_options(combo_id, 1, "popup_align_left", "no_arrow_button", "no_preview")
+                combo_id = dpg.add_combo(items, label="combo", height_mode=dpg.mvComboHeight_Small, tag="combo_demo")
+                _add_config_options(combo_id, 1, "popup_align_left", "no_arrow_button", "no_preview", "fit_width")
+                def change_combo_height(sender, app_data, user_data):
+                    if app_data == "mvComboHeight_Small":
+                        dpg.configure_item("combo_demo", height_mode=dpg.mvComboHeight_Small)
+                    elif app_data == "mvComboHeight_Regular":
+                        dpg.configure_item("combo_demo", height_mode=dpg.mvComboHeight_Regular)
+                    elif app_data == "mvComboHeight_Large":
+                        dpg.configure_item("combo_demo", height_mode=dpg.mvComboHeight_Large)
+                    elif app_data == "mvComboHeight_Largest":
+                        dpg.configure_item("combo_demo", height_mode=dpg.mvComboHeight_Largest)
+                dpg.add_radio_button(("mvComboHeight_Small", "mvComboHeight_Regular", "mvComboHeight_Large", "mvComboHeight_Largest"), callback=change_combo_height, user_data=combo_id, horizontal=True)
 
             with dpg.tree_node(label="Color Picker & Edit"):
 
@@ -438,9 +456,9 @@ def show_demo():
                                            )
 
                 dpg.add_text("Color Picker")
-
-                with dpg.group(horizontal=True):
-                    _before_id = dpg.add_text("picker_mode:")
+                
+                with dpg.group(horizontal=True) as _before_id:
+                    dpg.add_text("picker_mode:")
                     dpg.add_radio_button(("mvColorPicker_bar", "mvColorPicker_wheel"), callback=_color_picker_configs, 
                                          user_data=_color_picker_id, horizontal=True)
                 
@@ -459,7 +477,7 @@ def show_demo():
                     dpg.add_radio_button(("mvColorEdit_input_rgb", "mvColorEdit_input_hsv"), callback=_color_picker_configs, 
                                          user_data=_color_picker_id, horizontal=True)
 
-                dpg.add_color_picker((255, 0, 255, 255), label="Color Picker", 
+                dpg.add_color_picker((255, 0, 255, 200), label="Color Picker", alpha_preview=True, no_alpha=False, alpha_bar=True, 
                         width=200, tag=_color_picker_id)
 
                 _add_config_options(_color_picker_id, 3, 
@@ -736,6 +754,14 @@ def show_demo():
             with dpg.tree_node(label="2D/3D Sliders"):
 
                 dpg.add_3d_slider(label="3D Slider", scale=0.5)
+
+            with dpg.tree_node(label="Tree nodes"):
+
+                dpg.add_tree_node(label="Span text width", span_text_width=True)
+                # dpg.add_tree_node(label="Span available width", span_available_width=True)
+                dpg.add_tree_node(label="Span full width", span_full_width=True)
+                # dpg.add_tree_node(label="Span all columns", span_all_columns=True)
+                
 
         with dpg.collapsing_header(label="Layout & Scrolling"):
 
@@ -1368,7 +1394,7 @@ def show_demo():
             with dpg.tree_node(label="Resizable, mixed"):
 
                 with dpg.table(header_row=True, policy=dpg.mvTable_SizingFixedFit, row_background=True, reorderable=True, 
-                            resizable=True, no_host_extendX=False, hideable=True, 
+                            resizable=True, no_host_extendX=False, hideable=True,
                             borders_innerV=True, delay_search=True, borders_outerV=True, borders_innerH=True, borders_outerH=True):
 
                     dpg.add_table_column(label="AAA", width_fixed=True)
@@ -1384,7 +1410,7 @@ def show_demo():
                                     dpg.add_text(f"Fixed {i}, {j}")
 
                 with dpg.table(header_row=True, policy=dpg.mvTable_SizingFixedFit, row_background=True, reorderable=True, 
-                            resizable=True, no_host_extendX=False, hideable=True, 
+                            resizable=True, no_host_extendX=False, hideable=True,
                             borders_innerV=True, delay_search=True, borders_outerV=True, borders_innerH=True, borders_outerH=True):
 
                     dpg.add_table_column(label="AAA", width_fixed=True)
@@ -1523,6 +1549,20 @@ def show_demo():
                 _add_config_options(table_id, 3, 
                                             "pad_outerX", "no_pad_outerX", "no_pad_innerX", 
                                             "borders_outerV", "borders_innerV", "header_row", before=table_id)
+
+            with dpg.tree_node(label="Angled headers"):
+
+                with dpg.table(header_row=True, resizable=True, delay_search=True,
+                            reorderable=True) as table_id:
+
+                    dpg.add_table_column(label="One", angled_header=True)
+                    dpg.add_table_column(label="Two", angled_header=True)
+                    dpg.add_table_column(label="three", angled_header=True)
+
+                    for i in range(5):
+                        with dpg.table_row():
+                            for j in range(3):
+                                dpg.add_text(f"Hello {i}, {j}")
 
             with dpg.tree_node(label="Reorderable, hideable, with headers"):
 
@@ -1849,13 +1889,10 @@ def show_demo():
 
                 with dpg.tab(label="Series"):
 
-                    with dpg.tree_node(label="Line Series"):
-
-                        dpg.add_text("Anti-aliasing can be enabled from the plot's context menu (see Help).", bullet=True)
-                
+                    with dpg.tree_node(label="Line Series"):                
                         # create plot
                         with dpg.plot(label="Line Series", height=400, width=-1):
-
+                            
                             # optionally create legend
                             dpg.add_plot_legend()
 
@@ -1867,15 +1904,68 @@ def show_demo():
                                 # series belong to a y axis
                                 dpg.add_line_series(sindatax, sindatay, label="0.5 + 0.5 * sin(x)")
 
-                    with dpg.tree_node(label="Stair Series"):
-
-                        with dpg.plot(label="Stair Plot", height=400, width=-1):
+                    with dpg.tree_node(label="Filled Line Series"):
+                        dpg.add_checkbox(label="fill", tag="fill_series_cb", default_value=False, 
+                                         callback=lambda: dpg.configure_item("filled_line_series", shaded=dpg.get_value("fill_series_cb")))
+                        dpg.add_checkbox(label="segment", tag="segment_series_cb", default_value=False, 
+                                         callback=lambda: dpg.configure_item("filled_line_series", segments=dpg.get_value("segment_series_cb")))
+                        with dpg.plot(label="Filled Line Plot", height=400, width=-1):
                             dpg.add_plot_legend()
                             dpg.add_plot_axis(dpg.mvXAxis, label="x")
                             with dpg.plot_axis(dpg.mvYAxis, label="y"):
-                                dpg.add_stair_series(sindatax, sindatay, label="0.5 + 0.5 * sin(x)")
+                                dpg.add_line_series(sindatax, sindatay, tag="filled_line_series", label="0.5 + 0.5 * sin(x)")
+                                
+                    with dpg.tree_node(label="Text point"):                
+                        # create plot
+                        with dpg.plot(label="Text point", height=400, width=-1):
+                            
+                            # optionally create legend
+                            dpg.add_plot_legend()
 
+                            # REQUIRED: create x and y axes
+                            dpg.add_plot_axis(dpg.mvXAxis, label="x")
+                            
+                            with dpg.plot_axis(dpg.mvYAxis, label="y"):
+
+                                # series belong to a y axis
+                                dpg.add_text_point(2., 1.5, label="Text point label")
+                                
                     with dpg.tree_node(label="Shade Series"):
+                        std_alpha = 0.25
+
+                        def _cb_alpha(_, app_data):
+                            with dpg.theme() as alpha_theme:
+                                with dpg.theme_component(0):
+                                    dpg.add_theme_style(dpg.mvPlotStyleVar_FillAlpha, app_data, category=dpg.mvThemeCat_Plots)
+                            dpg.bind_item_theme("shaded_plot_1", alpha_theme)
+
+                        dpg.add_drag_float(min_value=0, max_value=1, callback=_cb_alpha, speed=0.01, default_value=std_alpha)
+                        with dpg.theme() as alpha_theme:
+                            with dpg.theme_component(0):
+                                dpg.add_theme_style(dpg.mvPlotStyleVar_FillAlpha, std_alpha, category=dpg.mvThemeCat_Plots)
+                        with dpg.plot(label="Shaded Plot", tag="shaded_plot_1", height=400, width=-1):
+                            xs = []
+                            ys = []
+                            ys1 = []
+                            ys2 = []
+                            ys3 = []
+                            ys4 = []
+                            random.seed(0)
+                            for i in range(1001):
+                                xs.append(i * 0.001)
+                                ys.append(0.25 + 0.25 * sin(25 * xs[i]) * sin(5 * xs[i]) + random.uniform(-0.01, 0.01))
+                                ys1.append(ys[i] + random.uniform(0.1, 0.12))
+                                ys2.append(ys[i] - random.uniform(0.1, 0.12))
+                                ys3.append(0.75 + 0.2 * sin(25 * xs[i]))
+                                ys4.append(0.75 + 0.1 * cos(25 * xs[i]))
+                            dpg.add_plot_axis(dpg.mvXAxis, label="x")
+                            with dpg.plot_axis(dpg.mvYAxis, label="y"):
+                                dpg.add_shade_series(xs, ys1, y2=ys2, label="Uncertain data")
+                                dpg.add_line_series(xs, ys, label="Uncertain data")
+                                dpg.add_shade_series(xs, ys3, y2=ys4, label="Overlapping")
+                                dpg.add_line_series(xs, ys3, label="Overlapping")
+                                dpg.add_line_series(xs, ys4, label="Overlapping")
+                        dpg.bind_item_theme("shaded_plot_1", alpha_theme)
 
                         stock_datax = []
                         stock_datay2 = []
@@ -1941,6 +2031,161 @@ def show_demo():
                             with dpg.plot_axis(dpg.mvYAxis, label="y"):
                                 dpg.add_scatter_series(sindatax, sindatay, label="0.5 + 0.5 * sin(x)")
 
+                    with dpg.tree_node(label="Stair Series"):
+                        dpg.add_checkbox(label="pre-step", tag="pre_step_cb", default_value=False, 
+                            callback=lambda: dpg.configure_item("stair_series", pre_step=dpg.get_value("pre_step_cb")))
+                        dpg.add_checkbox(label="filled", tag="filled_stairs_cb", default_value=False, 
+                            callback=lambda: dpg.configure_item("stair_series", shaded=dpg.get_value("filled_stairs_cb")))
+                        with dpg.plot(label="Stair Plot", height=400, width=-1):
+                            dpg.add_plot_legend()
+                            dpg.add_plot_axis(dpg.mvXAxis, label="x")
+                            with dpg.plot_axis(dpg.mvYAxis, label="y"):
+                                dpg.add_stair_series(sindatax, sindatay, tag="stair_series", label="0.5 + 0.5 * sin(x)")
+
+                    with dpg.tree_node(label="Bar Series"):
+                        dpg.add_checkbox(label="horizontal", tag="horizontal_bar_cb", default_value=False, 
+                            callback=lambda: dpg.configure_item("bar_series", horizontal=dpg.get_value("horizontal_bar_cb")))
+                        with dpg.plot(label="Bar Series", height=400, width=-1):
+
+                            dpg.add_plot_legend()
+
+                            # create x axis
+                            dpg.add_plot_axis(dpg.mvXAxis, label="Student", no_gridlines=True)
+                            dpg.set_axis_limits(dpg.last_item(), 9, 33)
+                            dpg.set_axis_ticks(dpg.last_item(), (("S1", 11), ("S2", 21), ("S3", 31)))
+                            dpg.add_plot_axis(dpg.mvXAxis2, label="hor_value", no_gridlines=True)
+                            dpg.set_axis_limits(dpg.last_item(), 0, 110)
+                            
+                
+                            # create y axis
+                            with dpg.plot_axis(dpg.mvYAxis, label="Score"):
+                                dpg.set_axis_limits(dpg.last_item(), 0, 110)
+                                dpg.add_bar_series([10, 20, 30], [100, 75, 90],  tag="bar_series", label="Final Exam", weight=1)
+                                dpg.add_bar_series([11, 21, 31], [83, 75, 72], label="Midterm Exam", weight=1)
+                                dpg.add_bar_series([12, 22, 32], [42, 68, 23], label="Course Grade", weight=1)
+                                
+
+                    with dpg.tree_node(label="Bar Group Series"):
+                        limits_group_series = [-0.5, 9.5]
+                        
+                        def set_horizontal(sender, app_data, user_data):
+                            dpg.configure_item("bar_group_series", horizontal=app_data)
+                            if app_data:
+                                dpg.set_axis_limits("yaxis_bar_group", *limits_group_series)
+                                dpg.set_axis_ticks("yaxis_bar_group", glabels)
+                                dpg.reset_axis_ticks("xaxis_bar_group")
+                                dpg.set_axis_limits_auto("xaxis_bar_group")
+                            else:
+                                dpg.set_axis_limits("xaxis_bar_group", *limits_group_series)
+                                dpg.set_axis_ticks("xaxis_bar_group", glabels)
+                                dpg.reset_axis_ticks("yaxis_bar_group")
+                                dpg.set_axis_limits_auto("yaxis_bar_group")
+                        
+                        def _callback_stacked(sender, app_data, user_data):
+                            dpg.configure_item("bar_group_series", stacked=app_data)
+                            is_horizontal = dpg.get_item_configuration("bar_group_series")["horizontal"]
+                            if is_horizontal:
+                                dpg.set_axis_limits_auto("xaxis_bar_group")
+                            else:
+                                dpg.set_axis_limits_auto("yaxis_bar_group")
+                            
+                        dpg.add_checkbox(label="Horizontal", default_value=False, callback=set_horizontal)
+                        dpg.add_checkbox(label="Stacked", default_value=False, callback=_callback_stacked)
+                        dpg.add_slider_float(label="Bar Width", default_value=0.67, max_value=1.0, 
+                                             min_value=0.1, callback=lambda _, val: dpg.configure_item("bar_group_series", group_width=val))
+                        with dpg.plot(label="Bar Group Series", height=400, width=-1):
+                            dpg.add_plot_legend()
+                            
+                            values_group_series = [83, 67, 23, 89, 83, 78, 91, 82, 85, 90,
+                                80, 62, 56, 99, 55, 78, 88, 78, 90, 100,
+                                80, 69, 52, 92, 72, 78, 75, 76, 89, 95]
+                            
+                            ilabels = ["Midterm Exam","Final Exam","Course Grade"]
+                            glabels = (("S1",0), ("S2",1), ("S3",2), ("S4",3), ("S5",4), ("S6",5), ("S7",6), ("S8",7), ("S9",8), ("S10",9))
+                            groups_c = 3
+
+                            # create x axis
+                            dpg.add_plot_axis(dpg.mvXAxis, label="Student", tag="xaxis_bar_group", no_gridlines=True, auto_fit=True)
+                            dpg.set_axis_limits(dpg.last_item(), *limits_group_series)
+                            dpg.set_axis_ticks(dpg.last_item(), glabels)
+
+                            # create y axis
+                            with dpg.plot_axis(dpg.mvYAxis, label="Score", tag="yaxis_bar_group", auto_fit=True):
+                                dpg.set_axis_limits(dpg.last_item(), 0, 110)
+                                dpg.add_bar_group_series(values=values_group_series, label_ids=ilabels, 
+                                    group_size=groups_c, tag="bar_group_series", label="Final Exam")
+
+                    with dpg.tree_node(label="Bar Stacks"):
+                        politicians = (("Trump", 0), ("Bachman", 1), ("Cruz", 2), ("Gingrich", 3), ("Palin", 4), ("Santorum", 5),
+                        ("Walker", 6), ("Perry", 7), ("Ryan", 8), ("McCain", 9), ("Rubio", 10), ("Romney", 11), ("Rand Paul", 12), ("Christie", 13),
+                        ("Biden", 14), ("Kasich", 15), ("Sanders", 16), ("J Bush", 17), ("H Clinton", 18), ("Obama", 19))
+                        data_reg = [18,26,7,14,10,8,6,11,4,4,3,8,6,8,6,5,0,3,1,2,  # Pants on Fire
+                            43,36,30,21,30,27,25,17,11,22,15,16,16,17,12,12,14,6,13,12,  # False
+                            16,13,28,22,15,21,15,18,30,17,24,18,13,10,14,15,17,22,14,12, # Mostly False
+                            17,10,13,25,12,22,19,26,23,17,22,27,20,26,29,17,18,22,21,27, # Half True
+                            5,7,16,10,10,12,23,13,17,20,22,16,23,19,20,26,36,29,27,26,   # Mostly True
+                            1,8,6,8,23,10,12,15,15,20,14,15,22,20,19,25,15,18,24,21]    # True
+                        labels_reg = ["Pants on Fire","False","Mostly False","Half True","Mostly True","True"]
+
+
+                        data_div = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                              # Pants on Fire (dummy, to order legend logically)
+                            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                         # False         (dummy, to order legend logically)
+                            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                         # Mostly False  (dummy, to order legend logically)
+                            -16,-13,-28,-22,-15,-21,-15,-18,-30,-17,-24,-18,-13,-10,-14,-15,-17,-22,-14,-12, # Mostly False
+                            -43,-36,-30,-21,-30,-27,-25,-17,-11,-22,-15,-16,-16,-17,-12,-12,-14,-6,-13,-12,  # False
+                            -18,-26,-7,-14,-10,-8,-6,-11,-4,-4,-3,-8,-6,-8,-6,-5,0,-3,-1,-2,                 # Pants on Fire
+                            17,10,13,25,12,22,19,26,23,17,22,27,20,26,29,17,18,22,21,27,                     # Half True
+                            5,7,16,10,10,12,23,13,17,20,22,16,23,19,20,26,36,29,27,26,                       # Mostly True
+                            1,8,6,8,23,10,12,15,15,20,14,15,22,20,19,25,15,18,24,21]                      # True
+                        labels_div = ["Pants on Fire","False","Mostly False","Mostly False",
+                        "False","Pants on Fire","Half True","Mostly True","True"]
+                        
+                        def divergent_stack_cb(sender, app_data, user_data):
+                            if app_data:
+                                dpg.configure_item("divergent_stack_series", values=data_div, label_ids=labels_div, group_size=len(labels_reg), group_width=0.75, shift=0, stacked=True, horizontal=True)
+                            else:
+                                dpg.configure_item("divergent_stack_series", values=data_reg, label_ids=labels_reg, group_size=len(labels_div), group_width=0.75, shift=0, stacked=True, horizontal=True)
+                        
+                        dpg.add_checkbox(label="Divergent", tag="divergent_stack_cb", default_value=True, callback=divergent_stack_cb)
+                        with dpg.plot(label="PolitiFact: Who Lies More?", height=400, width=-1):
+                            dpg.add_plot_legend()
+                            # create x axis
+                            dpg.add_plot_axis(dpg.mvXAxis, no_gridlines=True)
+                            # create y axis
+                            with dpg.plot_axis(dpg.mvYAxis) as yaxis:
+                                dpg.set_axis_ticks(yaxis, politicians)
+                                dpg.set_axis_limits(yaxis, -0.5, 19.5)
+                                dpg.add_bar_group_series(tag="divergent_stack_series", values=data_div, label_ids=labels_div,
+                                    group_size=len(labels_div), group_width=0.75, shift=0, stacked=True, horizontal=True)
+                                # dpg.add_bar_group_series(values=data_reg, label_ids=labels_reg,
+                                #      group_size=20, group_width=0.75, shift=0, stacked=True, horizontal=True)
+
+                    with dpg.tree_node(label="Error Series"):
+
+                        error1_x = [1, 2, 3, 4, 5]
+                        error1_y = [1, 2, 5, 3, 4]
+                        error1_neg = [0.2, 0.4, 0.2, 0.6, 0.4]
+                        error1_pos = [0.4, 0.2, 0.4, 0.8, 0.6]
+
+                        error2_x = [1, 2, 3, 4, 5]
+                        error2_y = [8, 8, 9, 7, 8]
+                        error2_neg = [0.2, 0.4, 0.2, 0.6, 0.4]
+                        error2_pos = [0.4, 0.2, 0.4, 0.8, 0.6]
+
+                        dpg.add_text("Anti-aliasing can be enabled from the plot's context menu (see Help).", bullet=True)
+               
+                        with dpg.plot(label="Error Series", height=400, width=-1):
+                            dpg.add_plot_legend()
+                            xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
+                            with dpg.plot_axis(dpg.mvYAxis, label="y"):
+
+                                dpg.add_bar_series(error1_x, error1_y, label="Bar", weight=0.25)
+                                dpg.add_error_series(error1_x, error1_y, error1_neg, error1_pos, label="Bar")
+                                dpg.add_line_series(error2_x, error2_y, label="Line")
+                                dpg.add_error_series(error2_x, error2_y, error2_neg, error2_pos, label="Line")
+                                dpg.fit_axis_data(dpg.top_container_stack())
+                            dpg.fit_axis_data(xaxis)
+
                     with dpg.tree_node(label="Stem Series"):
 
                         with dpg.theme(tag="stem_theme1"):
@@ -1956,33 +2201,6 @@ def show_demo():
                                 dpg.add_stem_series(sindatax, cosdatay, label="0.5 + 0.75 * cos(x)")
                                 dpg.bind_item_theme(dpg.last_item(), "stem_theme1")
 
-                    with dpg.tree_node(label="Bar Series"):
-
-                        with dpg.plot(label="Bar Series", height=400, width=-1):
-
-                            dpg.add_plot_legend()
-
-                            # create x axis
-                            dpg.add_plot_axis(dpg.mvXAxis, label="Student", no_gridlines=True)
-                            dpg.set_axis_limits(dpg.last_item(), 9, 33)
-                            dpg.set_axis_ticks(dpg.last_item(), (("S1", 11), ("S2", 21), ("S3", 31)))
-                
-                            # create y axis
-                            with dpg.plot_axis(dpg.mvYAxis, label="Score"):
-                                dpg.set_axis_limits(dpg.last_item(), 0, 110)
-                                dpg.add_bar_series([10, 20, 30], [100, 75, 90], label="Final Exam", weight=1)
-                                dpg.add_bar_series([11, 21, 31], [83, 75, 72], label="Midterm Exam", weight=1)
-                                dpg.add_bar_series([12, 22, 32], [42, 68, 23], label="Course Grade", weight=1)
-
-                    with dpg.tree_node(label="Area Series"):
-
-                        with dpg.plot(label="Area Series", height=400, width=-1):
-                            xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
-                            with dpg.plot_axis(dpg.mvYAxis, label="y"):
-                                dpg.add_area_series([1,5,3],[0,0,3], fill=[255,50,100,190])
-                                dpg.fit_axis_data(dpg.top_container_stack())
-                            dpg.fit_axis_data(xaxis)
-
                     with dpg.tree_node(label="Infinite Lines"):
 
                         infinite_x_data = (3, 5, 6, 7)
@@ -1992,54 +2210,11 @@ def show_demo():
                             dpg.add_plot_legend()
                             xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
                             with dpg.plot_axis(dpg.mvYAxis, label="y"):
-                                dpg.add_vline_series(infinite_x_data, label="vertical")
-                                dpg.add_hline_series(infinite_y_data, label="horizontal")
+                                dpg.add_inf_line_series(infinite_x_data, label="vertical")
+                                dpg.add_inf_line_series(infinite_y_data, label="horizontal", horizontal=True)
                                 dpg.fit_axis_data(dpg.top_container_stack())
                             dpg.fit_axis_data(xaxis)
 
-                    with dpg.tree_node(label="Image Series"):
-
-                        with dpg.plot(label="Image Plot", height=400, width=-1):
-                            dpg.add_plot_legend()
-                            xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
-                            with dpg.plot_axis(dpg.mvYAxis, label="y axis"):
-                                dpg.add_image_series(2, [300, 300], [400, 400], label="font atlas")
-                                dpg.add_image_series("__demo_static_texture_2", [150, 150], [200, 200], label="static 2")
-                                dpg.add_image_series("__demo_dynamic_texture_1", [-200, 100], [-100, 200], label="dynamic 1")
-                                dpg.fit_axis_data(dpg.top_container_stack())
-                            dpg.fit_axis_data(xaxis)
-
-                    with dpg.tree_node(label="Candle Stick Series"):
-
-                        dates = [1546300800,1546387200,1546473600,1546560000,1546819200,1546905600,1546992000,1547078400,1547164800,1547424000,1547510400,1547596800,1547683200,1547769600,1547942400,1548028800,1548115200,1548201600,1548288000,1548374400,1548633600,1548720000,1548806400,1548892800,1548979200,1549238400,1549324800,1549411200,1549497600,1549584000,1549843200,1549929600,1550016000,1550102400,1550188800,1550361600,1550448000,1550534400,1550620800,1550707200,1550793600,1551052800,1551139200,1551225600,1551312000,1551398400,1551657600,1551744000,1551830400,1551916800,1552003200,1552262400,1552348800,1552435200,1552521600,1552608000,1552867200,1552953600,1553040000,1553126400,1553212800,1553472000,1553558400,1553644800,1553731200,1553817600,1554076800,1554163200,1554249600,1554336000,1554422400,1554681600,1554768000,1554854400,1554940800,1555027200,1555286400,1555372800,1555459200,1555545600,1555632000,1555891200,1555977600,1556064000,1556150400,1556236800,1556496000,1556582400,1556668800,1556755200,1556841600,1557100800,1557187200,1557273600,1557360000,1557446400,1557705600,1557792000,1557878400,1557964800,1558051200,1558310400,1558396800,1558483200,1558569600,1558656000,1558828800,1558915200,1559001600,1559088000,1559174400,1559260800,1559520000,1559606400,1559692800,1559779200,1559865600,1560124800,1560211200,1560297600,1560384000,1560470400,1560729600,1560816000,1560902400,1560988800,1561075200,1561334400,1561420800,1561507200,1561593600,1561680000,1561939200,1562025600,1562112000,1562198400,1562284800,1562544000,1562630400,1562716800,1562803200,1562889600,1563148800,1563235200,1563321600,1563408000,1563494400,1563753600,1563840000,1563926400,1564012800,1564099200,1564358400,1564444800,1564531200,1564617600,1564704000,1564963200,1565049600,1565136000,1565222400,1565308800,1565568000,1565654400,1565740800,1565827200,1565913600,1566172800,1566259200,1566345600,1566432000,1566518400,1566777600,1566864000,1566950400,1567036800,1567123200,1567296000,1567382400,1567468800,1567555200,1567641600,1567728000,1567987200,1568073600,1568160000,1568246400,1568332800,1568592000,1568678400,1568764800,1568851200,1568937600,1569196800,1569283200,1569369600,1569456000,1569542400,1569801600,1569888000,1569974400,1570060800,1570147200,1570406400,1570492800,1570579200,1570665600,1570752000,1571011200,1571097600,1571184000,1571270400,1571356800,1571616000,1571702400,1571788800,1571875200,1571961600]
-                        opens = [1284.7,1319.9,1318.7,1328,1317.6,1321.6,1314.3,1325,1319.3,1323.1,1324.7,1321.3,1323.5,1322,1281.3,1281.95,1311.1,1315,1314,1313.1,1331.9,1334.2,1341.3,1350.6,1349.8,1346.4,1343.4,1344.9,1335.6,1337.9,1342.5,1337,1338.6,1337,1340.4,1324.65,1324.35,1349.5,1371.3,1367.9,1351.3,1357.8,1356.1,1356,1347.6,1339.1,1320.6,1311.8,1314,1312.4,1312.3,1323.5,1319.1,1327.2,1332.1,1320.3,1323.1,1328,1330.9,1338,1333,1335.3,1345.2,1341.1,1332.5,1314,1314.4,1310.7,1314,1313.1,1315,1313.7,1320,1326.5,1329.2,1314.2,1312.3,1309.5,1297.4,1293.7,1277.9,1295.8,1295.2,1290.3,1294.2,1298,1306.4,1299.8,1302.3,1297,1289.6,1302,1300.7,1303.5,1300.5,1303.2,1306,1318.7,1315,1314.5,1304.1,1294.7,1293.7,1291.2,1290.2,1300.4,1284.2,1284.25,1301.8,1295.9,1296.2,1304.4,1323.1,1340.9,1341,1348,1351.4,1351.4,1343.5,1342.3,1349,1357.6,1357.1,1354.7,1361.4,1375.2,1403.5,1414.7,1433.2,1438,1423.6,1424.4,1418,1399.5,1435.5,1421.25,1434.1,1412.4,1409.8,1412.2,1433.4,1418.4,1429,1428.8,1420.6,1441,1460.4,1441.7,1438.4,1431,1439.3,1427.4,1431.9,1439.5,1443.7,1425.6,1457.5,1451.2,1481.1,1486.7,1512.1,1515.9,1509.2,1522.3,1513,1526.6,1533.9,1523,1506.3,1518.4,1512.4,1508.8,1545.4,1537.3,1551.8,1549.4,1536.9,1535.25,1537.95,1535.2,1556,1561.4,1525.6,1516.4,1507,1493.9,1504.9,1506.5,1513.1,1506.5,1509.7,1502,1506.8,1521.5,1529.8,1539.8,1510.9,1511.8,1501.7,1478,1485.4,1505.6,1511.6,1518.6,1498.7,1510.9,1510.8,1498.3,1492,1497.7,1484.8,1494.2,1495.6,1495.6,1487.5,1491.1,1495.1,1506.4]
-                        highs = [1284.75,1320.6,1327,1330.8,1326.8,1321.6,1326,1328,1325.8,1327.1,1326,1326,1323.5,1322.1,1282.7,1282.95,1315.8,1316.3,1314,1333.2,1334.7,1341.7,1353.2,1354.6,1352.2,1346.4,1345.7,1344.9,1340.7,1344.2,1342.7,1342.1,1345.2,1342,1350,1324.95,1330.75,1369.6,1374.3,1368.4,1359.8,1359,1357,1356,1353.4,1340.6,1322.3,1314.1,1316.1,1312.9,1325.7,1323.5,1326.3,1336,1332.1,1330.1,1330.4,1334.7,1341.1,1344.2,1338.8,1348.4,1345.6,1342.8,1334.7,1322.3,1319.3,1314.7,1316.6,1316.4,1315,1325.4,1328.3,1332.2,1329.2,1316.9,1312.3,1309.5,1299.6,1296.9,1277.9,1299.5,1296.2,1298.4,1302.5,1308.7,1306.4,1305.9,1307,1297.2,1301.7,1305,1305.3,1310.2,1307,1308,1319.8,1321.7,1318.7,1316.2,1305.9,1295.8,1293.8,1293.7,1304.2,1302,1285.15,1286.85,1304,1302,1305.2,1323,1344.1,1345.2,1360.1,1355.3,1363.8,1353,1344.7,1353.6,1358,1373.6,1358.2,1369.6,1377.6,1408.9,1425.5,1435.9,1453.7,1438,1426,1439.1,1418,1435,1452.6,1426.65,1437.5,1421.5,1414.1,1433.3,1441.3,1431.4,1433.9,1432.4,1440.8,1462.3,1467,1443.5,1444,1442.9,1447,1437.6,1440.8,1445.7,1447.8,1458.2,1461.9,1481.8,1486.8,1522.7,1521.3,1521.1,1531.5,1546.1,1534.9,1537.7,1538.6,1523.6,1518.8,1518.4,1514.6,1540.3,1565,1554.5,1556.6,1559.8,1541.9,1542.9,1540.05,1558.9,1566.2,1561.9,1536.2,1523.8,1509.1,1506.2,1532.2,1516.6,1519.7,1515,1519.5,1512.1,1524.5,1534.4,1543.3,1543.3,1542.8,1519.5,1507.2,1493.5,1511.4,1525.8,1522.2,1518.8,1515.3,1518,1522.3,1508,1501.5,1503,1495.5,1501.1,1497.9,1498.7,1492.1,1499.4,1506.9,1520.9]
-                        lows = [1282.85,1315,1318.7,1309.6,1317.6,1312.9,1312.4,1319.1,1319,1321,1318.1,1321.3,1319.9,1312,1280.5,1276.15,1308,1309.9,1308.5,1312.3,1329.3,1333.1,1340.2,1347,1345.9,1338,1340.8,1335,1332,1337.9,1333,1336.8,1333.2,1329.9,1340.4,1323.85,1324.05,1349,1366.3,1351.2,1349.1,1352.4,1350.7,1344.3,1338.9,1316.3,1308.4,1306.9,1309.6,1306.7,1312.3,1315.4,1319,1327.2,1317.2,1320,1323,1328,1323,1327.8,1331.7,1335.3,1336.6,1331.8,1311.4,1310,1309.5,1308,1310.6,1302.8,1306.6,1313.7,1320,1322.8,1311,1312.1,1303.6,1293.9,1293.5,1291,1277.9,1294.1,1286,1289.1,1293.5,1296.9,1298,1299.6,1292.9,1285.1,1288.5,1296.3,1297.2,1298.4,1298.6,1302,1300.3,1312,1310.8,1301.9,1292,1291.1,1286.3,1289.2,1289.9,1297.4,1283.65,1283.25,1292.9,1295.9,1290.8,1304.2,1322.7,1336.1,1341,1343.5,1345.8,1340.3,1335.1,1341.5,1347.6,1352.8,1348.2,1353.7,1356.5,1373.3,1398,1414.7,1427,1416.4,1412.7,1420.1,1396.4,1398.8,1426.6,1412.85,1400.7,1406,1399.8,1404.4,1415.5,1417.2,1421.9,1415,1413.7,1428.1,1434,1435.7,1427.5,1429.4,1423.9,1425.6,1427.5,1434.8,1422.3,1412.1,1442.5,1448.8,1468.2,1484.3,1501.6,1506.2,1498.6,1488.9,1504.5,1518.3,1513.9,1503.3,1503,1506.5,1502.1,1503,1534.8,1535.3,1541.4,1528.6,1525.6,1535.25,1528.15,1528,1542.6,1514.3,1510.7,1505.5,1492.1,1492.9,1496.8,1493.1,1503.4,1500.9,1490.7,1496.3,1505.3,1505.3,1517.9,1507.4,1507.1,1493.3,1470.5,1465,1480.5,1501.7,1501.4,1493.3,1492.1,1505.1,1495.7,1478,1487.1,1480.8,1480.6,1487,1488.3,1484.8,1484,1490.7,1490.4,1503.1]
-                        closes = [1283.35,1315.3,1326.1,1317.4,1321.5,1317.4,1323.5,1319.2,1321.3,1323.3,1319.7,1325.1,1323.6,1313.8,1282.05,1279.05,1314.2,1315.2,1310.8,1329.1,1334.5,1340.2,1340.5,1350,1347.1,1344.3,1344.6,1339.7,1339.4,1343.7,1337,1338.9,1340.1,1338.7,1346.8,1324.25,1329.55,1369.6,1372.5,1352.4,1357.6,1354.2,1353.4,1346,1341,1323.8,1311.9,1309.1,1312.2,1310.7,1324.3,1315.7,1322.4,1333.8,1319.4,1327.1,1325.8,1330.9,1325.8,1331.6,1336.5,1346.7,1339.2,1334.7,1313.3,1316.5,1312.4,1313.4,1313.3,1312.2,1313.7,1319.9,1326.3,1331.9,1311.3,1313.4,1309.4,1295.2,1294.7,1294.1,1277.9,1295.8,1291.2,1297.4,1297.7,1306.8,1299.4,1303.6,1302.2,1289.9,1299.2,1301.8,1303.6,1299.5,1303.2,1305.3,1319.5,1313.6,1315.1,1303.5,1293,1294.6,1290.4,1291.4,1302.7,1301,1284.15,1284.95,1294.3,1297.9,1304.1,1322.6,1339.3,1340.1,1344.9,1354,1357.4,1340.7,1342.7,1348.2,1355.1,1355.9,1354.2,1362.1,1360.1,1408.3,1411.2,1429.5,1430.1,1426.8,1423.4,1425.1,1400.8,1419.8,1432.9,1423.55,1412.1,1412.2,1412.8,1424.9,1419.3,1424.8,1426.1,1423.6,1435.9,1440.8,1439.4,1439.7,1434.5,1436.5,1427.5,1432.2,1433.3,1441.8,1437.8,1432.4,1457.5,1476.5,1484.2,1519.6,1509.5,1508.5,1517.2,1514.1,1527.8,1531.2,1523.6,1511.6,1515.7,1515.7,1508.5,1537.6,1537.2,1551.8,1549.1,1536.9,1529.4,1538.05,1535.15,1555.9,1560.4,1525.5,1515.5,1511.1,1499.2,1503.2,1507.4,1499.5,1511.5,1513.4,1515.8,1506.2,1515.1,1531.5,1540.2,1512.3,1515.2,1506.4,1472.9,1489,1507.9,1513.8,1512.9,1504.4,1503.9,1512.8,1500.9,1488.7,1497.6,1483.5,1494,1498.3,1494.1,1488.1,1487.5,1495.7,1504.7,1505.3]
-
-                        with dpg.plot(label="Candle Series", height=400, width=-1):
-                            dpg.add_plot_legend()
-                            xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="Day", time=True)
-                            with dpg.plot_axis(dpg.mvYAxis, label="USD"):
-                                dpg.add_candle_series(dates, opens, closes, lows, highs, label="GOOGL", time_unit=dpg.mvTimeUnit_Day)
-                                dpg.fit_axis_data(dpg.top_container_stack())
-                            dpg.fit_axis_data(xaxis)
-
-                    with dpg.tree_node(label="Heatmaps"):
-
-                        values = (0.8, 2.4, 2.5, 3.9, 0.0, 4.0, 0.0,
-                                  2.4, 0.0, 4.0, 1.0, 2.7, 0.0, 0.0,
-                                  1.1, 2.4, 0.8, 4.3, 1.9, 4.4, 0.0,
-                                  0.6, 0.0, 0.3, 0.0, 3.1, 0.0, 0.0,
-                                  0.7, 1.7, 0.6, 2.6, 2.2, 6.2, 0.0,
-                                  1.3, 1.2, 0.0, 0.0, 0.0, 3.2, 5.1,
-                                  0.1, 2.0, 0.0, 1.4, 0.0, 1.9, 6.3)
-                        with dpg.group(horizontal=True):
-                            dpg.add_colormap_scale(min_scale=0, max_scale=6, height=400)
-                            with dpg.plot(label="Heat Series", no_mouse_pos=True, height=400, width=-1):
-                                dpg.add_plot_axis(dpg.mvXAxis, label="x", lock_min=True, lock_max=True, no_gridlines=True, no_tick_marks=True)
-                                with dpg.plot_axis(dpg.mvYAxis, label="y", no_gridlines=True, no_tick_marks=True, lock_min=True, lock_max=True):
-                                    dpg.add_heat_series(values, 7, 7, scale_min=0, scale_max=6)
 
                     with dpg.tree_node(label="Pie Charts"):
 
@@ -2075,31 +2250,187 @@ def show_demo():
                                     dpg.set_axis_limits(dpg.last_item(), 0, 1)
                                     dpg.add_pie_series(0.5, 0.5, 0.5, [1, 1, 2, 3, 5], ["A", "B", "C", "D", "E"], normalize=True, format="%.0f")
 
-                    with dpg.tree_node(label="Error Series"):
 
-                        error1_x = [1, 2, 3, 4, 5]
-                        error1_y = [1, 2, 5, 3, 4]
-                        error1_neg = [0.2, 0.4, 0.2, 0.6, 0.4]
-                        error1_pos = [0.4, 0.2, 0.4, 0.8, 0.6]
+                    with dpg.tree_node(label="Heatmaps"):
 
-                        error2_x = [1, 2, 3, 4, 5]
-                        error2_y = [8, 8, 9, 7, 8]
-                        error2_neg = [0.2, 0.4, 0.2, 0.6, 0.4]
-                        error2_pos = [0.4, 0.2, 0.4, 0.8, 0.6]
+                        dpg.add_checkbox(label="major col", tag="major_col_heat_cb", default_value=False, 
+                            callback=lambda _, a: dpg.configure_item("heat_series", col_major=a))
 
-                        dpg.add_text("Anti-aliasing can be enabled from the plot's context menu (see Help).", bullet=True)
-               
-                        with dpg.plot(label="Error Series", height=400, width=-1):
+
+                        values = (0.8, 2.4, 2.5, 3.9, 0.0, 4.0, 0.0,
+                                  2.4, 0.0, 4.0, 1.0, 2.7, 0.0, 0.0,
+                                  1.1, 2.4, 0.8, 4.3, 1.9, 4.4, 0.0,
+                                  0.6, 0.0, 0.3, 0.0, 3.1, 0.0, 0.0,
+                                  0.7, 1.7, 0.6, 2.6, 2.2, 6.2, 0.0,
+                                  1.3, 1.2, 0.0, 0.0, 0.0, 3.2, 5.1,
+                                  0.1, 2.0, 0.0, 1.4, 0.0, 1.9, 6.3)
+                        with dpg.group(horizontal=True):
+                            dpg.add_colormap_scale(min_scale=0, max_scale=10, height=400)
+                            with dpg.plot(label="Heat Series", no_mouse_pos=True, height=400, width=-1):
+                                dpg.add_plot_axis(dpg.mvXAxis, label="x", lock_min=True, lock_max=True, no_gridlines=True, no_tick_marks=True)
+                                with dpg.plot_axis(dpg.mvYAxis, label="y", no_gridlines=True, no_tick_marks=True, lock_min=True, lock_max=True):
+                                    dpg.add_heat_series(values, 7, 7, tag="heat_series",scale_min=0, scale_max=6.3)
+
+                    with dpg.tree_node(label="Histogram Series"):
+
+                        x_data = []
+                        for i in range(10000):
+                            x = random.randrange(1, 11)
+                            x_data.append(x)
+
+                        def update_density(user_data, app_data, other_data):
+                            dpg.configure_item("histogram_series", density=app_data)
+                        
+                        dpg.add_checkbox(label="density", tag="density_histograms_cb", default_value=False, 
+                            callback=update_density)
+                        dpg.add_checkbox(label="cumulative", tag="cumulative_histograms_cb", default_value=False, 
+                            callback=lambda: dpg.configure_item("histogram_series", cumulative=dpg.get_value("cumulative_histograms_cb")))
+
+
+                        with dpg.plot(label="Histogram Plot", height=400, width=-1):
                             dpg.add_plot_legend()
                             xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
-                            with dpg.plot_axis(dpg.mvYAxis, label="y"):
+                            dpg.set_axis_limits(xaxis, 1, 10)
+                            dpg.set_axis_ticks(xaxis, (("S1", 1), ("S2", 2), ("S3", 3), ("S4", 4), ("S5", 5), ("S6", 6), ("S7", 7), ("S8", 8), ("S9", 9), ("S10", 10)))
+                            with dpg.plot_axis(dpg.mvYAxis, label="y axis", tag="yaxis_histogram", auto_fit=True) as yaxis:
+                                dpg.add_histogram_series(x_data, tag="histogram_series", label="histogram")
+                            dpg.fit_axis_data(xaxis)
+                            
+                    with dpg.tree_node(label="Histogram 2D Series"):
+                        def update_count(_, app_data):
+                            global count_2d_histogram
+                            count_2d_histogram = app_data
+                            x_dist = [random.gauss(1, 2) for _ in range(count_2d_histogram)]
+                            y_dist = [random.gauss(1, 1) for _ in range(count_2d_histogram)]
+                            max_count = max(*x_dist, *y_dist)
 
-                                dpg.add_bar_series(error1_x, error1_y, label="Bar", weight=0.25)
-                                dpg.add_error_series(error1_x, error1_y, error1_neg, error1_pos, label="Bar")
-                                dpg.add_line_series(error2_x, error2_y, label="Line")
-                                dpg.add_error_series(error2_x, error2_y, error2_neg, error2_pos, label="Line")
+                            dpg.configure_item("histogram_2d_series", x=x_dist, y=y_dist)
+                            dpg.configure_item("2d_hist_colormap_scale", max_scale=max_count)
+
+                        def update_bins(_, app_data):
+                            global xybin_2d_histogram
+                            xybin_2d_histogram = app_data
+                            dpg.configure_item("histogram_2d_series", xbins=app_data[0], ybins=app_data[1])
+
+                        def _update_density(_, app_data):
+                            dpg.configure_item("histogram_2d_series", density=app_data)
+                            # TODO: Find a way to access max_count 2d histogram
+                            dpg.configure_item("2d_hist_colormap_scale", max_scale=1.0 if app_data else max_count, label="Density" if app_data else "Count")
+
+                        dpg.add_slider_int(label="Count", min_value=100, max_value=100000, callback=update_count,
+                                           default_value=count_2d_histogram, tag="count_histograms_2d", width=300)
+                        with dpg.group(horizontal=True):
+                            dpg.add_slider_intx(label="Bins", min_value=1, max_value=500, tag="bins", size=2,
+                                                callback=update_bins, width=300, default_value=xybin_2d_histogram)
+                            dpg.add_checkbox(label="density", tag="density_histograms_2d_cb", default_value=False,
+                                             callback=_update_density)
+
+                        max_count = 0.0
+                        with dpg.group(horizontal=True, tag="histogram_2d_plot_group"):
+                            with dpg.plot(label="Histogram 2D Plot", tag="2d_histogram_plot", height=400, width=650):
+                                x_dist = [random.gauss(1, 2) for _ in range(count_2d_histogram)]
+                                y_dist = [random.gauss(1, 1) for _ in range(count_2d_histogram)]
+                                max_count = float(max(*x_dist, *y_dist))
+
+                                x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="x", auto_fit=True, foreground_grid=True)
+                                dpg.set_axis_limits(dpg.last_item(), -6, 6)
+                                with dpg.plot_axis(dpg.mvYAxis, label="y", auto_fit=True, foreground_grid=True):
+                                    dpg.set_axis_limits(dpg.last_item(), -6, 6)
+                                    dpg.add_2d_histogram_series(x_dist, y_dist, tag="histogram_2d_series",
+                                                                label="histogram", xbins=xybin_2d_histogram[0], ybins=xybin_2d_histogram[1],
+                                                                xmax_range=6, ymax_range=6, ymin_range=-6,
+                                                                xmin_range=-6)
+
+                            dpg.add_colormap_scale(tag="2d_hist_colormap_scale", label="Count", colormap=dpg.mvPlotColormap_Hot,
+                                                   min_scale=0.0, max_scale=max_count, height=400)
+                            dpg.bind_colormap("2d_histogram_plot", dpg.mvPlotColormap_Hot)
+
+                    with dpg.tree_node(label="Digital Plots"):
+                        dpg.add_text(default_value="Digital plots do not respond to Y drag and zoom, so that",
+                                     bullet=True)
+                        dpg.add_text(default_value="you can drag analog plots over the rising/falling digital edge.",
+                                     indent=20)
+                        paused = False
+                        data_digital = [[], []]
+                        data_analog = [[], []]
+                        show_digital = [True, False]
+                        show_analog = [True, False]
+
+                        def change_val(arr, ind, val):
+                            arr[ind] = val
+
+                        with dpg.group(horizontal=True):
+                            dpg.add_checkbox(label="digital_0", callback=lambda s, a: change_val(show_digital, 0, a),
+                                             default_value=True)
+                            dpg.add_checkbox(label="digital_1", callback=lambda s, a: change_val(show_digital, 1, a),
+                                             default_value=False)
+                            dpg.add_checkbox(label="analog_0", callback=lambda s, a: change_val(show_analog, 0, a),
+                                             default_value=True)
+                            dpg.add_checkbox(label="analog_1", callback=lambda s, a: change_val(show_analog, 1, a),
+                                             default_value=False)
+
+                        with dpg.plot(tag="_demo_digital_plot", width=500):
+                            # TODO: better handling of show/hide (more consistency between checkboxes and legend)
+                            dpg.add_plot_axis(dpg.mvXAxis, label="x", tag="x_axis_digital")
+                            dpg.set_axis_limits(dpg.last_item(), -10, 0)
+                            with dpg.plot_axis(dpg.mvYAxis, label="y"):
+                                dpg.set_axis_limits(dpg.last_item(), -2, 1.5)
+                                dpg.add_digital_series([], [], label="digital_0", tag="digital_0")
+                                dpg.add_digital_series([], [], label="digital_1", tag="digital_1")
+                                dpg.add_line_series([], [], label="analog_0", tag="analog_0")
+                                dpg.add_line_series([], [], label="analog_1", tag="analog_1")
+
+                        def _update_plot():
+                            global t_digital_plot
+                            if not paused:
+                                t_digital_plot += dpg.get_delta_time()
+                                dpg.set_axis_limits('x_axis_digital', t_digital_plot - 10, t_digital_plot)
+                                if show_digital[0]:
+                                    data_digital[0].append([t_digital_plot, 1 if sin(t_digital_plot) > 0.45 else 0])
+                                    dpg.set_value("digital_0", [*zip(*data_digital[0])])
+                                if show_digital[1]:
+                                    data_digital[1].append([t_digital_plot, 1 if sin(t_digital_plot) < 0.45 else 0])
+                                    dpg.set_value("digital_1", [*zip(*data_digital[1])])
+                                if show_analog[0]:
+                                    data_analog[0].append([t_digital_plot, sin(t_digital_plot)])
+                                    dpg.set_value("analog_0", [*zip(*data_analog[0])])
+                                if show_analog[1]:
+                                    data_analog[1].append([t_digital_plot, cos(t_digital_plot)])
+                                    dpg.set_value("analog_1", [*zip(*data_analog[1])])
+
+                        with dpg.item_handler_registry(tag="__demo_digital_plot_ref"):
+                            dpg.add_item_visible_handler(callback=_update_plot)
+                        dpg.bind_item_handler_registry("_demo_digital_plot", dpg.last_container())
+
+
+                    with dpg.tree_node(label="Image Series"):
+
+                        with dpg.plot(label="Image Plot", height=400, width=-1):
+                            dpg.add_plot_legend()
+                            xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
+                            with dpg.plot_axis(dpg.mvYAxis, label="y axis"):
+                                dpg.add_image_series(2, [300, 300], [400, 400], label="font atlas")
+                                dpg.add_image_series("__demo_static_texture_2", [150, 150], [200, 200], label="static 2")
+                                dpg.add_image_series("__demo_dynamic_texture_1", [-200, 100], [-100, 200], label="dynamic 1")
                                 dpg.fit_axis_data(dpg.top_container_stack())
                             dpg.fit_axis_data(xaxis)
+
+                    with dpg.tree_node(label="Candle Stick Series"):
+
+                        dates = [1546300800,1546387200,1546473600,1546560000,1546819200,1546905600,1546992000,1547078400,1547164800,1547424000,1547510400,1547596800,1547683200,1547769600,1547942400,1548028800,1548115200,1548201600,1548288000,1548374400,1548633600,1548720000,1548806400,1548892800,1548979200,1549238400,1549324800,1549411200,1549497600,1549584000,1549843200,1549929600,1550016000,1550102400,1550188800,1550361600,1550448000,1550534400,1550620800,1550707200,1550793600,1551052800,1551139200,1551225600,1551312000,1551398400,1551657600,1551744000,1551830400,1551916800,1552003200,1552262400,1552348800,1552435200,1552521600,1552608000,1552867200,1552953600,1553040000,1553126400,1553212800,1553472000,1553558400,1553644800,1553731200,1553817600,1554076800,1554163200,1554249600,1554336000,1554422400,1554681600,1554768000,1554854400,1554940800,1555027200,1555286400,1555372800,1555459200,1555545600,1555632000,1555891200,1555977600,1556064000,1556150400,1556236800,1556496000,1556582400,1556668800,1556755200,1556841600,1557100800,1557187200,1557273600,1557360000,1557446400,1557705600,1557792000,1557878400,1557964800,1558051200,1558310400,1558396800,1558483200,1558569600,1558656000,1558828800,1558915200,1559001600,1559088000,1559174400,1559260800,1559520000,1559606400,1559692800,1559779200,1559865600,1560124800,1560211200,1560297600,1560384000,1560470400,1560729600,1560816000,1560902400,1560988800,1561075200,1561334400,1561420800,1561507200,1561593600,1561680000,1561939200,1562025600,1562112000,1562198400,1562284800,1562544000,1562630400,1562716800,1562803200,1562889600,1563148800,1563235200,1563321600,1563408000,1563494400,1563753600,1563840000,1563926400,1564012800,1564099200,1564358400,1564444800,1564531200,1564617600,1564704000,1564963200,1565049600,1565136000,1565222400,1565308800,1565568000,1565654400,1565740800,1565827200,1565913600,1566172800,1566259200,1566345600,1566432000,1566518400,1566777600,1566864000,1566950400,1567036800,1567123200,1567296000,1567382400,1567468800,1567555200,1567641600,1567728000,1567987200,1568073600,1568160000,1568246400,1568332800,1568592000,1568678400,1568764800,1568851200,1568937600,1569196800,1569283200,1569369600,1569456000,1569542400,1569801600,1569888000,1569974400,1570060800,1570147200,1570406400,1570492800,1570579200,1570665600,1570752000,1571011200,1571097600,1571184000,1571270400,1571356800,1571616000,1571702400,1571788800,1571875200,1571961600]
+                        opens = [1284.7,1319.9,1318.7,1328,1317.6,1321.6,1314.3,1325,1319.3,1323.1,1324.7,1321.3,1323.5,1322,1281.3,1281.95,1311.1,1315,1314,1313.1,1331.9,1334.2,1341.3,1350.6,1349.8,1346.4,1343.4,1344.9,1335.6,1337.9,1342.5,1337,1338.6,1337,1340.4,1324.65,1324.35,1349.5,1371.3,1367.9,1351.3,1357.8,1356.1,1356,1347.6,1339.1,1320.6,1311.8,1314,1312.4,1312.3,1323.5,1319.1,1327.2,1332.1,1320.3,1323.1,1328,1330.9,1338,1333,1335.3,1345.2,1341.1,1332.5,1314,1314.4,1310.7,1314,1313.1,1315,1313.7,1320,1326.5,1329.2,1314.2,1312.3,1309.5,1297.4,1293.7,1277.9,1295.8,1295.2,1290.3,1294.2,1298,1306.4,1299.8,1302.3,1297,1289.6,1302,1300.7,1303.5,1300.5,1303.2,1306,1318.7,1315,1314.5,1304.1,1294.7,1293.7,1291.2,1290.2,1300.4,1284.2,1284.25,1301.8,1295.9,1296.2,1304.4,1323.1,1340.9,1341,1348,1351.4,1351.4,1343.5,1342.3,1349,1357.6,1357.1,1354.7,1361.4,1375.2,1403.5,1414.7,1433.2,1438,1423.6,1424.4,1418,1399.5,1435.5,1421.25,1434.1,1412.4,1409.8,1412.2,1433.4,1418.4,1429,1428.8,1420.6,1441,1460.4,1441.7,1438.4,1431,1439.3,1427.4,1431.9,1439.5,1443.7,1425.6,1457.5,1451.2,1481.1,1486.7,1512.1,1515.9,1509.2,1522.3,1513,1526.6,1533.9,1523,1506.3,1518.4,1512.4,1508.8,1545.4,1537.3,1551.8,1549.4,1536.9,1535.25,1537.95,1535.2,1556,1561.4,1525.6,1516.4,1507,1493.9,1504.9,1506.5,1513.1,1506.5,1509.7,1502,1506.8,1521.5,1529.8,1539.8,1510.9,1511.8,1501.7,1478,1485.4,1505.6,1511.6,1518.6,1498.7,1510.9,1510.8,1498.3,1492,1497.7,1484.8,1494.2,1495.6,1495.6,1487.5,1491.1,1495.1,1506.4]
+                        highs = [1284.75,1320.6,1327,1330.8,1326.8,1321.6,1326,1328,1325.8,1327.1,1326,1326,1323.5,1322.1,1282.7,1282.95,1315.8,1316.3,1314,1333.2,1334.7,1341.7,1353.2,1354.6,1352.2,1346.4,1345.7,1344.9,1340.7,1344.2,1342.7,1342.1,1345.2,1342,1350,1324.95,1330.75,1369.6,1374.3,1368.4,1359.8,1359,1357,1356,1353.4,1340.6,1322.3,1314.1,1316.1,1312.9,1325.7,1323.5,1326.3,1336,1332.1,1330.1,1330.4,1334.7,1341.1,1344.2,1338.8,1348.4,1345.6,1342.8,1334.7,1322.3,1319.3,1314.7,1316.6,1316.4,1315,1325.4,1328.3,1332.2,1329.2,1316.9,1312.3,1309.5,1299.6,1296.9,1277.9,1299.5,1296.2,1298.4,1302.5,1308.7,1306.4,1305.9,1307,1297.2,1301.7,1305,1305.3,1310.2,1307,1308,1319.8,1321.7,1318.7,1316.2,1305.9,1295.8,1293.8,1293.7,1304.2,1302,1285.15,1286.85,1304,1302,1305.2,1323,1344.1,1345.2,1360.1,1355.3,1363.8,1353,1344.7,1353.6,1358,1373.6,1358.2,1369.6,1377.6,1408.9,1425.5,1435.9,1453.7,1438,1426,1439.1,1418,1435,1452.6,1426.65,1437.5,1421.5,1414.1,1433.3,1441.3,1431.4,1433.9,1432.4,1440.8,1462.3,1467,1443.5,1444,1442.9,1447,1437.6,1440.8,1445.7,1447.8,1458.2,1461.9,1481.8,1486.8,1522.7,1521.3,1521.1,1531.5,1546.1,1534.9,1537.7,1538.6,1523.6,1518.8,1518.4,1514.6,1540.3,1565,1554.5,1556.6,1559.8,1541.9,1542.9,1540.05,1558.9,1566.2,1561.9,1536.2,1523.8,1509.1,1506.2,1532.2,1516.6,1519.7,1515,1519.5,1512.1,1524.5,1534.4,1543.3,1543.3,1542.8,1519.5,1507.2,1493.5,1511.4,1525.8,1522.2,1518.8,1515.3,1518,1522.3,1508,1501.5,1503,1495.5,1501.1,1497.9,1498.7,1492.1,1499.4,1506.9,1520.9]
+                        lows = [1282.85,1315,1318.7,1309.6,1317.6,1312.9,1312.4,1319.1,1319,1321,1318.1,1321.3,1319.9,1312,1280.5,1276.15,1308,1309.9,1308.5,1312.3,1329.3,1333.1,1340.2,1347,1345.9,1338,1340.8,1335,1332,1337.9,1333,1336.8,1333.2,1329.9,1340.4,1323.85,1324.05,1349,1366.3,1351.2,1349.1,1352.4,1350.7,1344.3,1338.9,1316.3,1308.4,1306.9,1309.6,1306.7,1312.3,1315.4,1319,1327.2,1317.2,1320,1323,1328,1323,1327.8,1331.7,1335.3,1336.6,1331.8,1311.4,1310,1309.5,1308,1310.6,1302.8,1306.6,1313.7,1320,1322.8,1311,1312.1,1303.6,1293.9,1293.5,1291,1277.9,1294.1,1286,1289.1,1293.5,1296.9,1298,1299.6,1292.9,1285.1,1288.5,1296.3,1297.2,1298.4,1298.6,1302,1300.3,1312,1310.8,1301.9,1292,1291.1,1286.3,1289.2,1289.9,1297.4,1283.65,1283.25,1292.9,1295.9,1290.8,1304.2,1322.7,1336.1,1341,1343.5,1345.8,1340.3,1335.1,1341.5,1347.6,1352.8,1348.2,1353.7,1356.5,1373.3,1398,1414.7,1427,1416.4,1412.7,1420.1,1396.4,1398.8,1426.6,1412.85,1400.7,1406,1399.8,1404.4,1415.5,1417.2,1421.9,1415,1413.7,1428.1,1434,1435.7,1427.5,1429.4,1423.9,1425.6,1427.5,1434.8,1422.3,1412.1,1442.5,1448.8,1468.2,1484.3,1501.6,1506.2,1498.6,1488.9,1504.5,1518.3,1513.9,1503.3,1503,1506.5,1502.1,1503,1534.8,1535.3,1541.4,1528.6,1525.6,1535.25,1528.15,1528,1542.6,1514.3,1510.7,1505.5,1492.1,1492.9,1496.8,1493.1,1503.4,1500.9,1490.7,1496.3,1505.3,1505.3,1517.9,1507.4,1507.1,1493.3,1470.5,1465,1480.5,1501.7,1501.4,1493.3,1492.1,1505.1,1495.7,1478,1487.1,1480.8,1480.6,1487,1488.3,1484.8,1484,1490.7,1490.4,1503.1]
+                        closes = [1283.35,1315.3,1326.1,1317.4,1321.5,1317.4,1323.5,1319.2,1321.3,1323.3,1319.7,1325.1,1323.6,1313.8,1282.05,1279.05,1314.2,1315.2,1310.8,1329.1,1334.5,1340.2,1340.5,1350,1347.1,1344.3,1344.6,1339.7,1339.4,1343.7,1337,1338.9,1340.1,1338.7,1346.8,1324.25,1329.55,1369.6,1372.5,1352.4,1357.6,1354.2,1353.4,1346,1341,1323.8,1311.9,1309.1,1312.2,1310.7,1324.3,1315.7,1322.4,1333.8,1319.4,1327.1,1325.8,1330.9,1325.8,1331.6,1336.5,1346.7,1339.2,1334.7,1313.3,1316.5,1312.4,1313.4,1313.3,1312.2,1313.7,1319.9,1326.3,1331.9,1311.3,1313.4,1309.4,1295.2,1294.7,1294.1,1277.9,1295.8,1291.2,1297.4,1297.7,1306.8,1299.4,1303.6,1302.2,1289.9,1299.2,1301.8,1303.6,1299.5,1303.2,1305.3,1319.5,1313.6,1315.1,1303.5,1293,1294.6,1290.4,1291.4,1302.7,1301,1284.15,1284.95,1294.3,1297.9,1304.1,1322.6,1339.3,1340.1,1344.9,1354,1357.4,1340.7,1342.7,1348.2,1355.1,1355.9,1354.2,1362.1,1360.1,1408.3,1411.2,1429.5,1430.1,1426.8,1423.4,1425.1,1400.8,1419.8,1432.9,1423.55,1412.1,1412.2,1412.8,1424.9,1419.3,1424.8,1426.1,1423.6,1435.9,1440.8,1439.4,1439.7,1434.5,1436.5,1427.5,1432.2,1433.3,1441.8,1437.8,1432.4,1457.5,1476.5,1484.2,1519.6,1509.5,1508.5,1517.2,1514.1,1527.8,1531.2,1523.6,1511.6,1515.7,1515.7,1508.5,1537.6,1537.2,1551.8,1549.1,1536.9,1529.4,1538.05,1535.15,1555.9,1560.4,1525.5,1515.5,1511.1,1499.2,1503.2,1507.4,1499.5,1511.5,1513.4,1515.8,1506.2,1515.1,1531.5,1540.2,1512.3,1515.2,1506.4,1472.9,1489,1507.9,1513.8,1512.9,1504.4,1503.9,1512.8,1500.9,1488.7,1497.6,1483.5,1494,1498.3,1494.1,1488.1,1487.5,1495.7,1504.7,1505.3]
+
+                        with dpg.plot(label="Candle Series", height=400, width=-1):
+                            dpg.add_plot_legend()
+                            xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="Day", scale=dpg.mvPlotScale_Time)
+                            with dpg.plot_axis(dpg.mvYAxis, label="USD"):
+                                dpg.add_candle_series(dates, opens, closes, lows, highs, label="GOOGL", time_unit=dpg.mvTimeUnit_Day)
+                                dpg.fit_axis_data(dpg.top_container_stack())
+                            dpg.fit_axis_data(xaxis)
+
 
                 with dpg.tab(label="Subplots"):
 
@@ -2164,50 +2495,156 @@ def show_demo():
                         dpg.add_text("UNIX timestamps are seconds since 00:00:00 UTC on 1 January 1970", bullet=True)
                 
                         with dpg.plot(label="Time Plot", height=400, width=-1):
-                            xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="Date", time=True)
+                            xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="Date", scale=dpg.mvPlotScale_Time)
                             with dpg.plot_axis(dpg.mvYAxis, label="Days since 1970"):
                                 dpg.add_line_series(timedatax, timedatay, label="Days")
                                 dpg.fit_axis_data(dpg.top_container_stack())
                             dpg.fit_axis_data(xaxis)
 
                     with dpg.tree_node(label="Multi Axes Plot"):
+                        def show_hide_axis(axis, value):
+                            dpg.configure_item(axis, show=value)
+                        
+                        dpg.add_checkbox(label="Show Y1", tag="show_y1", default_value=True, callback=lambda:show_hide_axis("y1_axis", dpg.get_value("show_y1")))
+                        dpg.add_checkbox(label="Show Y2", tag="show_y2", default_value=True, callback=lambda:show_hide_axis("y2_axis", dpg.get_value("show_y2")))
+                        dpg.add_checkbox(label="Show Y3", tag="show_y3", default_value=True, callback=lambda:show_hide_axis("y3_axis", dpg.get_value("show_y3")))
+                        dpg.add_checkbox(label="Show X1", tag="show_x1", default_value=True, callback=lambda:show_hide_axis("x1_axis", dpg.get_value("show_x1")))
+                        dpg.add_checkbox(label="Show X2", tag="show_x2", default_value=True, callback=lambda:show_hide_axis("x2_axis", dpg.get_value("show_x2")))
+                        dpg.add_checkbox(label="Show X3", tag="show_x3", default_value=True, callback=lambda:show_hide_axis("x3_axis", dpg.get_value("show_x3")))
 
+                        #TODO Dragging a label from left to right is a bit sketchy
                         with dpg.plot(label="Multi Axes Plot", height=400, width=-1):
 
                             dpg.add_plot_legend()
 
                             # create x axis
-                            dpg.add_plot_axis(dpg.mvXAxis, label="x")
-
+                            dpg.add_plot_axis(dpg.mvXAxis, label="x1", tag="x1_axis")
                             # create y axis 1
-                            with dpg.plot_axis(dpg.mvYAxis, label="y1"):
+                            with dpg.plot_axis(dpg.mvYAxis, label="y1", tag="y1_axis"):
+                                dpg.add_line_series(sindatax, sindatay, label="y1")
+
+                            dpg.add_plot_axis(dpg.mvXAxis2, label="x2", tag="x2_axis", opposite=True)
+                            # create y axis 2
+                            with dpg.plot_axis(dpg.mvYAxis2, label="y2", tag="y2_axis", opposite=True):
+                                dpg.add_line_series(sindatax, cosdatay, label="y2")
+
+                            dpg.add_plot_axis(dpg.mvXAxis3, label="x3", tag="x3_axis")
+                            # create y axis 3
+                            with dpg.plot_axis(dpg.mvYAxis3, label="y3", tag="y3_axis"):
                                 dpg.add_line_series(sindatax, sindatay, label="0.5 + 0.5 * sin(x)")
 
-                            # create y axis 2
-                            with dpg.plot_axis(dpg.mvYAxis, label="y2"):
-                                dpg.add_line_series(sindatax, sindatay, label="0.5 + 0.5 * sin(x)")
-                
-                            # create y axis 3
-                            with dpg.plot_axis(dpg.mvYAxis, label="y3"):
-                                dpg.add_line_series(sindatax, sindatay, label="0.5 + 0.5 * sin(x)")
+                    with dpg.tree_node(label="Ordering Axes Plot"):
+                        dpg.add_checkbox(label="Opposite X", default_value=False,
+                                         callback=lambda _, val: dpg.configure_item("x_axis_ordering", opposite=val))
+                        dpg.add_checkbox(label="Invert X", default_value=False,
+                                         callback=lambda _, val: dpg.configure_item("x_axis_ordering", invert=val))
+                        dpg.add_checkbox(label="Opposite Y", default_value=False,
+                                         callback=lambda _, val: dpg.configure_item("y_axis_ordering", opposite=val))
+                        dpg.add_checkbox(label="Invert Y", default_value=False,
+                                         callback=lambda _, val: dpg.configure_item("y_axis_ordering", invert=val))
+                        
+                        with dpg.plot(label="Ordering Axes Plot", height=400, width=-1):
+
+                            dpg.add_plot_legend()
+
+                            # create x axis
+                            dpg.add_plot_axis(dpg.mvXAxis, label="x", tag="x_axis_ordering")
+                            # create y axis 1
+                            with dpg.plot_axis(dpg.mvYAxis, label="y", tag="y_axis_ordering"):
+                                dpg.add_line_series(sindatax, sindatay)
+
+                    with dpg.tree_node(label="Log Axis Scale"):
+                        xs = [0.0 for i in range(1001)]
+                        ys1 = [0.0 for i in range(1001)]
+                        ys2 = [0.0 for i in range(1001)]
+                        ys3 = [0.0 for i in range(1001)]
+                        for i in range(1,1001):
+                            xs[i]  = i*0.1
+                            ys1[i] = sin(xs[i]) + 1
+                            ys2[i] = log10(xs[i])
+                            ys3[i] = pow(10.0, xs[i])
+
+                        with dpg.plot(label="Log Axes Plot", height=400, width=-1):
+                            dpg.add_plot_legend()
+
+                            # create x axis
+                            xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="x1", scale=dpg.mvPlotScale_Log10)
+                            dpg.set_axis_limits(xaxis, 0.1, 100)
+                            # create y axis 1
+                            with dpg.plot_axis(dpg.mvYAxis) as yaxis:
+                                dpg.add_line_series(xs, xs, label="x")
+                                dpg.add_line_series(xs, ys1, label="sin(x)+1")
+                                dpg.add_line_series(xs, ys2, label="log(x)")
+                                dpg.add_line_series(xs, ys3, label="10^x")
+                            dpg.set_axis_limits(yaxis, 0, 10)
+
+
+                    with dpg.tree_node(label="Time Axis"):
+                        t_min = 1609459200; # 01/01/2021 @ 12:00:00am (UTC)
+                        t_max = 1640995200; # 01/01/2022 @ 12:00:00am (UTC)
+                        t_temp = t_min
+                        while t_temp < t_max:
+                            xs.append(t_temp)
+                            ys1.append(sin(t_temp))
+                            ys2.append(cos(t_temp))
+                            t_temp += 86400
+
+                        with dpg.plot(label="Time Plot", height=400, width=-1):
+                            dpg.add_plot_legend()
+
+                            # create x axis
+                            xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="x1", scale=dpg.mvPlotScale_Time)
+                            dpg.set_axis_limits(xaxis, t_min, t_max)
+                            # create y axis 1
+                            with dpg.plot_axis(dpg.mvYAxis) as yaxis:
+                                dpg.add_line_series(xs, ys1, label="sin(x)+1")
+                                dpg.add_line_series(xs, ys2, label="log(x)")
+
+                    with dpg.tree_node(label="Symmetric Log Axis Scale"):
+                        xs = [0.0 for i in range(1000)]
+                        ys1 = [0.0 for i in range(1000)]
+                        ys2 = [0.0 for i in range(1000)]
+                        for i in range(1000):
+                            xs[i]  = i*0.1-50
+                            ys1[i] = sin(xs[i])
+                            ys2[i] = i*0.002 - 1
+
+                        with dpg.plot(label="Symmetric Log Axes Plot", height=400, width=-1):
+                            dpg.add_plot_legend()
+
+                            # create x axis
+                            dpg.add_plot_axis(dpg.mvXAxis, label="x1", scale=dpg.mvPlotScale_SymLog)
+                            # create y axis 1
+                            with dpg.plot_axis(dpg.mvYAxis):
+                                dpg.add_line_series(xs, ys1, label="y1")
+                                dpg.add_line_series(xs, ys2, label="y2")
+
+
 
                 with dpg.tab(label="Tools"):
 
                     with dpg.tree_node(label="Querying"):
 
-                        dpg.add_text("Click and drag the middle mouse button!")
+                        dpg.add_text("Right click to box select and then click using the cancel button (standard to Left click)")
+                        dpg.add_text("Double left click to delete the last drag rect drawn.")
+                        dpg.add_slider_int(min_value=0, max_value=100, default_value=1, label="Min query rects", callback=lambda _, val: dpg.configure_item("query_plot_1", min_query_rects=val))
+                        dpg.add_slider_int(min_value=0, max_value=100, default_value=1, label="Max query rects", callback=lambda _, val: dpg.configure_item("query_plot_1", max_query_rects=val))
+
                         def query(sender, app_data, user_data):
-                            dpg.set_axis_limits(user_data[0], app_data[0], app_data[1])
-                            dpg.set_axis_limits(user_data[1], app_data[2], app_data[3])
+                            if not len(app_data):
+                                return
+                            dpg.set_axis_limits(user_data[0], app_data[0][0], app_data[0][2])
+                            dpg.set_axis_limits(user_data[1], app_data[0][3], app_data[0][1])
 
                         # plot 1
-                        with dpg.plot(no_title=True, height=400, callback=query, query=True, no_menus=True, width=-1) as plot_id:
+                        with dpg.plot(no_title=True, height=400, tag="query_plot_1", callback=query, query=True, no_menus=True, width=-1) as plot_id:
                             dpg.add_plot_axis(dpg.mvXAxis, label="x")
                             with dpg.plot_axis(dpg.mvYAxis, label="y"):
                                 dpg.add_line_series(sindatax, sindatay)
-
+                                
+                        dpg.add_text("This plot takes care only of the first query rect")
                         # plot 2
-                        with dpg.plot(no_title=True, height=400, no_menus=True, width=-1):          
+                        with dpg.plot(no_title=True, height=400, no_menus=True, width=-1, tag="plot2"):          
                             xaxis_id2 = dpg.add_plot_axis(dpg.mvXAxis, label="x")
                             yaxis_id2 = dpg.add_plot_axis(dpg.mvYAxis, label="y")
                             dpg.add_line_series(sindatax, sindatay, parent=yaxis_id2)
@@ -2224,9 +2661,31 @@ def show_demo():
 
                             # drag lines/points belong to the plot NOT axis
                             dpg.add_drag_line(label="dline1", color=[255, 0, 0, 255])
-                            dpg.add_drag_line(label="dline2", color=[255, 255, 0, 255], vertical=False)
+                            dpg.add_drag_line(color=[255, 255, 0, 255], vertical=False)
                             dpg.add_drag_point(label="dpoint1", color=[255, 0, 255, 255])
                             dpg.add_drag_point(label="dpoint2", color=[255, 0, 255, 255])
+                            
+                    with dpg.tree_node(label="Drag Rects"):
+
+                        def drag_query(sender, app_data, user_data):
+                            dpg.set_axis_limits(user_data[0], app_data[0][0], app_data[0][2])
+                            dpg.set_axis_limits(user_data[1], app_data[0][3], app_data[0][1])
+
+                        with dpg.plot(label="Drag Rects", height=400, width=-1, callback=drag_query) as plot_drag:
+                            
+                            dpg.add_plot_axis(dpg.mvXAxis, label="x")
+                            with dpg.plot_axis(dpg.mvYAxis, label="y"):
+                                dpg.add_line_series(sindatax, sindatay)
+                            # drag rects belong to the plot NOT axis
+                            dpg.add_drag_rect(label="drag rect 1", tag="drag_rect", color=[255, 0, 0, 255], default_value=(-1,1))
+
+                        with dpg.plot(no_title=True, height=400, no_menus=True, width=-1, tag="drag_plot2"):
+                            xaxis_drag2 = dpg.add_plot_axis(dpg.mvXAxis, label="x")
+                            yaxis_drag2 = dpg.add_plot_axis(dpg.mvYAxis, label="y")
+                            dpg.add_line_series(sindatax, sindatay, parent=yaxis_drag2)
+
+                            # set plot 1 user data to axis so the query callback has access
+                            dpg.configure_item(plot_drag, user_data=(xaxis_drag2,yaxis_drag2))
 
                     with dpg.tree_node(label="Annotations"):
 
@@ -2243,6 +2702,18 @@ def show_demo():
                             dpg.add_plot_annotation(label="TR not clampled", default_value=(0.75, 0.75), offset=(-15, -15), color=[255, 255, 0, 255], clamped=False)
                             dpg.add_plot_annotation(label="TL", default_value=(0.25, 0.75), offset=(-15, -15), color=[255, 255, 0, 255])
                             dpg.add_plot_annotation(label="Center", default_value=(0.5, 0.5), color=[255, 255, 0, 255])
+
+                    with dpg.tree_node(label="Tags"):
+                        with dpg.plot(height=400, width=-1):
+                            with dpg.plot_axis(dpg.mvXAxis):
+                                dpg.add_axis_tag(default_value=0.25, color=(255, 255, 0, 255))
+                            with dpg.plot_axis(dpg.mvYAxis):
+                                dpg.add_axis_tag(default_value=0.75, color=(255, 255, 0, 255))
+                            dpg.add_drag_line(vertical=False, label="Drag", default_value=0.25, color=(255, 0, 0, 255), no_fit=True)
+                            with dpg.plot_axis(dpg.mvXAxis2):
+                                dpg.add_axis_tag(default_value=0.5, color=(0, 255, 255, 255), label="MyTag")
+                            with dpg.plot_axis(dpg.mvYAxis2):
+                                dpg.add_axis_tag(default_value=0.5, color=(0, 255, 255, 255), label="Tag: 42")
 
                     with dpg.tree_node(label="Drag & Drop"):
 
@@ -2285,6 +2756,72 @@ def show_demo():
                                 dpg.add_plot_axis(dpg.mvYAxis, label="y1", drop_callback=_axis_drop, payload_type="plotting")
                                 dpg.add_plot_axis(dpg.mvYAxis, label="y2", drop_callback=_axis_drop, payload_type="plotting")
                                 dpg.add_plot_axis(dpg.mvYAxis, label="y3", drop_callback=_axis_drop, payload_type="plotting")
+                                
+
+
+                    with dpg.tree_node(label="Legend Options"):
+                        def add_remove_location(type, add):
+                            if add:
+                                dpg.configure_item("plot_legend",
+                                                    location = dpg.get_item_configuration("plot_legend")['location'] + type)
+                            else:
+                                dpg.configure_item("plot_legend",
+                                                    location = dpg.get_item_configuration("plot_legend")['location'] - type)
+                        with dpg.group(horizontal=True):
+                            dpg.add_checkbox(label="North", tag="north_legend",
+                                            callback=lambda: add_remove_location(dpg.mvPlot_Location_North, dpg.get_value("north_legend")))
+                            dpg.add_checkbox(label="East", tag="east_legend",
+                                            callback=lambda: add_remove_location(dpg.mvPlot_Location_East, dpg.get_value("east_legend")))
+                            dpg.add_checkbox(label="West", tag="west_legend",
+                                            callback=lambda: add_remove_location(dpg.mvPlot_Location_West, dpg.get_value("west_legend")))
+                            dpg.add_checkbox(label="South", tag="south_legend",
+                                            callback=lambda: add_remove_location(dpg.mvPlot_Location_South, dpg.get_value("south_legend")))
+                        dpg.add_checkbox(label="Horizontal", tag="horizontal_legend",
+                                        callback=lambda: dpg.configure_item("plot_legend",  horizontal=dpg.get_value("horizontal_legend")))
+                        dpg.add_checkbox(label="Outside", tag="outside_legend",
+                                        callback=lambda: dpg.configure_item("plot_legend",  outside=dpg.get_value("outside_legend")))
+                        dpg.add_checkbox(label="Sort", tag="sort_legend",
+                                        callback=lambda: dpg.configure_item("plot_legend",  sort=dpg.get_value("sort_legend")))
+
+                        with dpg.plot():
+                            dpg.add_plot_legend(tag="plot_legend", location=0, outside=False, sort=False, horizontal=False)
+                            with dpg.plot_axis(dpg.mvYAxis):
+                                dpg.add_line_series(sindatax, sindatay, label="2")
+                                dpg.add_line_series(sindatax, sindatay, label="1")
+                                dpg.add_line_series(sindatax, sindatay, label="3")
+
+                    with dpg.tree_node(label="Legend Popups"):
+                        vals=[]
+                        frequency = 0.1
+                        amplitude = 0.5
+                        color     = (1,1,0,1)
+                        alpha     = 1.0
+                        line      = False
+                        thickness = 1
+                        markers   = False
+                        shaded    = False
+                        x = [i for i in range(101)]
+                        vals = [0.0 for i in range(101)]
+                        for i in range(101):
+                            vals[i] = amplitude * sin(frequency * i)
+                        
+                        def recalculate_vals(amplitude, frequency):
+                            for i in range(101):
+                                vals[i] = amplitude * sin(frequency * i)
+                            dpg.configure_item("bar_custom_legend", y=vals)
+                        
+                        with dpg.plot(label="Line Series"):
+                            dpg.add_plot_legend()
+                            dpg.add_plot_axis(dpg.mvXAxis, label="x")
+
+                            with dpg.plot_axis(dpg.mvYAxis):
+                                dpg.add_bar_series(x, vals, tag="bar_custom_legend", label="Right Click Me!")
+                                with dpg.group(parent=dpg.last_item()):
+                                    dpg.add_slider_float(label="Frequency", default_value=frequency, min_value=0.01, max_value=5.0, 
+                                        tag="frequency", callback=lambda: recalculate_vals(dpg.get_value("amplitude"), dpg.get_value("frequency")))
+                                    dpg.add_slider_float(label="Amplitude", default_value=amplitude, min_value=0.01, max_value=5.0,
+                                                         tag="amplitude", callback=lambda: recalculate_vals(dpg.get_value("amplitude"), dpg.get_value("frequency")))
+                                    dpg.add_separator()
 
                 with dpg.tab(label="Custom"):
 
@@ -2468,7 +3005,7 @@ def show_demo():
                     draw_x = draw_x + draw_spacing + draw_size
                     dpg.draw_triangle([draw_x+draw_size*0.5,draw_y], [draw_x+draw_size, draw_y+draw_size-0.5], [draw_x, draw_y+draw_size-0.5], thickness=_draw_t, color=draw_color, fill=draw_color)
                     draw_x = draw_x + draw_spacing + draw_size
-                    dpg.draw_rectangle([draw_size + draw_x, draw_size + draw_y], [draw_x, draw_y], color=[0, 0, 0, 0], thickness=_draw_t, color_upper_left=[0, 0, 0], color_upper_right=[255, 0, 0], color_bottom_left=[255, 255, 0], color_bottom_right=[0, 255, 0], multicolor=True)
+                    dpg.draw_rectangle([draw_size + draw_x, draw_size + draw_y], [draw_x, draw_y], color=[0, 0, 0, 0], thickness=_draw_t, corner_colors=[[0, 0, 0], [255, 0, 0], [0, 255, 0], [255, 255, 0]], multicolor=True)
 
             with dpg.tree_node(label="Draw Nodes & 3D transforms"):
 
@@ -2693,9 +3230,9 @@ def show_demo():
                 elif type=="mvAppItemType::mvKeyReleaseHandler":
                     dpg.set_value(kh_release, f"Key id: {data}")
                 elif type=="mvAppItemType::mvKeyPressHandler":
-                    dpg.set_value(kh_press, f"Key id: {data} + Shift: {dpg.is_key_down(dpg.mvKey_Shift)}")
+                    dpg.set_value(kh_press, f"Key id: {data} + Shift: {dpg.is_key_down(dpg.mvKey_LShift)}")
                 elif type=="mvAppItemType::mvMouseClickHandler":
-                     dpg.set_value(mh_click, f"Mouse id: {data} + Shift: {dpg.is_key_down(dpg.mvKey_Shift)}")
+                     dpg.set_value(mh_click, f"Mouse id: {data} + Shift: {dpg.is_key_down(dpg.mvKey_LShift)}")
                 elif type=="mvAppItemType::mvMouseDoubleClickHandler":
                     dpg.set_value(mh_double, f"Mouse id: {data}")
                 elif type=="mvAppItemType::mvMouseDownHandler":

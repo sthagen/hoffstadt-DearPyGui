@@ -1,4 +1,7 @@
 
+from typing import Union
+
+
 def deprecated(reason):
 
 	string_types = (type(b''), type(u''))
@@ -41,11 +44,6 @@ def deprecated(reason):
 			return func2(*args, **kwargs)
 
 		return new_func2
-
-@deprecated("Use 'configure_app(docking=True, docking_space=dock_space)'.")
-def enable_docking(dock_space=False):
-    """ deprecated function """
-    internal_dpg.configure_app(docking=True, docking_space=dock_space)
 
 @deprecated("Use 'configure_app(init_file=file)'.")
 def set_init_file(file="dpg.ini"):
@@ -257,6 +255,76 @@ def add_same_line(**kwargs):
     internal_dpg.move_item(last_item, parent=group)
     internal_dpg.capture_next_item(lambda s: internal_dpg.move_item(s, parent=group))
     return group
+
+@deprecated("Use: `get_plot_query_rects()`")
+def is_plot_queried(plot: Union[int, str], **kwargs):
+	"""	(deprecated function) Returns true if the plot is currently being queried. 
+
+	Args:
+		plot (Union[int, str]): 
+	Returns:
+		bool
+	"""
+
+	return len(internal_dpg.get_plot_query_rects(plot, **kwargs)) > 0
+
+@deprecated("Use: `get_plot_query_rects()`")
+def get_plot_query_area(plot: Union[int, str], **kwargs):
+	"""	(deprecated function) Returns the last/current query area of the plot. If no area is available [0, 0, 0, 0] will be returned.
+
+	Args:
+		plot (Union[int, str]): 
+	Returns:
+		Union[List[float], Tuple[float, ...]]
+	"""
+
+	if rects := internal_dpg.get_plot_query_rects(plot, **kwargs):
+		return rects[0]
+	else:
+		return [0, 0, 0, 0]
+
+@deprecated("Use: `add_inf_line_series(horizontal=True)`")
+def add_hline_series(x, **kwargs):
+	"""	(deprecated function) Adds an infinite horizontal line series to a plot.
+
+	Args:
+		x (Any): 
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		source (Union[int, str], optional): Overrides 'id' as value storage key.
+		show (bool, optional): Attempt to render widget.
+		id (Union[int, str], optional): (deprecated)
+	Returns:
+		Union[int, str]
+	"""
+
+	return internal_dpg.add_inf_line_series(x, **kwargs, horizontal=True)
+            
+
+@deprecated("Use: `add_inf_line_series()`")
+def add_vline_series(x, **kwargs):
+	"""	(deprecated function) Adds an infinite vertical line series to a plot.
+
+	Args:
+		x (Any): 
+		label (str, optional): Overrides 'name' as label.
+		user_data (Any, optional): User data for callbacks
+		use_internal_label (bool, optional): Use generated internal label instead of user specified (appends ### uuid).
+		tag (Union[int, str], optional): Unique id used to programmatically refer to the item.If label is unused this will be the label.
+		parent (Union[int, str], optional): Parent to add this item to. (runtime adding)
+		before (Union[int, str], optional): This item will be displayed before the specified item in the parent.
+		source (Union[int, str], optional): Overrides 'id' as value storage key.
+		show (bool, optional): Attempt to render widget.
+		id (Union[int, str], optional): (deprecated)
+	Returns:
+		Union[int, str]
+	"""
+
+	return internal_dpg.add_inf_line_series(x, **kwargs)
 
 
 @deprecated("Use: `add_child_window()`")

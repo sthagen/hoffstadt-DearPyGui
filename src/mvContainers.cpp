@@ -54,7 +54,6 @@ DearPyGui::fill_configuration_dict(const mvChildWindowConfig& inConfig, PyObject
     if (outDict == nullptr)
         return;
 
-    PyDict_SetItemString(outDict, "border", mvPyObject(ToPyBool(inConfig.border)));
     PyDict_SetItemString(outDict, "autosize_x", mvPyObject(ToPyBool(inConfig.autosize_x)));
     PyDict_SetItemString(outDict, "autosize_y", mvPyObject(ToPyBool(inConfig.autosize_y)));
 
@@ -70,6 +69,16 @@ DearPyGui::fill_configuration_dict(const mvChildWindowConfig& inConfig, PyObject
     checkbitset("menubar", ImGuiWindowFlags_MenuBar, inConfig.windowflags);
     checkbitset("no_scroll_with_mouse", ImGuiWindowFlags_NoScrollWithMouse, inConfig.windowflags);
     checkbitset("flattened_navigation", ImGuiWindowFlags_NavFlattened, inConfig.windowflags);
+
+    // child flags
+    checkbitset("border", ImGuiChildFlags_Border, inConfig.childFlags);
+    checkbitset("always_auto_resize", ImGuiChildFlags_AlwaysAutoResize, inConfig.childFlags);
+    checkbitset("always_use_window_padding", ImGuiChildFlags_AlwaysUseWindowPadding, inConfig.childFlags);
+    checkbitset("auto_resize_x", ImGuiChildFlags_AutoResizeX, inConfig.childFlags);
+    checkbitset("auto_resize_y", ImGuiChildFlags_AutoResizeY, inConfig.childFlags);
+    checkbitset("frame_style", ImGuiChildFlags_FrameStyle, inConfig.childFlags);
+    checkbitset("resizable_x", ImGuiChildFlags_ResizeX, inConfig.childFlags);
+    checkbitset("resizable_y", ImGuiChildFlags_ResizeY, inConfig.childFlags);
 }
 
 void
@@ -126,6 +135,10 @@ DearPyGui::fill_configuration_dict(const mvTreeNodeConfig& inConfig, PyObject* o
     checkbitset("open_on_arrow", ImGuiTreeNodeFlags_OpenOnArrow, inConfig.flags);
     checkbitset("leaf", ImGuiTreeNodeFlags_Leaf, inConfig.flags);
     checkbitset("bullet", ImGuiTreeNodeFlags_Bullet, inConfig.flags);
+    checkbitset("span_text_width", ImGuiTreeNodeFlags_SpanTextWidth, inConfig.flags);
+    // checkbitset("span_available_width", ImGuiTreeNodeFlags_SpanAvailWidth, inConfig.flags);
+    checkbitset("span_full_width", ImGuiTreeNodeFlags_SpanFullWidth, inConfig.flags);
+    // checkbitset("span_all_columns", ImGuiTreeNodeFlags_SpanAllColumns, inConfig.flags);
 }
 
 void
@@ -205,6 +218,7 @@ DearPyGui::fill_configuration_dict(const mvWindowAppItemConfig& inConfig, PyObje
     checkbitset("no_background", ImGuiWindowFlags_NoBackground, inConfig.windowflags);
     checkbitset("no_saved_settings", ImGuiWindowFlags_NoSavedSettings, inConfig.windowflags);
     checkbitset("no_scroll_with_mouse", ImGuiWindowFlags_NoScrollWithMouse, inConfig.windowflags);
+    checkbitset("unsaved_document", ImGuiWindowFlags_UnsavedDocument, inConfig.windowflags);
 }
 
 //-----------------------------------------------------------------------------
@@ -260,7 +274,6 @@ DearPyGui::set_configuration(PyObject* inDict, mvChildWindowConfig& outConfig)
     if (inDict == nullptr)
         return;
 
-    if (PyObject* item = PyDict_GetItemString(inDict, "border")) outConfig.border = ToBool(item);
     if (PyObject* item = PyDict_GetItemString(inDict, "autosize_x")) outConfig.autosize_x = ToBool(item);
     if (PyObject* item = PyDict_GetItemString(inDict, "autosize_y")) outConfig.autosize_y = ToBool(item);
 
@@ -277,6 +290,15 @@ DearPyGui::set_configuration(PyObject* inDict, mvChildWindowConfig& outConfig)
     flagop("no_scroll_with_mouse", ImGuiWindowFlags_NoScrollWithMouse, outConfig.windowflags);
     flagop("flattened_navigation", ImGuiWindowFlags_NavFlattened, outConfig.windowflags);
 
+    // child flags
+    flagop("border", ImGuiChildFlags_Border, outConfig.childFlags);
+    flagop("always_auto_resize", ImGuiChildFlags_AlwaysAutoResize, outConfig.childFlags);
+    flagop("always_use_window_padding", ImGuiChildFlags_AlwaysUseWindowPadding, outConfig.childFlags);
+    flagop("auto_resize_x", ImGuiChildFlags_AutoResizeX, outConfig.childFlags);
+    flagop("auto_resize_y", ImGuiChildFlags_AutoResizeY, outConfig.childFlags);
+    flagop("frame_style", ImGuiChildFlags_FrameStyle, outConfig.childFlags);
+    flagop("resizable_x", ImGuiChildFlags_ResizeX, outConfig.childFlags);
+    flagop("resizable_y", ImGuiChildFlags_ResizeY, outConfig.childFlags);
 }
 
 void
@@ -338,6 +360,10 @@ DearPyGui::set_configuration(PyObject* inDict, mvTreeNodeConfig& outConfig)
     flagop("open_on_arrow", ImGuiTreeNodeFlags_OpenOnArrow, outConfig.flags);
     flagop("leaf", ImGuiTreeNodeFlags_Leaf, outConfig.flags);
     flagop("bullet", ImGuiTreeNodeFlags_Bullet, outConfig.flags);
+    flagop("span_text_width", ImGuiTreeNodeFlags_SpanTextWidth, outConfig.flags);
+    // flagop("span_available_width", ImGuiTreeNodeFlags_SpanAvailWidth, outConfig.flags);
+    flagop("span_full_width", ImGuiTreeNodeFlags_SpanFullWidth, outConfig.flags);
+    // flagop("span_all_columns", ImGuiTreeNodeFlags_SpanAllColumns, outConfig.flags);
 }
 
 void
@@ -451,6 +477,8 @@ DearPyGui::set_configuration(PyObject* inDict, mvAppItem& itemc, mvWindowAppItem
     flagop("no_background", ImGuiWindowFlags_NoBackground, outConfig.windowflags);
     flagop("no_saved_settings", ImGuiWindowFlags_NoSavedSettings, outConfig.windowflags);
     flagop("no_scroll_with_mouse", ImGuiWindowFlags_NoScrollWithMouse, outConfig.windowflags);
+    flagop("unsaved_document", ImGuiWindowFlags_UnsavedDocument, outConfig.windowflags);
+
 
     outConfig._oldxpos = itemc.state.pos.x;
     outConfig._oldypos = itemc.state.pos.y;
@@ -926,7 +954,8 @@ DearPyGui::draw_child_window(ImDrawList* drawlist, mvAppItem& item, mvChildWindo
     {
         ScopedID id(item.uuid);
 
-        ImGui::BeginChild(item.info.internalLabel.c_str(), ImVec2(config.autosize_x ? 0 : (float)item.config.width, config.autosize_y ? 0 : (float)item.config.height), config.border, config.windowflags);
+        // TODO: Do we want to put an if statement to prevent further drawing if not shown?
+        ImGui::BeginChild(item.info.internalLabel.c_str(), ImVec2(config.autosize_x ? 0 : (float)item.config.width, config.autosize_y ? 0 : (float)item.config.height), config.childFlags, config.windowflags);
         item.state.lastFrameUpdate = GContext->frame;
         item.state.active = ImGui::IsItemActive();
         item.state.deactivated = ImGui::IsItemDeactivated();
@@ -1067,6 +1096,9 @@ DearPyGui::draw_group(ImDrawList* drawlist, mvAppItem& item, mvGroupConfig& conf
         if (item.config.width != 0)
             ImGui::PushItemWidth((float)item.config.width);
 
+        if (!item.config.enabled)
+            ImGui::BeginDisabled();
+
         ImGui::BeginGroup();
 
         for (auto& child : item.childslots[1])
@@ -1093,6 +1125,10 @@ DearPyGui::draw_group(ImDrawList* drawlist, mvAppItem& item, mvGroupConfig& conf
             ImGui::PopItemWidth();
 
         ImGui::EndGroup();
+
+        if (!item.config.enabled)
+            ImGui::EndDisabled();
+    
         UpdateAppItemState(item.state);
 
     }

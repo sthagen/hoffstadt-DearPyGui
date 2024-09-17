@@ -928,14 +928,15 @@ DearPyGui::GetEntityDesciptionFlags(mvAppItemType type)
     case mvAppItemType::mv2dHistogramSeries:
     case mvAppItemType::mvAreaSeries:
     case mvAppItemType::mvBarSeries:
+    case mvAppItemType::mvBarGroupSeries:
     case mvAppItemType::mvCandleSeries:
     case mvAppItemType::mvCustomSeries:
     case mvAppItemType::mvErrorSeries:
     case mvAppItemType::mvHeatSeries:
     case mvAppItemType::mvHistogramSeries:
+    case mvAppItemType::mvDigitalSeries:
     case mvAppItemType::mvImageSeries:
-    case mvAppItemType::mvVLineSeries:
-    case mvAppItemType::mvHLineSeries:
+    case mvAppItemType::mvInfLineSeries:
     case mvAppItemType::mvLabelSeries:
     case mvAppItemType::mvLineSeries:
     case mvAppItemType::mvPieSeries:
@@ -1006,6 +1007,7 @@ DearPyGui::GetEntityTargetSlot(mvAppItemType type)
     case mvAppItemType::mvAnnotation:
     case mvAppItemType::mvDragLine:
     case mvAppItemType::mvDragPoint:
+    case mvAppItemType::mvDragRect:
     case mvAppItemType::mvPlotLegend:
     case mvAppItemType::mvTableColumn: return 0;
 
@@ -1098,14 +1100,15 @@ DearPyGui::GetEntityValueType(mvAppItemType type)
     case mvAppItemType::mv2dHistogramSeries:
     case mvAppItemType::mvAreaSeries:
     case mvAppItemType::mvBarSeries:
+    case mvAppItemType::mvBarGroupSeries:
     case mvAppItemType::mvCandleSeries:
     case mvAppItemType::mvCustomSeries:
     case mvAppItemType::mvErrorSeries:
     case mvAppItemType::mvHeatSeries:
     case mvAppItemType::mvHistogramSeries:
+    case mvAppItemType::mvDigitalSeries:
     case mvAppItemType::mvImageSeries:
-    case mvAppItemType::mvVLineSeries:
-    case mvAppItemType::mvHLineSeries:
+    case mvAppItemType::mvInfLineSeries:
     case mvAppItemType::mvLabelSeries:
     case mvAppItemType::mvLineSeries:
     case mvAppItemType::mvPieSeries:
@@ -1116,6 +1119,7 @@ DearPyGui::GetEntityValueType(mvAppItemType type)
 
     case mvAppItemType::mvDoubleValue:
     case mvAppItemType::mvDragDouble:
+    case mvAppItemType::mvAxisTag:
     case mvAppItemType::mvInputDouble:
     case mvAppItemType::mvSliderDouble:
     case mvAppItemType::mvDragLine: return StorageValueTypes::Double;
@@ -1125,8 +1129,9 @@ DearPyGui::GetEntityValueType(mvAppItemType type)
     case mvAppItemType::mvInputDoubleMulti:
     case mvAppItemType::mvSliderDoubleMulti:
     case mvAppItemType::mvAnnotation:
-    case mvAppItemType::mvDragPoint: return StorageValueTypes::Double4;
+    case mvAppItemType::mvDragRect: return StorageValueTypes::Double4;
 
+    case mvAppItemType::mvDragPoint:
     case mvAppItemType::mvStaticTexture:
     case mvAppItemType::mvDynamicTexture:
     case mvAppItemType::mvSimplePlot: return StorageValueTypes::FloatVect;
@@ -1352,6 +1357,7 @@ DearPyGui::GetAllowableParents(mvAppItemType type)
 
     case mvAppItemType::mvPlotAxis:
     case mvAppItemType::mvDragLine:
+    case mvAppItemType::mvDragRect:
     case mvAppItemType::mvDragPoint:
     case mvAppItemType::mvAnnotation:
         MV_START_PARENTS
@@ -1360,15 +1366,17 @@ DearPyGui::GetAllowableParents(mvAppItemType type)
         MV_ADD_PARENT(mvAppItemType::mvPlot)
         MV_END_PARENTS
 
+    case mvAppItemType::mvAxisTag:
     case mvAppItemType::mvAreaSeries:
     case mvAppItemType::mvBarSeries:
+    case mvAppItemType::mvBarGroupSeries:
     case mvAppItemType::mvCandleSeries:
     case mvAppItemType::mvErrorSeries:
     case mvAppItemType::mvHeatSeries:
     case mvAppItemType::mvHistogramSeries:
+    case mvAppItemType::mvDigitalSeries:
     case mvAppItemType::mvImageSeries:
-    case mvAppItemType::mvVLineSeries:
-    case mvAppItemType::mvHLineSeries:
+    case mvAppItemType::mvInfLineSeries:
     case mvAppItemType::mvLabelSeries:
     case mvAppItemType::mvLineSeries:
     case mvAppItemType::mvPieSeries:
@@ -1553,6 +1561,7 @@ DearPyGui::GetAllowableChildren(mvAppItemType type)
         MV_ADD_CHILD(mvAppItemType::mvPlotLegend),
         MV_ADD_CHILD(mvAppItemType::mvPlotAxis),
         MV_ADD_CHILD(mvAppItemType::mvDragPoint),
+        MV_ADD_CHILD(mvAppItemType::mvDragRect),
         MV_ADD_CHILD(mvAppItemType::mvDragLine),
         MV_ADD_CHILD(mvAppItemType::mvAnnotation),
         MV_ADD_CHILD(mvAppItemType::mvDrawLine),
@@ -1784,7 +1793,8 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::Bool, "small", mvArgType::KEYWORD_ARG, "False", "Shrinks the size of the button to the text of the label it contains. Useful for embedding in text." });
         args.push_back({ mvPyDataType::Bool, "arrow", mvArgType::KEYWORD_ARG, "False", "Displays an arrow in place of the text string. This requires the direction keyword." });
         args.push_back({ mvPyDataType::Integer, "direction", mvArgType::KEYWORD_ARG, "0", "Sets the cardinal direction for the arrow by using constants mvDir_Left, mvDir_Up, mvDir_Down, mvDir_Right, mvDir_None. Arrow keyword must be set to True." });
-   
+        args.push_back({ mvPyDataType::Bool, "repeat", mvArgType::KEYWORD_ARG, "False", "Hold to continuosly repeat the click." });
+
         setup.about = "Adds a button.";
         break;
     }
@@ -1839,6 +1849,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::Bool, "popup_align_left", mvArgType::KEYWORD_ARG, "False", "Align the contents on the popup toward the left." });
         args.push_back({ mvPyDataType::Bool, "no_arrow_button", mvArgType::KEYWORD_ARG, "False", "Display the preview box without the square arrow button indicating dropdown activity." });
         args.push_back({ mvPyDataType::Bool, "no_preview", mvArgType::KEYWORD_ARG, "False", "Display only the square arrow button and not the selected value." });
+        args.push_back({ mvPyDataType::Bool, "fit_width", mvArgType::KEYWORD_ARG, "False", "Fit the available width." });
         args.push_back({ mvPyDataType::Long, "height_mode", mvArgType::KEYWORD_ARG, "1", "Controlls the number of items shown in the dropdown by the constants mvComboHeight_Small, mvComboHeight_Regular, mvComboHeight_Large, mvComboHeight_Largest" });
 
         setup.about = "Adds a combo dropdown that allows a user to select a single option from a drop down window. All items will be shown as selectables on the dropdown.";
@@ -1878,6 +1889,12 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::Bool, "password", mvArgType::KEYWORD_ARG, "False", "Display all input characters as '*'." });
         args.push_back({ mvPyDataType::Bool, "scientific", mvArgType::KEYWORD_ARG, "False", "Only allow characters 0123456789.+-*/eE (Scientific notation input)" });
         args.push_back({ mvPyDataType::Bool, "on_enter", mvArgType::KEYWORD_ARG, "False", "Only runs callback on enter key press." });
+        args.push_back({ mvPyDataType::Bool, "auto_select_all", mvArgType::KEYWORD_ARG, "False", "Select entire text when first taking mouse focus" });
+        args.push_back({ mvPyDataType::Bool, "ctrl_enter_for_new_line", mvArgType::KEYWORD_ARG, "False", "In multi-line mode, unfocus with Enter, add new line with Ctrl+Enter (default is opposite: unfocus with Ctrl+Enter, add line with Enter)." });
+        args.push_back({ mvPyDataType::Bool, "no_horizontal_scroll", mvArgType::KEYWORD_ARG, "False", "Disable following the cursor horizontally" });
+        args.push_back({ mvPyDataType::Bool, "always_overwrite", mvArgType::KEYWORD_ARG, "False", "Overwrite mode" });
+        args.push_back({ mvPyDataType::Bool, "no_undo_redo", mvArgType::KEYWORD_ARG, "False", "Disable undo/redo." });
+        args.push_back({ mvPyDataType::Bool, "escape_clears_all", mvArgType::KEYWORD_ARG, "False", "Escape key clears content if not empty, and deactivate otherwise (contrast to default behavior of Escape to revert)" });
 
         setup.about = "Adds input for text.";
         break;
@@ -1948,7 +1965,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
 
         args.push_back({ mvPyDataType::Bool, "closable", mvArgType::KEYWORD_ARG, "False", "Creates a button on the tab that can hide the tab." });
         args.push_back({ mvPyDataType::Bool, "no_tooltip", mvArgType::KEYWORD_ARG, "False", "Disable tooltip for the given tab." });
-        args.push_back({ mvPyDataType::Bool, "order_mode", mvArgType::KEYWORD_ARG, "0", "set using a constant: mvTabOrder_Reorderable: allows reordering, mvTabOrder_Fixed: fixed ordering, mvTabOrder_Leading: adds tab to front, mvTabOrder_Trailing: adds tab to back" });
+        args.push_back({ mvPyDataType::Integer, "order_mode", mvArgType::KEYWORD_ARG, "0", "set using a constant: mvTabOrder_Reorderable: allows reordering, mvTabOrder_Fixed: fixed ordering, mvTabOrder_Leading: adds tab to front, mvTabOrder_Trailing: adds tab to back" });
 
         setup.about = "Adds a tab to a tab bar.";
         setup.category = { "Containers", "Widgets" };
@@ -2084,8 +2101,20 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::Bool, "menubar", mvArgType::KEYWORD_ARG, "False", "Shows/Hides the menubar at the top." });
         args.push_back({ mvPyDataType::Bool, "no_scroll_with_mouse", mvArgType::KEYWORD_ARG, "False", "Disable user vertically scrolling with mouse wheel." });
         args.push_back({ mvPyDataType::Bool, "flattened_navigation", mvArgType::KEYWORD_ARG, "True", "Allow gamepad/keyboard navigation to cross over parent border to this child (only use on child that have no scrolling!)" });
+        args.push_back({ mvPyDataType::Bool, "always_use_window_padding", mvArgType::KEYWORD_ARG, "False", "Pad with style.WindowPadding even if no border are drawn (no padding by default for non-bordered child windows because it makes more sense)" });
+        args.push_back({ mvPyDataType::Bool, "resizable_x", mvArgType::KEYWORD_ARG, "False", "Allow resize from right border (layout direction). Enable .ini saving." });
+        args.push_back({ mvPyDataType::Bool, "resizable_y", mvArgType::KEYWORD_ARG, "False", "Allow resize from bottom border (layout direction). " });
+        args.push_back({ mvPyDataType::Bool, "always_auto_resize", mvArgType::KEYWORD_ARG, "False", "Combined with auto_resize_x/auto_resize_y. Always measure size even when child is hidden and always disable clipping optimization! NOT RECOMMENDED." });
+        args.push_back({ mvPyDataType::Bool, "frame_style", mvArgType::KEYWORD_ARG, "False", "Style the child window like a framed item: use FrameBg, FrameRounding, FrameBorderSize, FramePadding instead of ChildBg, ChildRounding, ChildBorderSize, WindowPadding." });
+        args.push_back({ mvPyDataType::Bool, "auto_resize_x", mvArgType::KEYWORD_ARG, "False", "Enable auto-resizing width based on child content. Read 'IMPORTANT: Size measurement' details above." });
+        args.push_back({ mvPyDataType::Bool, "auto_resize_y", mvArgType::KEYWORD_ARG, "False", "Enable auto-resizing height based on child content. Read 'IMPORTANT: Size measurement' details above." });
 
-        setup.about = "Adds an embedded child window. Will show scrollbars when items do not fit.";
+        setup.about =
+            "Adds an embedded child window. Will show scrollbars when items do not fit. About using auto_resize/resizable flags: "
+            "size measurement for a given axis is only performed when the child window is within visible boundaries, or is just appearing and it won't update its auto-size while clipped. "
+            "While not perfect, it is a better default behavior as the always-on performance gain is more valuable than the occasional 'resizing after becoming visible again' glitch. "
+            "You may also use always_auto_resize to force an update even when child window is not in view. However doing so will degrade performance. "
+            "Remember that combining both auto_resize_x and auto_resize_y defeats purpose of a scrolling region and is NOT recommended.";
         setup.category = { "Containers", "Widgets" };
         setup.createContextManager = true;
         break;
@@ -2106,6 +2135,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
             MV_PARSER_ARG_PAYLOAD_TYPE |
             MV_PARSER_ARG_TRACKED |
             MV_PARSER_ARG_SEARCH_DELAY |
+            MV_PARSER_ARG_ENABLED |
             MV_PARSER_ARG_POS)
         );
 
@@ -2113,7 +2143,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::Float, "horizontal_spacing", mvArgType::KEYWORD_ARG, "-1", "Spacing for the horizontal layout." });
         args.push_back({ mvPyDataType::Float, "xoffset", mvArgType::KEYWORD_ARG, "0.0", "Offset from containing window x item location within group." });
 
-        setup.about = "Creates a group that other widgets can belong to. The group allows item commands to be issued for all of its members.";
+        setup.about = "Creates a group that other widgets can belong to. The group allows item commands to be issued for all of its members.\nEnable property acts in a special way enabling/disabling everything inside the group. (Use mvStyleVar_DisabledAlpha to edit colors within the disabled group.)";
         setup.category = { "Containers", "Widgets" };
         setup.createContextManager = true;
         break;
@@ -2457,9 +2487,9 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::Bool, "no_drag_drop", mvArgType::KEYWORD_ARG, "False", "Disable ability to drag and drop small preview (color square) to apply colors to other items." });
         args.push_back({ mvPyDataType::Bool, "alpha_bar", mvArgType::KEYWORD_ARG, "False", "Show vertical alpha bar/gradient in picker." });
         args.push_back({ mvPyDataType::Long, "alpha_preview", mvArgType::KEYWORD_ARG, "0", "mvColorEdit_AlphaPreviewNone, mvColorEdit_AlphaPreview, or mvColorEdit_AlphaPreviewHalf" });
-        args.push_back({ mvPyDataType::Long, "display_mode", mvArgType::KEYWORD_ARG, "1048576", "mvColorEdit_rgb, mvColorEdit_hsv, or mvColorEdit_hex" });
-        args.push_back({ mvPyDataType::Long, "display_type", mvArgType::KEYWORD_ARG, "8388608", "mvColorEdit_uint8 or mvColorEdit_float" });
-        args.push_back({ mvPyDataType::Long, "input_mode", mvArgType::KEYWORD_ARG, "134217728", "mvColorEdit_input_rgb or mvColorEdit_input_hsv" });
+        args.push_back({ mvPyDataType::Long, "display_mode", mvArgType::KEYWORD_ARG, "internal_dpg.mvColorEdit_rgb", "mvColorEdit_rgb, mvColorEdit_hsv, or mvColorEdit_hex" });
+        args.push_back({ mvPyDataType::Long, "display_type", mvArgType::KEYWORD_ARG, "internal_dpg.mvColorEdit_uint8", "mvColorEdit_uint8 or mvColorEdit_float" });
+        args.push_back({ mvPyDataType::Long, "input_mode", mvArgType::KEYWORD_ARG, "internal_dpg.mvColorEdit_input_rgb", "mvColorEdit_input_* values" });
 
         setup.about = "Adds an RGBA color editor. Left clicking the small color preview will provide a color picker. Click and draging the small color preview will copy the color to be applied on any other color widget.";
         setup.category = { "Widgets", "Colors" };
@@ -2514,10 +2544,10 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::Bool, "display_rgb", mvArgType::KEYWORD_ARG, "False", "Override _display_ type among RGB/HSV/Hex." });
         args.push_back({ mvPyDataType::Bool, "display_hsv", mvArgType::KEYWORD_ARG, "False", "Override _display_ type among RGB/HSV/Hex." });
         args.push_back({ mvPyDataType::Bool, "display_hex", mvArgType::KEYWORD_ARG, "False", "Override _display_ type among RGB/HSV/Hex." });
-        args.push_back({ mvPyDataType::Long, "picker_mode", mvArgType::KEYWORD_ARG, "33554432", "mvColorPicker_bar or mvColorPicker_wheel" });
+        args.push_back({ mvPyDataType::Long, "picker_mode", mvArgType::KEYWORD_ARG, "internal_dpg.mvColorPicker_bar", "mvColorPicker_bar or mvColorPicker_wheel" });
         args.push_back({ mvPyDataType::Long, "alpha_preview", mvArgType::KEYWORD_ARG, "0", "mvColorEdit_AlphaPreviewNone, mvColorEdit_AlphaPreview, or mvColorEdit_AlphaPreviewHalf" });
-        args.push_back({ mvPyDataType::Long, "display_type", mvArgType::KEYWORD_ARG, "8388608", "mvColorEdit_uint8 or mvColorEdit_float" });
-        args.push_back({ mvPyDataType::Long, "input_mode", mvArgType::KEYWORD_ARG, "134217728", "mvColorEdit_input_rgb or mvColorEdit_input_hsv" });
+        args.push_back({ mvPyDataType::Long, "display_type", mvArgType::KEYWORD_ARG, "internal_dpg.mvColorEdit_uint8", "mvColorEdit_uint8 or mvColorEdit_float" });
+        args.push_back({ mvPyDataType::Long, "input_mode", mvArgType::KEYWORD_ARG, "internal_dpg.mvColorEdit_input_rgb", "mvColorEdit_input_* values."});
 
         setup.about = "Adds an RGB color picker. Right click the color picker for options. Click and drag the color preview to copy the color and drop on any other color widget to apply. Right Click allows the style of the color picker to be changed.";
         setup.category = { "Widgets", "Colors" };
@@ -2579,7 +2609,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
             MV_PARSER_ARG_POS)
         );
 
-        setup.about = "Adds a horizontal line separator.";
+        setup.about = "Adds a horizontal line separator. Use 'label' parameter to add text and mvStyleVar_SeparatorText* elements to style it.";
         break;
     }
     case mvAppItemType::mvListbox:                     
@@ -2660,37 +2690,46 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::Bool, "no_title", mvArgType::KEYWORD_ARG, "False", "the plot title will not be displayed"});
         args.push_back({ mvPyDataType::Bool, "no_menus", mvArgType::KEYWORD_ARG, "False", "the user will not be able to open context menus with right-click"});
         args.push_back({ mvPyDataType::Bool, "no_box_select", mvArgType::KEYWORD_ARG, "False", "the user will not be able to box-select with right-click drag"});
-        args.push_back({ mvPyDataType::Bool, "no_mouse_pos", mvArgType::KEYWORD_ARG, "False", "the mouse position, in plot coordinates, will not be displayed inside of the plot"});
-        args.push_back({ mvPyDataType::Bool, "no_highlight", mvArgType::KEYWORD_ARG, "False", "plot items will not be highlighted when their legend entry is hovered"});
-        args.push_back({ mvPyDataType::Bool, "no_child", mvArgType::KEYWORD_ARG, "False", "a child window region will not be used to capture mouse scroll (can boost performance for single ImGui window applications)"});
-        args.push_back({ mvPyDataType::Bool, "query", mvArgType::KEYWORD_ARG, "False", "the user will be able to draw query rects with middle - mouse or CTRL + right - click drag"});
+        args.push_back({ mvPyDataType::Bool, "no_mouse_pos", mvArgType::KEYWORD_ARG, "False", "the text of mouse position, in plot coordinates, will not be displayed inside of the plot"});
+        args.push_back({ mvPyDataType::Bool, "no_highlight", mvArgType::DEPRECATED_REMOVE_KEYWORD_ARG, "False", "Removed because not supported from the backend anymore. To control the highlighting of series use the same argument in `add_plot_legend`"});
+        args.push_back({ mvPyDataType::Bool, "no_child", mvArgType::DEPRECATED_REMOVE_KEYWORD_ARG, "False", "a child window region will not be used to capture mouse scroll (can boost performance for single ImGui window applications)"});
+        args.push_back({ mvPyDataType::Bool, "query", mvArgType::KEYWORD_ARG, "False", "the user will be able to draw query rects with CTRL + right-click drag"});
+        args.push_back({ mvPyDataType::FloatList, "query_color", mvArgType::KEYWORD_ARG, "(0, 255, 0, 255)", "Color of the query rectangles." });
+        args.push_back({ mvPyDataType::Integer, "min_query_rects", mvArgType::KEYWORD_ARG, "1", "The minimum number of query rects that can be in the plot. If there are less rects than this value, it won't be possible to delete them." });
+        args.push_back({ mvPyDataType::Integer, "max_query_rects", mvArgType::KEYWORD_ARG, "1", "The maximum number of query rects that can be in the plot. If the number is reached any rect added will replace the latest one. (0 means unlimited)" });
         args.push_back({ mvPyDataType::Bool, "crosshairs", mvArgType::KEYWORD_ARG, "False", "the default mouse cursor will be replaced with a crosshair when hovered"});
-        args.push_back({ mvPyDataType::Bool, "anti_aliased", mvArgType::KEYWORD_ARG, "False", "plot lines will be software anti-aliased (not recommended for high density plots, prefer MSAA)"});
+        args.push_back({ mvPyDataType::Bool, "anti_aliased", mvArgType::DEPRECATED_REMOVE_KEYWORD_ARG, "True", "This feature was deprecated in ImPlot. To enable/disable anti_aliasing use `dpg.configure_app()` with the `anti_aliasing` parameters."});
         args.push_back({ mvPyDataType::Bool, "equal_aspects", mvArgType::KEYWORD_ARG, "False", "primary x and y axes will be constrained to have the same units/pixel (does not apply to auxiliary y-axes)"});
+        args.push_back({ mvPyDataType::Bool, "no_inputs", mvArgType::KEYWORD_ARG, "False", "the user will not be able to interact with the plot"});
+        args.push_back({ mvPyDataType::Bool, "no_frame", mvArgType::KEYWORD_ARG, "False", "the ImGui frame will not be rendered"});
+        // args.push_back({ mvPyDataType::Bool, "canvas_only", mvArgType::KEYWORD_ARG, "False", "shortcut for: no_title + no_legend + no_menu + no_box_select + no_mouse_pos"});
         args.push_back({ mvPyDataType::Bool, "use_local_time", mvArgType::KEYWORD_ARG, "False", "axis labels will be formatted for your timezone when" });
         args.push_back({ mvPyDataType::Bool, "use_ISO8601", mvArgType::KEYWORD_ARG, "False", "dates will be formatted according to ISO 8601 where applicable (e.g. YYYY-MM-DD, YYYY-MM, --MM-DD, etc.)" });
         args.push_back({ mvPyDataType::Bool, "use_24hour_clock", mvArgType::KEYWORD_ARG, "False", "times will be formatted using a 24 hour clock" });
 
         // key modifiers
-        args.push_back({ mvPyDataType::Integer, "pan_button", mvArgType::KEYWORD_ARG, "internal_dpg.mvMouseButton_Left", "enables panning when held" });
-        args.push_back({ mvPyDataType::Integer, "pan_mod", mvArgType::KEYWORD_ARG, "-1", "optional modifier that must be held for panning" });
+        args.push_back({ mvPyDataType::Integer, "pan_button", mvArgType::KEYWORD_ARG, "internal_dpg.mvMouseButton_Left", "mouse button that enables panning when held" });
+        args.push_back({ mvPyDataType::Integer, "pan_mod", mvArgType::KEYWORD_ARG, "internal_dpg.mvKey_None", "optional modifier that must be held for panning" });
+        args.push_back({ mvPyDataType::Integer, "context_menu_button", mvArgType::KEYWORD_ARG, "internal_dpg.mvMouseButton_Right", "opens context menus (if enabled) when clicked" });
         args.push_back({ mvPyDataType::Integer, "fit_button", mvArgType::KEYWORD_ARG, "internal_dpg.mvMouseButton_Left", "fits visible data when double clicked" });
-        args.push_back({ mvPyDataType::Integer, "context_menu_button", mvArgType::KEYWORD_ARG, "internal_dpg.mvMouseButton_Right", "opens plot context menu (if enabled) when clicked" });
         args.push_back({ mvPyDataType::Integer, "box_select_button", mvArgType::KEYWORD_ARG, "internal_dpg.mvMouseButton_Right", "begins box selection when pressed and confirms selection when released" });
-        args.push_back({ mvPyDataType::Integer, "box_select_mod", mvArgType::KEYWORD_ARG, "-1", "begins box selection when pressed and confirms selection when released" });
+        args.push_back({ mvPyDataType::Integer, "box_select_mod", mvArgType::KEYWORD_ARG, "internal_dpg.mvKey_None", "begins box selection when pressed and confirms selection when released" });
         args.push_back({ mvPyDataType::Integer, "box_select_cancel_button", mvArgType::KEYWORD_ARG, "internal_dpg.mvMouseButton_Left", "cancels active box selection when pressed" });
-        args.push_back({ mvPyDataType::Integer, "query_button", mvArgType::KEYWORD_ARG, "internal_dpg.mvMouseButton_Middle", "begins query selection when pressed and end query selection when released" });
-        args.push_back({ mvPyDataType::Integer, "query_mod", mvArgType::KEYWORD_ARG, "-1", "optional modifier that must be held for query selection" });
-        args.push_back({ mvPyDataType::Integer, "query_toggle_mod", mvArgType::KEYWORD_ARG, "internal_dpg.mvKey_Control", "when held, active box selections turn into queries" });
-        args.push_back({ mvPyDataType::Integer, "horizontal_mod", mvArgType::KEYWORD_ARG, "internal_dpg.mvKey_Alt", "expands active box selection/query horizontally to plot edge when held" });
-        args.push_back({ mvPyDataType::Integer, "vertical_mod", mvArgType::KEYWORD_ARG, "internal_dpg.mvKey_Shift", "expands active box selection/query vertically to plot edge when held" });
+        args.push_back({ mvPyDataType::Integer, "query_toggle_mod", mvArgType::KEYWORD_ARG, "internal_dpg.mvKey_ModCtrl", "when held, active box selections turn into queries" });
+        args.push_back({ mvPyDataType::Integer, "horizontal_mod", mvArgType::KEYWORD_ARG, "internal_dpg.mvKey_ModAlt", "expands active box selection/query horizontally to plot edge when held" });
+        args.push_back({ mvPyDataType::Integer, "vertical_mod", mvArgType::KEYWORD_ARG, "internal_dpg.mvKey_ModShift", "expands active box selection/query vertically to plot edge when held" });
+        args.push_back({ mvPyDataType::Integer, "override_mod", mvArgType::KEYWORD_ARG, "internal_dpg.mvKey_ModCtrl", "when held, all input is ignored; used to enable axis/plots as DND sources" });
+        args.push_back({ mvPyDataType::Integer, "zoom_mod", mvArgType::KEYWORD_ARG, "internal_dpg.mvKey_None", "optional modifier that must be held for scroll wheel zooming" });
+        args.push_back({ mvPyDataType::Integer, "zoom_rate", mvArgType::KEYWORD_ARG, "0.1", "zoom rate for scroll (e.g. 0.1f = 10% plot range every scroll click); make negative to invert" });
+        args.push_back({ mvPyDataType::Integer, "query_button", mvArgType::DEPRECATED_REMOVE_KEYWORD_ARG, "0", "This refers to the old way of querying of ImPlot, now replaced with `DragRect()`" });
+        args.push_back({ mvPyDataType::Integer, "query_mod", mvArgType::DEPRECATED_REMOVE_KEYWORD_ARG, "internal_dpg.mvKey_None", "This refers to the old way of querying of ImPlot, now replaced with `DragRect()`" });
 
-        setup.about = "Adds a plot which is used to hold series, and can be drawn to with draw commands.";
+        setup.about = "Adds a plot which is used to hold series, and can be drawn to with draw commands. For all _mod parameters use mvKey_ModX enums, or mvKey_ModDisabled to disable the modifier.";
         setup.category = { "Plotting", "Containers", "Widgets" };
         setup.createContextManager = true;
         break;
     }
-    case mvAppItemType::mvSimplePlot:                  
+    case mvAppItemType::mvSimplePlot:
     {
         AddCommonArgs(args, (CommonParserArgs)(
             MV_PARSER_ARG_ID |
@@ -2719,7 +2758,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         setup.category = { "Plotting", "Widgets" };
         break;
     }
-    case mvAppItemType::mvDrawlist:                    
+    case mvAppItemType::mvDrawlist:
     {
         AddCommonArgs(args, (CommonParserArgs)(
             MV_PARSER_ARG_ID |
@@ -2759,6 +2798,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::Bool, "collapsed", mvArgType::KEYWORD_ARG, "False", "Collapse the window." });
         args.push_back({ mvPyDataType::Bool, "autosize", mvArgType::KEYWORD_ARG, "False", "Autosized the window to fit it's items." });
         args.push_back({ mvPyDataType::Bool, "no_resize", mvArgType::KEYWORD_ARG, "False", "Allows for the window size to be changed or fixed." });
+        args.push_back({ mvPyDataType::Bool, "unsaved_document", mvArgType::KEYWORD_ARG, "False", "Show a special marker if the document is not saved." });
         args.push_back({ mvPyDataType::Bool, "no_title_bar", mvArgType::KEYWORD_ARG, "False", "Title name for the title bar of the window." });
         args.push_back({ mvPyDataType::Bool, "no_move", mvArgType::KEYWORD_ARG, "False", "Allows for the window's position to be changed or fixed." });
         args.push_back({ mvPyDataType::Bool, "no_scrollbar", mvArgType::KEYWORD_ARG, "False", " Disable scrollbars. (window can still scroll with mouse or programmatically)" });
@@ -2832,6 +2872,11 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::Bool, "leaf", mvArgType::KEYWORD_ARG, "False", "No collapsing, no arrow (use as a convenience for leaf nodes)." });
         args.push_back({ mvPyDataType::Bool, "bullet", mvArgType::KEYWORD_ARG, "False", "Display a bullet instead of arrow." });
         args.push_back({ mvPyDataType::Bool, "selectable", mvArgType::KEYWORD_ARG, "False", "Makes the tree selectable." });
+        args.push_back({ mvPyDataType::Bool, "span_text_width", mvArgType::KEYWORD_ARG, "False", "Makes hitbox and highlight only cover the label." });
+        args.push_back({ mvPyDataType::Bool, "span_full_width", mvArgType::KEYWORD_ARG, "False", "Extend hit box to the left-most and right-most edges (cover the indent area)." });
+        // TODO: Test these 2 arguments
+        // args.push_back({ mvPyDataType::Bool, "span_available_width", mvArgType::KEYWORD_ARG, "False", "Extend hit box to the right-most edge, even if not framed." });
+        // args.push_back({ mvPyDataType::Bool, "span_all_columns", mvArgType::KEYWORD_ARG, "False", "Frame will span all columns of its container table (text will still fit in current column)." });
 
         setup.about = "Adds a tree node to add items to.";
         setup.category = { "Containers", "Widgets" };
@@ -2858,7 +2903,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         );
 
         args.push_back({ mvPyDataType::String, "overlay", mvArgType::KEYWORD_ARG, "''", "Overlayed text onto the bar that typically used to display the value of the progress." });
-        args.push_back({ mvPyDataType::Float, "default_value", mvArgType::KEYWORD_ARG, "0.0", "Normalized value to fill the bar from 0.0 to 1.0." });
+        args.push_back({ mvPyDataType::Float, "default_value", mvArgType::KEYWORD_ARG, "0.0", "Normalized value to fill the bar from 0.0 to 1.0. Put a negative value to show an indeterminate progress bar." });
 
         setup.about = "Adds a progress bar.";
         break;
@@ -2901,7 +2946,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         );
 
         args.push_back({ mvPyDataType::UUID, "texture_tag", mvArgType::REQUIRED_ARG, "", "The texture_tag should come from a texture that was added to a texture registry." });
-        args.push_back({ mvPyDataType::Integer, "frame_padding", mvArgType::KEYWORD_ARG, "-1", "Empty space around the outside of the texture. Button will show around the texture." });
+        args.push_back({ mvPyDataType::Integer, "frame_padding", mvArgType::DEPRECATED_KEYWORD_ARG, "-1", "Empty space around the outside of the texture. Button will show around the texture.", "This is not supported anymore by ImGui but still used here as deprecated." });
         args.push_back({ mvPyDataType::FloatList, "tint_color", mvArgType::KEYWORD_ARG, "(255, 255, 255, 255)", "Applies a color tint to the entire texture." });
         args.push_back({ mvPyDataType::FloatList, "background_color", mvArgType::KEYWORD_ARG, "(0, 0, 0, 0)", "Displays a border of the specified color around the texture." });
         args.push_back({ mvPyDataType::FloatList, "uv_min", mvArgType::KEYWORD_ARG, "(0.0, 0.0)", "Normalized texture coordinates min point." });
@@ -3197,6 +3242,8 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::Bool, "prefer_sort_descending", mvArgType::KEYWORD_ARG, "False", "Make the initial sort direction Descending when first sorting on this column." });
         args.push_back({ mvPyDataType::Bool, "indent_enable", mvArgType::KEYWORD_ARG, "False", "Use current Indent value when entering cell (default for column 0)." });
         args.push_back({ mvPyDataType::Bool, "indent_disable", mvArgType::KEYWORD_ARG, "False", "Ignore current Indent value when entering cell (default for columns > 0). Indentation changes _within_ the cell will still be honored." });
+        args.push_back({ mvPyDataType::Bool, "angled_header", mvArgType::KEYWORD_ARG, "False", "Set this parameter to True to display the header text for this column in an angled (diagonal) orientation. This will add an additional row to accommodate the angled text." });
+        args.push_back({ mvPyDataType::Bool, "no_header_label", mvArgType::KEYWORD_ARG, "False", "Disable horizontal label for this column. Name will still appear in context menu or in angled headers." });
 
         setup.about = "Adds a table column.";
         setup.category = { "Tables", "Widgets" };
@@ -3412,15 +3459,15 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::FloatList, "pmin", mvArgType::REQUIRED_ARG, "...", "Min point of bounding rectangle." });
         args.push_back({ mvPyDataType::FloatList, "pmax", mvArgType::REQUIRED_ARG, "...", "Max point of bounding rectangle." });
         args.push_back({ mvPyDataType::IntList, "color", mvArgType::KEYWORD_ARG, "(255, 255, 255, 255)" });
-        args.push_back({ mvPyDataType::IntList, "color_upper_left", mvArgType::KEYWORD_ARG, "(255, 255, 255, 255)", "'multicolor' must be set to 'True'" });
-        args.push_back({ mvPyDataType::IntList, "color_upper_right", mvArgType::KEYWORD_ARG, "(255, 255, 255, 255)", "'multicolor' must be set to 'True'" });
-        args.push_back({ mvPyDataType::IntList, "color_bottom_right", mvArgType::KEYWORD_ARG, "(255, 255, 255, 255)", "'multicolor' must be set to 'True'" });
-        args.push_back({ mvPyDataType::IntList, "color_bottom_left", mvArgType::KEYWORD_ARG, "(255, 255, 255, 255)", "'multicolor' must be set to 'True'" });
+        args.push_back({ mvPyDataType::IntList, "color_upper_left", mvArgType::DEPRECATED_KEYWORD_ARG, "(255, 255, 255, 255)", "Use corner_colors instead", "Use corner_colors instead." });
+        args.push_back({ mvPyDataType::IntList, "color_upper_right", mvArgType::DEPRECATED_KEYWORD_ARG, "(255, 255, 255, 255)", "Use corner_colors instead", "Use corner_colors instead." });
+        args.push_back({ mvPyDataType::IntList, "color_bottom_right", mvArgType::DEPRECATED_KEYWORD_ARG, "(255, 255, 255, 255)", "Use corner_colors instead", "Use corner_colors instead." });
+        args.push_back({ mvPyDataType::IntList, "color_bottom_left", mvArgType::DEPRECATED_KEYWORD_ARG, "(255, 255, 255, 255)", "Use corner_colors instead", "Use corner_colors instead." });
         args.push_back({ mvPyDataType::IntList, "fill", mvArgType::KEYWORD_ARG, "(0, 0, 0, -255)" });
         args.push_back({ mvPyDataType::Bool, "multicolor", mvArgType::KEYWORD_ARG, "False" });
         args.push_back({ mvPyDataType::Float, "rounding", mvArgType::KEYWORD_ARG, "0.0", "Number of pixels of the radius that will round the corners of the rectangle. Note: doesn't work with multicolor" });
         args.push_back({ mvPyDataType::Float, "thickness", mvArgType::KEYWORD_ARG, "1.0" });
-        args.push_back({ mvPyDataType::ListListInt, "corner_colors", mvArgType::KEYWORD_ARG, "[(255, 255, 255, 255), (255, 255, 255, 255), (255, 255, 255, 255), (255, 255, 255, 255)]", "Corner colors in a list, starting with upper-left and going clockwise: (upper-left, upper-right, bottom-right, bottom-left). 'multicolor' must be set to 'True'." });
+        args.push_back({ mvPyDataType::ListListInt, "corner_colors", mvArgType::KEYWORD_ARG, "None", "Corner colors in a list, starting with upper-left and going clockwise: (upper-left, upper-right, bottom-right, bottom-left). 'multicolor' must be set to 'True'." });
 
         setup.about = "Adds a rectangle.";
         setup.category = { "Drawlist", "Widgets" };
@@ -3804,11 +3851,41 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::IntList, "color", mvArgType::KEYWORD_ARG, "(0, 0, 0, -255)" });
         args.push_back({ mvPyDataType::Float, "thickness", mvArgType::KEYWORD_ARG, "1.0" });
         args.push_back({ mvPyDataType::Bool, "show_label", mvArgType::KEYWORD_ARG, "True" });
+        args.push_back({ mvPyDataType::FloatList, "offset", mvArgType::KEYWORD_ARG, "(16.0, 8.0)", "Offset of the label, in pixels, relative to the drag point itself" });
+        args.push_back({ mvPyDataType::Bool, "clamped", mvArgType::KEYWORD_ARG, "True", "Keep the label within the visible area of the plot even if the drag point itself goes outside of the visible area" });
+        args.push_back({ mvPyDataType::Bool, "delayed", mvArgType::KEYWORD_ARG, "False", "tool rendering will be delayed one frame; useful when applying position-constraints" });
+        args.push_back({ mvPyDataType::Bool, "no_cursor", mvArgType::KEYWORD_ARG, "False", "drag tools won't change cursor icons when hovered or held" });
+        args.push_back({ mvPyDataType::Bool, "no_fit", mvArgType::KEYWORD_ARG, "False", "the drag tool won't be considered for plot fits" });
+        args.push_back({ mvPyDataType::Bool, "no_inputs", mvArgType::KEYWORD_ARG, "False", "lock the tool from user inputs" });
 
         setup.about = "Adds a drag point to a plot.";
         setup.category = { "Plotting", "Widgets" };
         break;
     }
+
+    case mvAppItemType::mvDragRect:                   
+    {
+        AddCommonArgs(args, (CommonParserArgs)(
+            MV_PARSER_ARG_ID |
+            MV_PARSER_ARG_PARENT |
+            MV_PARSER_ARG_BEFORE |
+            MV_PARSER_ARG_SOURCE |
+            MV_PARSER_ARG_CALLBACK |
+            MV_PARSER_ARG_SHOW)
+        );
+
+        args.push_back({ mvPyDataType::DoubleList, "default_value", mvArgType::KEYWORD_ARG, "(0.0, 0.0, 0.0, 0.0)", "The coordinates are specified in a sequence of: (xmin, ymin, xmax, ymax)" });
+        args.push_back({ mvPyDataType::IntList, "color", mvArgType::KEYWORD_ARG, "(0, 0, 0, -255)" });
+        args.push_back({ mvPyDataType::Bool, "delayed", mvArgType::KEYWORD_ARG, "False", "tool rendering will be delayed one frame; useful when applying position-constraints" });
+        args.push_back({ mvPyDataType::Bool, "no_cursor", mvArgType::KEYWORD_ARG, "False", "drag tools won't change cursor icons when hovered or held" });
+        args.push_back({ mvPyDataType::Bool, "no_fit", mvArgType::KEYWORD_ARG, "False", "the drag tool won't be considered for plot fits" });
+        args.push_back({ mvPyDataType::Bool, "no_inputs", mvArgType::KEYWORD_ARG, "False", "lock the tool from user inputs" });
+
+        setup.about = "Adds a drag rectangle to a plot.";
+        setup.category = { "Plotting", "Widgets" };
+        break;
+    }
+
     case mvAppItemType::mvDragLine:                    
     {
         AddCommonArgs(args, (CommonParserArgs)(
@@ -3820,11 +3897,15 @@ DearPyGui::GetEntityParser(mvAppItemType type)
             MV_PARSER_ARG_SHOW)
         );
 
-        args.push_back({ mvPyDataType::DoubleList, "default_value", mvArgType::KEYWORD_ARG, "0.0" });
+        args.push_back({ mvPyDataType::Double, "default_value", mvArgType::KEYWORD_ARG, "0.0" });
         args.push_back({ mvPyDataType::IntList, "color", mvArgType::KEYWORD_ARG, "(0, 0, 0, -255)" });
         args.push_back({ mvPyDataType::Float, "thickness", mvArgType::KEYWORD_ARG, "1.0" });
         args.push_back({ mvPyDataType::Bool, "show_label", mvArgType::KEYWORD_ARG, "True" });
         args.push_back({ mvPyDataType::Bool, "vertical", mvArgType::KEYWORD_ARG, "True" });
+        args.push_back({ mvPyDataType::Bool, "delayed", mvArgType::KEYWORD_ARG, "False", "tool rendering will be delayed one frame; useful when applying position-constraints" });
+        args.push_back({ mvPyDataType::Bool, "no_cursor", mvArgType::KEYWORD_ARG, "False", "drag tools won't change cursor icons when hovered or held" });
+        args.push_back({ mvPyDataType::Bool, "no_fit", mvArgType::KEYWORD_ARG, "False", "the drag tool won't be considered for plot fits" });
+        args.push_back({ mvPyDataType::Bool, "no_inputs", mvArgType::KEYWORD_ARG, "False", "lock the tool from user inputs" });
 
         setup.about = "Adds a drag line to a plot.";
         setup.category = { "Plotting", "Widgets" };
@@ -3849,6 +3930,24 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         setup.category = { "Plotting", "Widgets" };
         break;
     }
+    case mvAppItemType::mvAxisTag:                  
+    {
+        AddCommonArgs(args, (CommonParserArgs)(
+            MV_PARSER_ARG_ID |
+            MV_PARSER_ARG_PARENT |
+            MV_PARSER_ARG_BEFORE |
+            MV_PARSER_ARG_SOURCE |
+            MV_PARSER_ARG_SHOW)
+        );
+
+        args.push_back({ mvPyDataType::Double, "default_value", mvArgType::KEYWORD_ARG, "0.0" });
+        args.push_back({ mvPyDataType::IntList, "color", mvArgType::KEYWORD_ARG, "(0, 0, 0, -255)" });
+        args.push_back({ mvPyDataType::Bool, "auto_rounding", mvArgType::KEYWORD_ARG, "False", "When enabled, the value displayed on the tag will be automatically rounded to the precision of other values displayed at axis' ticks. Only makes sense when label is not set, i.e. when the tag displays its location on the axis." });
+
+        setup.about = "Adds custom labels to axes.";
+        setup.category = { "Plotting", "Widgets" };
+        break;
+    }
     case mvAppItemType::mvLineSeries:                  
     {
         AddCommonArgs(args, (CommonParserArgs)(
@@ -3861,6 +3960,11 @@ DearPyGui::GetEntityParser(mvAppItemType type)
 
         args.push_back({ mvPyDataType::DoubleList, "x" });
         args.push_back({ mvPyDataType::DoubleList, "y" });
+        args.push_back({ mvPyDataType::Bool, "segments", mvArgType::KEYWORD_ARG, "False", "a line segment will be rendered from every two consecutive points" });
+        args.push_back({ mvPyDataType::Bool, "loop", mvArgType::KEYWORD_ARG, "False", "the last and first point will be connected to form a closed loop" });
+        args.push_back({ mvPyDataType::Bool, "skip_nan", mvArgType::KEYWORD_ARG, "False", "NaNs values will be skipped instead of rendered as missing data" });
+        args.push_back({ mvPyDataType::Bool, "no_clip", mvArgType::KEYWORD_ARG, "False", "markers (if displayed) on the edge of a plot will not be clipped" });
+        args.push_back({ mvPyDataType::Bool, "shaded", mvArgType::KEYWORD_ARG, "False", "a filled region between the line and horizontal origin will be rendered; use add_shade_series for more advanced cases" });
 
         setup.about = "Adds a line series to a plot.";
         setup.category = { "Plotting", "Containers", "Widgets" };
@@ -3878,6 +3982,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
 
         args.push_back({ mvPyDataType::DoubleList, "x" });
         args.push_back({ mvPyDataType::DoubleList, "y" });
+        args.push_back({ mvPyDataType::Bool, "no_clip", mvArgType::KEYWORD_ARG, "False", "markers on the edge of a plot will not be clipped" });
 
         setup.about = "Adds a scatter series to a plot.";
         setup.category = { "Plotting", "Containers", "Widgets" };
@@ -3896,6 +4001,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
 
         args.push_back({ mvPyDataType::DoubleList, "x" });
         args.push_back({ mvPyDataType::DoubleList, "y" });
+        args.push_back({ mvPyDataType::Bool, "horizontal", mvArgType::KEYWORD_ARG, "False", "stems will be rendered horizontally on the current y-axis" });
 
         setup.about = "Adds a stem series to a plot.";
         setup.category = { "Plotting", "Containers", "Widgets" };
@@ -3913,6 +4019,8 @@ DearPyGui::GetEntityParser(mvAppItemType type)
 
         args.push_back({ mvPyDataType::DoubleList, "x" });
         args.push_back({ mvPyDataType::DoubleList, "y" });
+        args.push_back({ mvPyDataType::Bool, "pre_step", mvArgType::KEYWORD_ARG, "False", "the y value is continued constantly to the left from every x position, i.e. the interval (x[i-1], x[i]] has the value y[i]" });
+        args.push_back({ mvPyDataType::Bool, "shaded", mvArgType::KEYWORD_ARG, "False", "a filled region between the line and horizontal origin will be rendered; use add_shade_series for more advanced cases" });
 
         setup.about = "Adds a stair series to a plot.";
         setup.category = { "Plotting", "Containers", "Widgets" };
@@ -3931,9 +4039,31 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::DoubleList, "x" });
         args.push_back({ mvPyDataType::DoubleList, "y" });
         args.push_back({ mvPyDataType::Float, "weight", mvArgType::KEYWORD_ARG, "1.0" });
-        args.push_back({ mvPyDataType::Bool, "horizontal", mvArgType::KEYWORD_ARG, "False" });
+        args.push_back({ mvPyDataType::Bool, "horizontal", mvArgType::KEYWORD_ARG, "False", "bars will be rendered horizontally on the current y-axis" });
 
         setup.about = "Adds a bar series to a plot.";
+        setup.category = { "Plotting", "Containers", "Widgets" };
+        break;
+    }
+    case mvAppItemType::mvBarGroupSeries:                   
+    {
+        AddCommonArgs(args, (CommonParserArgs)(
+            MV_PARSER_ARG_ID |
+            MV_PARSER_ARG_PARENT |
+            MV_PARSER_ARG_BEFORE |
+            MV_PARSER_ARG_SOURCE |
+            MV_PARSER_ARG_SHOW)
+        );
+
+        args.push_back({ mvPyDataType::DoubleList, "values" });
+        args.push_back({ mvPyDataType::StringList, "label_ids", mvArgType::REQUIRED_ARG, "...", "Label of each bar in a group" });
+        args.push_back({ mvPyDataType::Integer, "group_size", mvArgType::REQUIRED_ARG, "...", "Number of bars in a group"});
+        args.push_back({ mvPyDataType::Float, "group_width", mvArgType::KEYWORD_ARG, "0.67", "Size of bar groups" });
+        args.push_back({ mvPyDataType::Integer, "shift", mvArgType::KEYWORD_ARG, "0", "The position on the x axis where to start plotting bar groups" });
+        args.push_back({ mvPyDataType::Bool, "horizontal", mvArgType::KEYWORD_ARG, "False", "bar groups will be rendered horizontally on the current y-axis" });
+        args.push_back({ mvPyDataType::Bool, "stacked", mvArgType::KEYWORD_ARG, "False", "items in a group will be stacked on top of each other" });
+
+        setup.about = "Adds a bar groups series to a plot.";
         setup.category = { "Plotting", "Containers", "Widgets" };
         break;
     }
@@ -3958,7 +4088,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         setup.category = { "Plotting", "Containers", "Widgets" };
         break;
     }
-    case mvAppItemType::mvVLineSeries:                 
+    case mvAppItemType::mvInfLineSeries:                 
     {
         AddCommonArgs(args, (CommonParserArgs)(
             MV_PARSER_ARG_ID |
@@ -3969,24 +4099,9 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         );
 
         args.push_back({ mvPyDataType::DoubleList, "x" });
+        args.push_back({ mvPyDataType::Bool, "horizontal", mvArgType::KEYWORD_ARG, "False" });
 
-        setup.about = "Adds an infinite vertical line series to a plot.";
-        setup.category = { "Plotting", "Containers", "Widgets" };
-        break;
-    }
-    case mvAppItemType::mvHLineSeries:                 
-    {
-        AddCommonArgs(args, (CommonParserArgs)(
-            MV_PARSER_ARG_ID |
-            MV_PARSER_ARG_PARENT |
-            MV_PARSER_ARG_BEFORE |
-            MV_PARSER_ARG_SOURCE |
-            MV_PARSER_ARG_SHOW)
-        );
-
-        args.push_back({ mvPyDataType::DoubleList, "x" });
-
-        setup.about = "Adds an infinite horizontal line series to a plot.";
+        setup.about = "Adds an infinite line series to a plot.";
         setup.category = { "Plotting", "Containers", "Widgets" };
         break;
     }
@@ -4009,6 +4124,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::DoubleList, "bounds_max", mvArgType::KEYWORD_ARG, "(1.0, 1.0)" });
         args.push_back({ mvPyDataType::String, "format", mvArgType::KEYWORD_ARG, "'%0.1f'" });
         args.push_back({ mvPyDataType::Bool, "contribute_to_bounds", mvArgType::KEYWORD_ARG, "True" });
+        args.push_back({ mvPyDataType::Bool, "col_major", mvArgType::KEYWORD_ARG, "False", "data will be read in column major order" });
 
         setup.about = "Adds a heat series to a plot.";
         setup.category = { "Plotting", "Containers", "Widgets" };
@@ -4052,7 +4168,8 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::StringList, "labels" });
         args.push_back({ mvPyDataType::String, "format", mvArgType::KEYWORD_ARG, "'%0.2f'" });
         args.push_back({ mvPyDataType::Double, "angle", mvArgType::KEYWORD_ARG, "90.0" });
-        args.push_back({ mvPyDataType::Bool, "normalize", mvArgType::KEYWORD_ARG, "False" });
+        args.push_back({ mvPyDataType::Bool, "normalize", mvArgType::KEYWORD_ARG, "False", "force normalization of pie chart values (i.e. always make a full circle if sum < 0)" });
+        args.push_back({ mvPyDataType::Bool, "ignore_hidden", mvArgType::KEYWORD_ARG, "False", "ignore hidden slices when drawing the pie chart (as if they were not there)" });
 
         setup.about = "Adds an pie series to a plot.";
         setup.category = { "Plotting", "Containers", "Widgets" };
@@ -4088,11 +4205,29 @@ DearPyGui::GetEntityParser(mvAppItemType type)
 
         args.push_back({ mvPyDataType::Double, "x" });
         args.push_back({ mvPyDataType::Double, "y" });
-        args.push_back({ mvPyDataType::Integer, "x_offset", mvArgType::KEYWORD_ARG });
-        args.push_back({ mvPyDataType::Integer, "y_offset", mvArgType::KEYWORD_ARG });
+        args.push_back({ mvPyDataType::Integer, "x_offset", mvArgType::DEPRECATED_KEYWORD_ARG, "0", "Old way to set x offset of the label. Use `offset` argument instead.", "See the new offset argument." });
+        args.push_back({ mvPyDataType::Integer, "y_offset", mvArgType::DEPRECATED_KEYWORD_ARG, "0", "Old way to set y offset of the label. Use `offset` argument instead.", "See the new offset argument." });
+        args.push_back({ mvPyDataType::FloatList, "offset", mvArgType::KEYWORD_ARG, "(0.0, 0.0)", "Offset of the label, in pixels, relative to the coordinates." });
         args.push_back({ mvPyDataType::Bool, "vertical", mvArgType::KEYWORD_ARG, "False" });
 
-        setup.about = "Adds a label series to a plot.";
+        setup.about = "Adds a label series to a plot. x and y can only have one elements each.";
+        setup.category = { "Plotting", "Containers", "Widgets" };
+        break;
+    }
+    case mvAppItemType::mvDigitalSeries:             
+    {
+        AddCommonArgs(args, (CommonParserArgs)(
+            MV_PARSER_ARG_ID |
+            MV_PARSER_ARG_PARENT |
+            MV_PARSER_ARG_BEFORE |
+            MV_PARSER_ARG_SOURCE |
+            MV_PARSER_ARG_SHOW)
+        );
+
+        args.push_back({ mvPyDataType::DoubleList, "x" });
+        args.push_back({ mvPyDataType::DoubleList, "y" });
+
+        setup.about = "Adds a digital series to a plot. Digital plots do not respond to y drag or zoom, and are always referenced to the bottom of the plot.";
         setup.category = { "Plotting", "Containers", "Widgets" };
         break;
     }
@@ -4109,11 +4244,13 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::DoubleList, "x" });
         args.push_back({ mvPyDataType::Integer, "bins", mvArgType::KEYWORD_ARG, "-1" });
         args.push_back({ mvPyDataType::Float, "bar_scale", mvArgType::KEYWORD_ARG, "1.0" });
-        args.push_back({ mvPyDataType::Double, "min_range", mvArgType::KEYWORD_ARG, "0.0" });
-        args.push_back({ mvPyDataType::Double, "max_range", mvArgType::KEYWORD_ARG, "1.0" });
-        args.push_back({ mvPyDataType::Bool, "cumlative", mvArgType::KEYWORD_ARG, "False" });
-        args.push_back({ mvPyDataType::Bool, "density", mvArgType::KEYWORD_ARG, "False" });
-        args.push_back({ mvPyDataType::Bool, "outliers", mvArgType::KEYWORD_ARG, "True" });
+        args.push_back({ mvPyDataType::Double, "min_range", mvArgType::KEYWORD_ARG, "0.0", "set the min range value, the values under this min will be ignored" });
+        args.push_back({ mvPyDataType::Double, "max_range", mvArgType::KEYWORD_ARG, "0.0", "set the max range value, the values over this max will be ignored. If both min and max are 0.0, then the values will be the min and max values of the series" });
+        args.push_back({ mvPyDataType::Bool, "cumulative", mvArgType::KEYWORD_ARG, "False", "each bin will contain its count plus the counts of all previous bins" });
+        args.push_back({ mvPyDataType::Bool, "cumlative", mvArgType::DEPRECATED_RENAME_KEYWORD_ARG, "False", "Deprecated because of typo", "cumulative" });
+        args.push_back({ mvPyDataType::Bool, "density", mvArgType::KEYWORD_ARG, "False", "counts will be normalized, i.e. the PDF will be visualized, or the CDF will be visualized if Cumulative is also set" });
+        args.push_back({ mvPyDataType::Bool, "outliers", mvArgType::KEYWORD_ARG, "True", "exclude values outside the specifed histogram range from the count toward normalizing and cumulative counts" });
+        args.push_back({ mvPyDataType::Bool, "horizontal", mvArgType::KEYWORD_ARG, "False", "histogram bars will be rendered horizontally" });
         args.push_back({ mvPyDataType::Bool, "contribute_to_bounds", mvArgType::KEYWORD_ARG, "True" });
 
         setup.about = "Adds a histogram series to a plot.";
@@ -4134,12 +4271,13 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::DoubleList, "y" });
         args.push_back({ mvPyDataType::Integer, "xbins", mvArgType::KEYWORD_ARG, "-1" });
         args.push_back({ mvPyDataType::Integer, "ybins", mvArgType::KEYWORD_ARG, "-1" });
-        args.push_back({ mvPyDataType::Double, "xmin_range", mvArgType::KEYWORD_ARG, "0.0" });
-        args.push_back({ mvPyDataType::Double, "xmax_range", mvArgType::KEYWORD_ARG, "1.0" });
-        args.push_back({ mvPyDataType::Double, "ymin_range", mvArgType::KEYWORD_ARG, "0.0" });
-        args.push_back({ mvPyDataType::Double, "ymax_range", mvArgType::KEYWORD_ARG, "1.0" });
-        args.push_back({ mvPyDataType::Bool, "density", mvArgType::KEYWORD_ARG, "False" });
-        args.push_back({ mvPyDataType::Bool, "outliers", mvArgType::KEYWORD_ARG, "True" });
+        args.push_back({ mvPyDataType::Double, "xmin_range", mvArgType::KEYWORD_ARG, "0.0", "set the min x range value, the values under this min will be ignored"});
+        args.push_back({ mvPyDataType::Double, "xmax_range", mvArgType::KEYWORD_ARG, "0.0", "set the max x range value, the values over this max will be ignored"});
+        args.push_back({ mvPyDataType::Double, "ymin_range", mvArgType::KEYWORD_ARG, "0.0", "set the min y range value, the values under this min will be ignored"});
+        args.push_back({ mvPyDataType::Double, "ymax_range", mvArgType::KEYWORD_ARG, "0.0", "set the max y range value, the values over this max will be ignored. If all xmin, xmax, ymin and ymax are 0.0, then the values will be the min and max values of the series" });
+        args.push_back({ mvPyDataType::Bool, "density", mvArgType::KEYWORD_ARG, "False", "counts will be normalized, i.e. the PDF will be visualized" });
+        args.push_back({ mvPyDataType::Bool, "outliers", mvArgType::KEYWORD_ARG, "False", "exclude values outside the specified histogram range from the count used for normalizing" });
+        args.push_back({ mvPyDataType::Bool, "col_major", mvArgType::KEYWORD_ARG, "False", "data will be read in column major order" });
 
         setup.about = "Adds a 2d histogram series.";
         setup.category = { "Plotting", "Containers", "Widgets" };
@@ -4188,13 +4326,14 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::DoubleList, "y2", mvArgType::KEYWORD_ARG, "[]" });
         args.push_back({ mvPyDataType::DoubleList, "y3", mvArgType::KEYWORD_ARG, "[]" });
         args.push_back({ mvPyDataType::Bool, "tooltip", mvArgType::KEYWORD_ARG, "True", "Show tooltip when plot is hovered." });
+        args.push_back({ mvPyDataType::Bool, "no_fit", mvArgType::KEYWORD_ARG, "False", "the item won't be considered for plot fits" });
 
         setup.about = "Adds a custom series to a plot. New in 1.6.";
         setup.category = { "Plotting", "Containers", "Widgets" };
         setup.createContextManager = true;
         break;
     }
-    case mvAppItemType::mvAreaSeries:                  
+    case mvAppItemType::mvAreaSeries:
     {
         AddCommonArgs(args, (CommonParserArgs)(
             MV_PARSER_ARG_ID |
@@ -4234,6 +4373,9 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::UUID, "colormap", mvArgType::KEYWORD_ARG, "0", "mvPlotColormap_* constants or mvColorMap uuid from a color map registry" });
         args.push_back({ mvPyDataType::Float, "min_scale", mvArgType::KEYWORD_ARG, "0.0", "Sets the min number of the color scale. Typically is the same as the min scale from the heat series." });
         args.push_back({ mvPyDataType::Float, "max_scale", mvArgType::KEYWORD_ARG, "1.0", "Sets the max number of the color scale. Typically is the same as the max scale from the heat series." });
+        args.push_back({mvPyDataType:: String, "format", mvArgType::KEYWORD_ARG, "'%g'", "Formatting used for the labels."});
+        args.push_back({mvPyDataType:: Bool, "reverse_dir", mvArgType::KEYWORD_ARG, "False", "invert the colormap bar and axis scale (this only affects rendering; if you only want to reverse the scale mapping, make scale_min > scale_max)"});
+        args.push_back({mvPyDataType:: Bool, "mirror", mvArgType::KEYWORD_ARG, "False", "render the colormap label and tick labels on the opposite side"});
 
         setup.about = "Adds a legend that pairs values with colors. This is typically used with a heat series. ";
         setup.category = { "Widgets", "Colors" };
@@ -4457,8 +4599,13 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         );
 
         args.push_back({ mvPyDataType::Integer, "location", mvArgType::KEYWORD_ARG, "5", "location, mvPlot_Location_*" });
-        args.push_back({ mvPyDataType::Bool, "horizontal", mvArgType::KEYWORD_ARG, "False" });
-        args.push_back({ mvPyDataType::Bool, "outside", mvArgType::KEYWORD_ARG, "False" });
+        args.push_back({ mvPyDataType::Bool, "horizontal", mvArgType::KEYWORD_ARG, "False", "legend entries will be displayed horizontally" });
+        args.push_back({ mvPyDataType::Bool, "sort", mvArgType::KEYWORD_ARG, "False", "legend entries will be displayed in alphabetical order"});
+        args.push_back({ mvPyDataType::Bool, "outside", mvArgType::KEYWORD_ARG, "False", "legend will be rendered outside of the plot area"});
+        args.push_back({ mvPyDataType::Bool, "no_highlight_item", mvArgType::KEYWORD_ARG, "False", "plot items will not be highlighted when their legend entry is hovered" });
+        args.push_back({ mvPyDataType::Bool, "no_highlight_axis", mvArgType::KEYWORD_ARG, "False", "axes will not be highlighted when legend entries are hovered (only relevant if x/y-axis count > 1)" });
+        args.push_back({ mvPyDataType::Bool, "no_menus", mvArgType::KEYWORD_ARG, "False", "the user will not be able to open context menus with right-click" });
+        args.push_back({ mvPyDataType::Bool, "no_buttons", mvArgType::KEYWORD_ARG, "False", "legend icons will not function as hide/show buttons" });
 
         setup.about = "Adds a plot legend to a plot.";
         setup.category = { "Plotting", "Widgets" };
@@ -4475,14 +4622,27 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         );
 
         args.push_back({ mvPyDataType::Integer, "axis" });
-        args.push_back({ mvPyDataType::Bool, "no_gridlines", mvArgType::KEYWORD_ARG, "False" });
-        args.push_back({ mvPyDataType::Bool, "no_tick_marks", mvArgType::KEYWORD_ARG, "False" });
-        args.push_back({ mvPyDataType::Bool, "no_tick_labels", mvArgType::KEYWORD_ARG, "False" });
-        args.push_back({ mvPyDataType::Bool, "log_scale", mvArgType::KEYWORD_ARG, "False" });
-        args.push_back({ mvPyDataType::Bool, "invert", mvArgType::KEYWORD_ARG, "False" });
-        args.push_back({ mvPyDataType::Bool, "lock_min", mvArgType::KEYWORD_ARG, "False" });
-        args.push_back({ mvPyDataType::Bool, "lock_max", mvArgType::KEYWORD_ARG, "False" });
-        args.push_back({ mvPyDataType::Bool, "time", mvArgType::KEYWORD_ARG, "False" });
+        args.push_back({ mvPyDataType::Bool, "no_label", mvArgType::KEYWORD_ARG, "False", "the axis label will not be displayed" });
+        args.push_back({ mvPyDataType::Bool, "no_gridlines", mvArgType::KEYWORD_ARG, "False", "no grid lines will be displayed" });
+        args.push_back({ mvPyDataType::Bool, "no_tick_marks", mvArgType::KEYWORD_ARG, "False", "no tick marks will be displayed" });
+        args.push_back({ mvPyDataType::Bool, "no_tick_labels", mvArgType::KEYWORD_ARG, "False", "no text labels will be displayed" });
+        args.push_back({ mvPyDataType::Bool, "no_initial_fit", mvArgType::KEYWORD_ARG, "False", "axis will not be initially fit to data extents on the first rendered frame" });
+        args.push_back({ mvPyDataType::Bool, "no_menus", mvArgType::KEYWORD_ARG, "False", "the user will not be able to open context menus with right-click" });
+        args.push_back({ mvPyDataType::Bool, "no_side_switch", mvArgType::KEYWORD_ARG, "False", "the user will not be able to switch the axis side by dragging it" });
+        args.push_back({ mvPyDataType::Bool, "no_highlight", mvArgType::KEYWORD_ARG, "False", "the axis will not have its background highlighted when hovered or held" });
+        args.push_back({ mvPyDataType::Bool, "opposite", mvArgType::KEYWORD_ARG, "False", "axis ticks and labels will be rendered on the conventionally opposite side (i.e, right or top)" });
+        args.push_back({ mvPyDataType::Bool, "foreground_grid", mvArgType::KEYWORD_ARG, "False", "grid lines will be displayed in the foreground (i.e. on top of data) instead of the background" });
+        args.push_back({ mvPyDataType::String, "tick_format", mvArgType::KEYWORD_ARG, "''", "Sets a custom tick label formatter" });
+        args.push_back({ mvPyDataType::Integer, "scale", mvArgType::KEYWORD_ARG, "internal_dpg.mvPlotScale_Linear", "Sets the axis' scale. Can have only mvPlotScale_ values"});
+        args.push_back({ mvPyDataType::Bool, "log_scale", mvArgType::DEPRECATED_KEYWORD_ARG, "False", "Old way to set log scale in the axis. Use 'scale' argument instead.", "See the new scale argument." });
+        args.push_back({ mvPyDataType::Bool, "time", mvArgType::DEPRECATED_KEYWORD_ARG, "False", "Old way to set time scale in the axis. Use 'scale' argument instead.", "See the new scale argument." });
+        args.push_back({ mvPyDataType::Bool, "invert", mvArgType::KEYWORD_ARG, "False", "the axis values will be inverted (i.e. growing from right to left)" });
+        args.push_back({ mvPyDataType::Bool, "auto_fit", mvArgType::KEYWORD_ARG, "False", "axis will be auto-fitting to data extents" });
+        args.push_back({ mvPyDataType::Bool, "range_fit", mvArgType::KEYWORD_ARG, "False", "axis will only fit points if the point is in the visible range of the **orthogonal** axis" });
+        args.push_back({ mvPyDataType::Bool, "pan_stretch", mvArgType::KEYWORD_ARG, "False", "panning in a locked or constrained state will cause the axis to stretch if possible" });
+        args.push_back({ mvPyDataType::Bool, "lock_min", mvArgType::KEYWORD_ARG, "False", "the axis minimum value will be locked when panning/zooming"});
+        args.push_back({ mvPyDataType::Bool, "lock_max", mvArgType::KEYWORD_ARG, "False", "the axis maximum value will be locked when panning/zooming" });
+
 
         setup.about = "Adds an axis to a plot.";
         setup.category = { "Plotting", "Containers", "Widgets" };
@@ -4509,7 +4669,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
             MV_PARSER_ARG_SHOW)
         );
 
-        args.push_back({ mvPyDataType::Integer, "key", mvArgType::POSITIONAL_ARG, "-1", "Submits callback for all keys" });
+        args.push_back({ mvPyDataType::Integer, "key", mvArgType::POSITIONAL_ARG, "internal_dpg.mvKey_None", "Submits callback for all keys" });
         args.push_back({ mvPyDataType::UUID, "parent", mvArgType::KEYWORD_ARG, "internal_dpg.mvReservedUUID_1", "Parent to add this item to. (runtime adding)" });
 
         setup.about = "Adds a key down handler.";
@@ -4524,7 +4684,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
             MV_PARSER_ARG_SHOW)
         );
 
-        args.push_back({ mvPyDataType::Integer, "key", mvArgType::POSITIONAL_ARG, "-1", "Submits callback for all keys" });
+        args.push_back({ mvPyDataType::Integer, "key", mvArgType::POSITIONAL_ARG, "internal_dpg.mvKey_None", "Submits callback for all keys" });
         args.push_back({ mvPyDataType::UUID, "parent", mvArgType::KEYWORD_ARG, "internal_dpg.mvReservedUUID_1", "Parent to add this item to. (runtime adding)" });
 
         setup.about = "Adds a key press handler.";
@@ -4539,7 +4699,7 @@ DearPyGui::GetEntityParser(mvAppItemType type)
             MV_PARSER_ARG_SHOW)
         );
 
-        args.push_back({ mvPyDataType::Integer, "key", mvArgType::POSITIONAL_ARG, "-1", "Submits callback for all keys" });
+        args.push_back({ mvPyDataType::Integer, "key", mvArgType::POSITIONAL_ARG, "internal_dpg.mvKey_None", "Submits callback for all keys" });
         args.push_back({ mvPyDataType::UUID, "parent", mvArgType::KEYWORD_ARG, "internal_dpg.mvReservedUUID_1", "Parent to add this item to. (runtime adding)" });
 
         setup.about = "Adds a key release handler.";
@@ -5172,10 +5332,11 @@ DearPyGui::GetEntityParser(mvAppItemType type)
         args.push_back({ mvPyDataType::FloatList, "column_ratios", mvArgType::KEYWORD_ARG, "[]" });
 
         // plot flags
-        args.push_back({ mvPyDataType::Bool, "no_title", mvArgType::KEYWORD_ARG, "False" });
+        args.push_back({ mvPyDataType::Bool, "no_title", mvArgType::KEYWORD_ARG, "False", "the subplot title will not be displayed" });
         args.push_back({ mvPyDataType::Bool, "no_menus", mvArgType::KEYWORD_ARG, "False", "the user will not be able to open context menus with right-click" });
         args.push_back({ mvPyDataType::Bool, "no_resize", mvArgType::KEYWORD_ARG, "False", "resize splitters between subplot cells will be not be provided" });
         args.push_back({ mvPyDataType::Bool, "no_align", mvArgType::KEYWORD_ARG, "False", "subplot edges will not be aligned vertically or horizontally" });
+        args.push_back({ mvPyDataType::Bool, "share_series", mvArgType::KEYWORD_ARG, "False", "when set to True, series from all sub-plots will be shared to some extent, using a single common color set and showing them in a single legend in the subplots item. Otherwise each plot will be independent from others and will have its own legend" });
         args.push_back({ mvPyDataType::Bool, "link_rows", mvArgType::KEYWORD_ARG, "False", "link the y-axis limits of all plots in each row (does not apply auxiliary y-axes)" });
         args.push_back({ mvPyDataType::Bool, "link_columns", mvArgType::KEYWORD_ARG, "False", "link the x-axis limits of all plots in each column" });
         args.push_back({ mvPyDataType::Bool, "link_all_x", mvArgType::KEYWORD_ARG, "False", "link the x-axis limits in every plot in the subplot" });
@@ -5342,12 +5503,6 @@ DearPyGui::OnChildAdded(mvAppItem* item, std::shared_ptr<mvAppItem> child)
             mvPlot* actualItem = (mvPlot*)item;
             if (child->type == mvAppItemType::mvPlotLegend)
                 actualItem->configData._flags &= ~ImPlotFlags_NoLegend;
-
-            if (child->type == mvAppItemType::mvPlotAxis)
-            {
-                actualItem->updateFlags();
-                actualItem->updateAxesNames();
-            }
             return;
         }
 
@@ -5395,8 +5550,6 @@ DearPyGui::OnChildRemoved(mvAppItem* item, std::shared_ptr<mvAppItem> child)
             mvPlot* actualItem = (mvPlot*)item;
             if (child->type == mvAppItemType::mvPlotLegend)
                 actualItem->configData._flags |= ImPlotFlags_NoLegend;
-            if (child->type == mvAppItemType::mvPlotAxis)
-                actualItem->updateFlags();
             return;
         }
 

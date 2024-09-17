@@ -19,11 +19,12 @@ static void HelpMarker(const char* desc)
 ImGui::TextDisabled("(?)");
 if (ImGui::IsItemHovered())
 {
-    ImGui::BeginTooltip();
-    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-    ImGui::TextUnformatted(desc);
-    ImGui::PopTextWrapPos();
-    ImGui::EndTooltip();
+    if(ImGui::BeginTooltip()) {
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::TextUnformatted(desc);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
 }
 }
 
@@ -90,6 +91,7 @@ void mvStyleWindow::drawWidgets()
             ImGui::SliderFloat("mvStyleVar_PopupBorderSize", &style.PopupBorderSize, 0.0f, 1.0f, "%.0f");
             ImGui::SliderFloat("mvStyleVar_FrameBorderSize", &style.FrameBorderSize, 0.0f, 1.0f, "%.0f");
             ImGui::SliderFloat("mvStyleVar_TabBorderSize", &style.TabBorderSize, 0.0f, 1.0f, "%.0f");
+            ImGui::SliderFloat("mvStyleVar_TabBarBorderSize", &style.TabBarBorderSize, 0.0f, 1.0f, "%.0f");
             ImGui::Text("Rounding");
             ImGui::SliderFloat("mvStyleVar_WindowRounding", &style.WindowRounding, 0.0f, 12.0f, "%.0f");
             ImGui::SliderFloat("mvStyleVar_ChildRounding", &style.ChildRounding, 0.0f, 12.0f, "%.0f");
@@ -99,8 +101,15 @@ void mvStyleWindow::drawWidgets()
             ImGui::SliderFloat("mvStyleVar_GrabRounding", &style.GrabRounding, 0.0f, 12.0f, "%.0f");
             ImGui::SliderFloat("mvStyleVar_LogSliderDeadzone", &style.LogSliderDeadzone, 0.0f, 12.0f, "%.0f");
             ImGui::SliderFloat("mvStyleVar_TabRounding", &style.TabRounding, 0.0f, 12.0f, "%.0f");
+            ImGui::Text("AntiAliasing");
+            ImGui::Checkbox("AntiAliasedLines", &style.AntiAliasedLines);
+            ImGui::Checkbox("AntiAliasedLinesUseTex", &style.AntiAliasedLinesUseTex);
+            ImGui::Checkbox("AntiAliasedFill", &style.AntiAliasedFill);
+            ImGui::Text("Docking");
+            ImGui::SliderFloat("DockingSplitterSize", &style.DockingSeparatorSize, 0.0f, 12.0f, "%.0f");
             ImGui::Text("Alignment");
             ImGui::SliderFloat2("mvStyleVar_WindowTitleAlign", (float*)&style.WindowTitleAlign, 0.0f, 1.0f, "%.2f");
+            ImGui::SliderFloat2("mvStyleVar_TableAngledHeadersTextAlign", (float*)&style.TableAngledHeadersTextAlign, 0.0f, 1.0f, "%.2f");
             //int window_menu_button_position = style.WindowMenuButtonPosition + 1;
             //if (ImGui::Combo("WindowMenuButtonPosition", (int*)&window_menu_button_position, "None\0Left\0Right\0"))
             //    style.WindowMenuButtonPosition = window_menu_button_position - 1;
@@ -124,7 +133,6 @@ void mvStyleWindow::drawWidgets()
             ImGui::SliderFloat("DigitalBitGap", &plotstyle.DigitalBitGap, 0.0f, 20.0f, "%.1f");
             float indent = ImGui::CalcItemWidth() - ImGui::GetFrameHeight();
             ImGui::Indent(ImGui::CalcItemWidth() - ImGui::GetFrameHeight());
-            ImGui::Checkbox("AntiAliasedLines", &plotstyle.AntiAliasedLines);
             ImGui::Unindent(indent);
             ImGui::Text("Plot Styling");
             ImGui::SliderFloat("PlotBorderSize", &plotstyle.PlotBorderSize, 0.0f, 2.0f, "%.0f");
@@ -163,6 +171,8 @@ void mvStyleWindow::drawWidgets()
             ImGui::SliderFloat("mvNodeStyleVar_PinOffset", &ImNodes::GetStyle().PinOffset, 0.0f, 10.0f, "%.0f");
             ImGui::SliderFloat2("mvNodesStyleVar_MiniMapPadding", (float*)&ImNodes::GetStyle().MiniMapPadding.x, 0.0f, 10.0f, "%.0f");
             ImGui::SliderFloat2("mvNodesStyleVar_MiniMapOffset", (float*)&ImNodes::GetStyle().MiniMapOffset.y, 0.0f, 10.0f, "%.0f");
+            ImGui::Text("Tables");
+            ImGui::SliderFloat("mvStyleVar_TableAngledHeadersAngle", &style.TableAngledHeadersAngle, -1.0f, +1.0f, "%.2f");
 
             ImGui::EndTabItem();
         }
@@ -182,7 +192,7 @@ void mvStyleWindow::drawWidgets()
                 "Left-click on color square to open color picker,\n"
                 "Right-click to open edit options menu.");
 
-            ImGui::BeginChild("##colors", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NavFlattened);
+            ImGui::BeginChild("##colors", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NavFlattened);
             ImGui::PushItemWidth(-300);
             for (int i = 0; i < ImGuiCol_COUNT; i++)
             {
