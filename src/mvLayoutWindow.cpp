@@ -137,6 +137,7 @@ void mvLayoutWindow::drawWidgets()
         std::lock_guard<std::recursive_mutex> lk(GContext->mutex);
         mvSubmitCallback([&]()
             {
+                mvPySafeLockGuard lk(GContext->mutex);
                 MoveItemUp(*GContext->itemRegistry, m_selectedItem);
             });
     }
@@ -147,6 +148,7 @@ void mvLayoutWindow::drawWidgets()
         std::lock_guard<std::recursive_mutex> lk(GContext->mutex);
         mvSubmitCallback([&]()
             {
+                mvPySafeLockGuard lk(GContext->mutex);
                 MoveItemDown(*GContext->itemRegistry, m_selectedItem);
             });
     }
@@ -156,6 +158,7 @@ void mvLayoutWindow::drawWidgets()
         std::lock_guard<std::recursive_mutex> lk(GContext->mutex);
         mvSubmitCallback([&]()
             {
+                mvPySafeLockGuard lk(GContext->mutex);
                 DeleteItem(*GContext->itemRegistry, m_selectedItem, false);
                 m_selectedItem = 0;
             });
@@ -210,7 +213,7 @@ void mvLayoutWindow::drawWidgets()
     DebugItem("Enabled:", _itemref->config.enabled ? ts : fs);
     DebugItem("Tracked:", _itemref->config.tracked ? ts : fs);
     DebugItem("Callback:", _itemref->config.callback ? ts : fs);
-    DebugItem("User Data:", _itemref->config.user_data ? ts : fs);
+    DebugItem("User Data:", *(_itemref->config.user_data) ? ts : fs);
     DebugItem("Drop Callback:", _itemref->config.dropCallback ? ts : fs);
     DebugItem("Drag Callback:", _itemref->config.dragCallback ? ts : fs);
 

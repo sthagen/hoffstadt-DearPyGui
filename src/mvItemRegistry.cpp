@@ -1075,7 +1075,7 @@ RenderItemRegistry(mvItemRegistry& registry)
         DebugItem("Enabled:", root->config.enabled ? ts : fs);
         DebugItem("Tracked:", root->config.tracked ? ts : fs);
         DebugItem("Callback:", root->config.callback ? ts : fs);
-        DebugItem("User Data:", root->config.user_data ? ts : fs);
+        DebugItem("User Data:", *(root->config.user_data) ? ts : fs);
         DebugItem("Drop Callback:", root->config.dropCallback ? ts : fs);
         DebugItem("Drag Callback:", root->config.dragCallback ? ts : fs);
 
@@ -1275,14 +1275,10 @@ AddItemWithRuntimeChecks(mvItemRegistry& registry, std::shared_ptr<mvAppItem> it
   
         // this is a unique situation in that the caller always has the GIL
         registry.capturedItem = item;
-        mvRunCallback(registry.captureCallback, registry.capturedItem->uuid, nullptr, nullptr);
-        Py_XDECREF(registry.captureCallback);
+        mvRunCallback(registry.captureCallback, nullptr, registry.capturedItem->uuid);
         registry.captureCallback = nullptr;
         return true;
     }
-
-    if (DearPyGui::GetEntityDesciptionFlags(item->type) & MV_ITEM_DESC_HANDLER && parent == 0)
-        parent = item->config.parent;
 
     if (item == nullptr)
         return false;
@@ -1290,6 +1286,11 @@ AddItemWithRuntimeChecks(mvItemRegistry& registry, std::shared_ptr<mvAppItem> it
     // check if item is ok
     if (!item->state.ok)
         return false;
+
+    mvPySafeLockGuard lk(GContext->mutex);
+
+    if (DearPyGui::GetEntityDesciptionFlags(item->type) & MV_ITEM_DESC_HANDLER && parent == 0)
+        parent = item->config.parent;
 
     //---------------------------------------------------------------------------
     // STEP 0: updata "last" information
@@ -1322,8 +1323,6 @@ AddItemWithRuntimeChecks(mvItemRegistry& registry, std::shared_ptr<mvAppItem> it
         NONE, STAGE, BEFORE, PARENT, STACK
     };
     AddTechnique technique = AddTechnique::NONE;
-
-     std::lock_guard<std::recursive_mutex> lk(GContext->mutex);
 
     //---------------------------------------------------------------------------
     // STEP 2: handle root case

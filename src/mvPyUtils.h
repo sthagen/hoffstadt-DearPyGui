@@ -25,12 +25,60 @@ struct mvGlobalIntepreterLock
 
 };
 
+// Note: the caller MUST hold GIL during instantiation of this class.
+// This class is similar to std::lock_guard, except that it releases GIL
+// before attempting to lock the mutex, and acquires GIL again once it
+// succeeds with mutex lock.  For the code using it, it works exactly like
+// std::lock_guard, but prevents potential deadlocks between threads using Python.
+template <class MutexType>
+class mvPySafeLockGuard
+{
+public:
+    explicit mvPySafeLockGuard(MutexType &mutex)
+        : _mutex(mutex)
+    {
+#ifdef MV_NO_USER_THREADS
+
+        // Technically, for MV_NO_USER_THREADS we could simply declare mvPySafeLockGuard
+        // to be an alias of std::lock_guard.  However, on pre-C++20 compilers this
+        // would require explicit specification of template arguments because argument
+        // deduction on alias templates was disallowed back then.  This would make
+        // the code bulky, so let's just reimplement std::lock here so that MutexType
+        // can be deduced.
+        mutex.lock();
+
+#else // !MV_NO_USER_THREADS
+
+        Py_BEGIN_ALLOW_THREADS;
+        mutex.lock();
+        Py_END_ALLOW_THREADS;
+
+#endif // !MV_NO_USER_THREADS
+    }
+
+    ~mvPySafeLockGuard() noexcept
+    {
+        _mutex.unlock();
+    }
+
+    mvPySafeLockGuard(const mvPySafeLockGuard&) = delete;
+    mvPySafeLockGuard &operator=(const mvPySafeLockGuard&) = delete;
+
+private:
+    MutexType& _mutex;
+};
+
 class mvPyObject
 {
 
 public:
 
-	mvPyObject(PyObject* rawObject, bool borrowed=false);
+    // With `borrowed=false`, the reference is meant for `mvPyObject` to take
+    // ownership of it. `mvPyObject` "steals" the reference from its previous owner;
+    // the reference count is not incremented.
+    // With `borrowed=true`, `mvPyObject` makes its own owned reference by incrementing
+    // the reference count; the original owner keeps ownership too.
+	mvPyObject(PyObject* rawObject, bool borrowed = false);
 	mvPyObject(mvPyObject&& other);
 	mvPyObject& operator=(mvPyObject&& other);
 
@@ -39,18 +87,16 @@ public:
 
 	~mvPyObject();
 
-	void addRef();
-	void delRef();
-	bool isOk() const { return m_ok; }
+	bool isOk() const { return (m_rawObject != nullptr); }
 
-	operator PyObject* ();
+	operator PyObject* () const
+    {
+        return m_rawObject;
+    }
 
 private:
 
 	PyObject* m_rawObject;
-	bool      m_borrowed;
-	bool      m_ok;
-	bool      m_del = false;
 
 };
 
@@ -92,6 +138,7 @@ bool isPyObject_Any           (PyObject* obj);
 PyObject*   GetPyNone ();
 PyObject*   ToPyUUID  (mvAppItem* item);
 PyObject*   ToPyUUID  (mvUUID value);
+PyObject*   ToPyUUID  (mvUUID uuid, const std::string& alias);
 PyObject*   ToPyLong  (long value);
 PyObject*   ToPyInt   (int value);
 PyObject*   ToPyFloat (float value);
