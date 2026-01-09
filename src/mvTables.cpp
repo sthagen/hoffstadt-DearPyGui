@@ -153,6 +153,10 @@ void mvTable::draw(ImDrawList* drawlist, float x, float y)
 	if (all_hidden)
 		return;
 
+	// set indent
+	if (config.indent > 0.0f)
+		ImGui::Indent(config.indent);
+
 	// push font if a font object is attached
 	if (font)
 	{
@@ -177,6 +181,12 @@ void mvTable::draw(ImDrawList* drawlist, float x, float y)
 			if (prev_visible_row)
 				cleanup_local_theming(prev_visible_row);
 			apply_local_theming(row);
+
+			if (row->font)
+			{
+				ImFont* fontptr = static_cast<mvFont*>(row->font.get())->getFontPtr();
+				ImGui::PushFont(fontptr);
+			}
 
 			row->state.lastFrameUpdate = GContext->frame;
 			row->state.visible = true;
@@ -224,6 +234,9 @@ void mvTable::draw(ImDrawList* drawlist, float x, float y)
 				cleanup_local_theming(cell.get());
 				cleanup_local_theming(columnItem.get());
 			}
+
+			if (row->font)
+				ImGui::PopFont();
 		};
 
 		handleImmediateScroll();
@@ -397,6 +410,9 @@ void mvTable::draw(ImDrawList* drawlist, float x, float y)
 	// pop font off stack
 	if (font)
 		ImGui::PopFont();
+
+	if (config.indent > 0.0f)
+		ImGui::Unindent(config.indent);
 
 	// handle popping themes
 	cleanup_local_theming(this);
