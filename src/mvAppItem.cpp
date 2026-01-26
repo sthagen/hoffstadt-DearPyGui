@@ -44,7 +44,7 @@ mvAppItem::~mvAppItem()
             if (!GContext->IO.manualAliasManagement)
                 GContext->itemRegistry->aliases.erase(config.alias);
         }
-        CleanUpItem(*GContext->itemRegistry, uuid);
+        GContext->itemRegistry->allItems.erase(uuid);
     }
 }
 
@@ -218,7 +218,6 @@ mvAppItem::handleKeywordArgs(PyObject* dict, const std::string& parser)
         }
     }
     if (PyObject* item = PyDict_GetItemString(dict, "tracked")) config.tracked = ToBool(item);
-    if (PyObject* item = PyDict_GetItemString(dict, "delay_search")) config.searchLast = ToBool(item);
     if (PyObject* item = PyDict_GetItemString(dict, "track_offset"))
     {
         config.trackOffset = ToFloat(item);
@@ -566,6 +565,7 @@ CanItemTypeBeVisible(mvAppItemType type)
     case mvAppItemType::mvTable:
     case mvAppItemType::mvTableColumn:
     case mvAppItemType::mvTableRow:
+    case mvAppItemType::mvSyncedTables:
     case mvAppItemType::mvButton: return true;
     default: return false;
     }
@@ -1009,6 +1009,7 @@ DearPyGui::GetEntityDesciptionFlags(mvAppItemType type)
     case mvAppItemType::mvTable:
     case mvAppItemType::mvTableCell:
     case mvAppItemType::mvTableRow:
+    case mvAppItemType::mvSyncedTables:
     case mvAppItemType::mv2dHistogramSeries:
     case mvAppItemType::mvAreaSeries:
     case mvAppItemType::mvBarSeries:
@@ -3347,6 +3348,24 @@ DearPyGui::GetEntityParser(mvAppItemType type)
             MV_PARSER_ARG_SHOW)
         );
         setup.about = "Adds a table row.";
+        setup.category = { "Tables", "Containers", "Widgets" };
+        setup.createContextManager = true;
+        break;
+    }
+    case mvAppItemType::mvSyncedTables:                    
+    {
+        AddCommonArgs(args, (CommonParserArgs)(
+            MV_PARSER_ARG_ID |
+            MV_PARSER_ARG_PARENT |
+            MV_PARSER_ARG_BEFORE |
+            MV_PARSER_ARG_FILTER |
+            MV_PARSER_ARG_SHOW)
+        );
+
+        setup.about = 
+                "Links all tables that are immediate children of this container so that they share "
+                "their state (mostly column sizes).  Other children are rendered as is.  This is "
+                "an experimental feature, use with caution.";
         setup.category = { "Tables", "Containers", "Widgets" };
         setup.createContextManager = true;
         break;

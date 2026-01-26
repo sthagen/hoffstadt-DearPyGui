@@ -131,8 +131,6 @@ struct mvAppItemConfig
     float       trackOffset = 0.5f; // 0.0f:top, 0.5f:center, 1.0f:bottom
     bool        show             = true;
     bool        enabled          = true;
-    bool        searchLast       = false;
-    bool        searchDelayed    = false;
     bool        useInternalLabel = true; // when false, will use specificed label
     bool        tracked          = false;
     mvPyObject  callback         = nullptr;
@@ -338,6 +336,7 @@ GetEntityCommand(mvAppItemType type)
     case mvAppItemType::mvTable:                       return "add_table";
     case mvAppItemType::mvTableColumn:                 return "add_table_column";
     case mvAppItemType::mvTableRow:                    return "add_table_row";
+    case mvAppItemType::mvSyncedTables:                return "add_synced_tables";
     case mvAppItemType::mvDrawLine:                    return "draw_line";
     case mvAppItemType::mvDrawArrow:                   return "draw_arrow";
     case mvAppItemType::mvDrawTriangle:                return "draw_triangle";

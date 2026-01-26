@@ -3128,7 +3128,15 @@ move_item(PyObject* self, PyObject* args, PyObject* kwargs)
 	mvUUID parent = GetIDFromPyObject(parentraw);
 	mvUUID before = GetIDFromPyObject(beforeraw);
 
-	MoveItem((*GContext->itemRegistry), item, parent, before);
+	if (before == 0 && parent == 0)
+	{
+		mvThrowPythonError(mvErrorCode::mvItemNotFound, "move_item",
+			"move_item requires either `parent` or `before` to be specified.", nullptr);
+		return nullptr;
+	}
+
+	if (!MoveItem((*GContext->itemRegistry), item, parent, before))
+		return nullptr;
 
 	return GetPyNone();
 }
@@ -3186,7 +3194,8 @@ move_item_up(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	mvUUID item = GetIDFromPyObject(itemraw);
 
-	MoveItemUp((*GContext->itemRegistry), item);
+	if (!MoveItemUp((*GContext->itemRegistry), item))
+		return nullptr;
 
 	return GetPyNone();
 
@@ -3205,7 +3214,8 @@ move_item_down(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	mvUUID item = GetIDFromPyObject(itemraw);
 
-	MoveItemDown((*GContext->itemRegistry), item);
+	if (!MoveItemDown((*GContext->itemRegistry), item))
+		return nullptr;
 
 	return GetPyNone();
 }
@@ -3227,26 +3237,9 @@ reorder_items(PyObject* self, PyObject* args, PyObject* kwargs)
 	auto anew_order = ToUUIDVect(new_order);
 	mvUUID container = GetIDFromPyObject(containerraw);
 
-	mvAppItem* parent = GetItem((*GContext->itemRegistry), container);
+	if (!ReorderChildren(*GContext->itemRegistry, container, slot, anew_order))
+		return nullptr;
 
-	std::vector<std::shared_ptr<mvAppItem>>& children = parent->childslots[slot];
-
-	std::vector<std::shared_ptr<mvAppItem>> newchildren;
-	newchildren.reserve(children.size());
-
-	// todo: better sorting algorithm
-	for (const auto& item : anew_order)
-	{
-		for (auto& child : children)
-		{
-			if (child->uuid == item)
-			{
-				newchildren.emplace_back(child);
-				break;
-			}
-		}
-	}
-	children = newchildren;
 	return GetPyNone();
 }
 
@@ -3280,10 +3273,7 @@ unstage(PyObject* self, PyObject* args, PyObject* kwargs)
 	}
 
 	if (item_found)
-	{
-		CleanUpItem(*GContext->itemRegistry, item);
 		return GetPyNone();
-	}
 
 	mvThrowPythonError(mvErrorCode::mvItemNotFound, "unstage",
 		"Stage not found: " + std::to_string(item), nullptr);
