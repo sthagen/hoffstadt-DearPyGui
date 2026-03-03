@@ -2,10 +2,7 @@
 
 #include <vector>
 #include <map>
-#include <stack>
 #include <string>
-#include <queue>
-#include <thread>
 #include <future>
 #include <atomic>
 #include <memory>
@@ -96,6 +93,8 @@ struct mvIO
 
     // callback registry
     bool manualCallbacks = false;
+
+    bool altEnterFullscreen = false;
 
     ImWchar decimalPoint = '.';
 };
